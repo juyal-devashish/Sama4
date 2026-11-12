@@ -37,10 +37,10 @@ const NAV = [
     match: (p: string) => p.startsWith("/outlook"),
   },
   {
-    href: "/announcements",
-    label: "Announcements",
+    href: "/early-access",
+    label: "Early access",
     icon: Megaphone,
-    match: (p: string) => p.startsWith("/announcements"),
+    match: (p: string) => p.startsWith("/early-access"),
   },
 ];
 

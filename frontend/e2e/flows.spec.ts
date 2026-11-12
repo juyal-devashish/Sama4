@@ -141,3 +141,20 @@ test("publisher text and samā4-generated text are labelled", async ({ page }) =
     page.getByText("Written by samā4's AI from Wikipedia and this story."),
   ).toBeVisible();
 });
+
+test("the old Announcements link lands on Early access, with a way back to reading", async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto("/announcements");
+  await expect(page).toHaveURL(/\/early-access$/);
+  await expect(page.getByRole("link", { name: "Early access", exact: true })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(page.getByRole("link", { name: "Back to today's stories" })).toBeVisible();
+  // One navigation: the page's own top nav is hidden inside the app.
+  await expect(page.locator(".s4-landing > nav")).toBeHidden();
+  await expect(page.getByText(/Samā4/)).toHaveCount(0);
+});

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { useJoinWaitlist } from "@/hooks/useJoinWaitlist";
 import { ApiError } from "@/lib/api";
 import "./landing.css";
@@ -92,7 +94,9 @@ export function Landing() {
       });
     };
     terms.forEach((term) => {
+      // Hover is a shortcut; a click (or tap) shows the card too.
       on(term, "mouseenter", () => term.classList.contains("highlighted") && showCard(term));
+      on(term, "click", () => term.classList.contains("highlighted") && showCard(term));
       on(term, "mouseleave", hideCard);
     });
     const demo = $(".hero-demo");
@@ -213,8 +217,39 @@ export function Landing() {
     };
   }, []);
 
+  const jump = (id: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    root.current?.querySelector(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <div className="scroll-thin flex-1 overflow-y-auto">
+      {/* The original page's own top nav is hidden in the app (landing.css); this bar
+          uses the app's chrome so it's clear the sidebar is the navigation. */}
+      <header className="sticky top-0 z-[101] flex h-14 items-center gap-2 border-b bg-surface/90 px-4 backdrop-blur sm:px-6">
+        <Link
+          href="/"
+          className="-ml-2 flex h-9 items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium text-text-secondary hover:bg-background-secondary hover:text-foreground"
+        >
+          <ArrowLeft size={16} aria-hidden /> Back to today&apos;s stories
+        </Link>
+        <nav aria-label="On this page" className="ml-auto hidden items-center gap-1 sm:flex">
+          {[
+            ["#how", "How it works"],
+            ["#features", "Features"],
+            ["#waitlist", "Join the waitlist"],
+          ].map(([href, label]) => (
+            <a
+              key={href}
+              href={href}
+              onClick={jump(href)}
+              className="flex h-9 items-center rounded-lg px-3 text-[13px] font-medium text-text-secondary hover:bg-background-secondary hover:text-foreground"
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
+      </header>
       {/* Static, trusted markup generated from the original page (no user input). */}
       <div ref={root} className="s4-landing" dangerouslySetInnerHTML={{ __html: LANDING_MARKUP }} />
     </div>

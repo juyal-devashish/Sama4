@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockApi } from "./mock-api";
 
-const routes = ["/", "/search", "/saved", "/outlook", "/announcements", "/settings"];
+const routes = ["/", "/search", "/saved", "/outlook", "/early-access", "/settings"];
 const themes = ["light", "dark"] as const;
 
 for (const route of routes) {
@@ -17,9 +17,9 @@ for (const route of routes) {
       }, theme);
       await page.goto(route);
       await page.waitForLoadState("networkidle");
-      // The announcements page fades its hero and phone mock in; axe samples
+      // The early-access page fades its hero and phone mock in; axe samples
       // mid-fade colours unless we let the animations finish first.
-      if (route === "/announcements") await page.waitForTimeout(4000);
+      if (route === "/early-access") await page.waitForTimeout(4000);
       const results = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"])
         .analyze();
