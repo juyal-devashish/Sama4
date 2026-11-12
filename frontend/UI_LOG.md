@@ -47,7 +47,14 @@
 - "Match system" wrapped and the switch ended at x=384 on a 375px screen. Icons hidden and label
   shortened below `sm`; layout test fails without the fix.
 
-### PR #18 — keyboard shortcut e2e (J/K, S, /) (this PR)
+### PR #18 — keyboard shortcut e2e (J/K, S, /) (merged)
+
+### PR #19 — calmer desktop chrome (round 2: desktop focus, at Devashish's request)
+
+- Audit at 1440/1920, light/dark, idle and with a term open. The reading-pane bar drew a rule
+  across the middle of the three panes (list and margin have none) and repeated the source name
+  shown under the headline. Rule + source name now appear only after the story scrolls.
+- Selected story: ring and shadow removed; surface fill + accent bar only.
 
 ## Decisions
 
@@ -90,6 +97,17 @@ Production verified after #13: new tokens live, console clean.
 Top backlog next time: re-run Lighthouse after these PRs; screenshot baselines (needs Linux
 baselines generated in CI); mobile bottom nav proposal; Outlook with real prediction data
 (fixtures have none); focus handling inside the mobile drawer.
+
+## Desktop backlog (round 2 audit, not yet done)
+
+1. Context margin: the follow-up box is pinned to the bottom, ~700px below the explanation at
+   1080px tall. Consider placing it directly under the explanation until a conversation starts.
+2. Pane top alignment: "Today" (y≈41), the reading bar (centre y≈29) and the margin heading
+   (y≈34) sit on three different lines. Put all three on one 56px header band.
+3. Topic chips wrap to two rows in the 340px list (6 chips ≈ 465px). One scrollable row, or move
+   topic filtering into the "Today" header as a menu.
+4. Headline weight: 44px Poppins 800 is heavy next to 18px Roboto body; 700 may read calmer.
+   (Typography change — your call.)
 
 ## Proposals (need your call — not done)
 

@@ -55,9 +55,7 @@ export const StoryRow = forwardRef<
       className={cn(
         "group relative flex w-full gap-4 rounded-xl px-4 text-left transition-colors",
         dense ? "py-3" : "py-4",
-        selected
-          ? "bg-surface shadow-[0_1px_0_var(--border),0_0_0_1px_var(--border)]"
-          : "hover:bg-surface/70",
+        selected ? "bg-surface" : "hover:bg-surface/70",
       )}
     >
       {selected && (
