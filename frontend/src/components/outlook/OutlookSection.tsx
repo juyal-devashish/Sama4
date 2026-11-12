@@ -10,6 +10,15 @@ import {
   useTriggerSimulation,
 } from "@/hooks/usePrediction";
 import { RUNNING_PREDICTION_STATES, cn } from "@/lib/utils";
+import {
+  CONFIDENCE_HELP,
+  IMPACT_HELP,
+  OUTLOOK_DISCLAIMER,
+  PERSONA_HELP,
+  REACTION_HELP,
+  basisNote,
+  methodSummary,
+} from "@/lib/outlook";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/states";
 import type { AgentPerspective, PredictionDetail } from "@/types";
 
@@ -30,12 +39,17 @@ const STATUS_COPY: Record<string, string> = {
 };
 
 /** "What might happen next": multi-agent prediction for one story. */
+export type OutlookBasis = { publisher: string; words: number; summaryOnly: boolean };
+
 export function OutlookSection({
   articleId,
   articleTitle,
+  basis,
 }: {
   articleId: string;
   articleTitle: string;
+  /** The text the outlook is generated from, so the reader can judge how thin it was. */
+  basis: OutlookBasis;
 }) {
   const { data: prediction, refetch } = usePrediction(articleId);
   const trigger = useTriggerSimulation();
@@ -51,9 +65,12 @@ export function OutlookSection({
       <h2 id="outlook-title" className="font-display text-[22px] font-semibold tracking-[-0.01em]">
         What might happen next
       </h2>
+      <p className="mt-1.5 max-w-[60ch] text-[13.5px] leading-relaxed text-text-tertiary">
+        {OUTLOOK_DISCLAIMER}
+      </p>
 
       {prediction?.status === "completed" ? (
-        <OutlookReport prediction={prediction} articleTitle={articleTitle} />
+        <OutlookReport prediction={prediction} articleTitle={articleTitle} basis={basis} />
       ) : running ? (
         <div className="mt-4 flex items-center gap-3 text-[14.5px] text-text-secondary">
           <Loader2 size={16} className="animate-spin text-accent-primary" />
@@ -110,24 +127,41 @@ function parseSentiment(
 function OutlookReport({
   prediction,
   articleTitle,
+  basis,
 }: {
   prediction: PredictionDetail;
   articleTitle: string;
+  basis: OutlookBasis;
 }) {
   const sentiment = parseSentiment(prediction.sentiment_distribution);
   const confidence =
     prediction.confidence_score != null ? Math.round(prediction.confidence_score * 100) : null;
+  const method = methodSummary(
+    prediction.method,
+    prediction.agent_count,
+    prediction.simulation_rounds,
+    prediction.agent_perspectives.length,
+  );
 
   return (
     <div className="mt-4 space-y-10">
       <div>
+        <p className="mb-4 rounded-lg bg-background-secondary px-3.5 py-2.5 text-[13.5px] leading-relaxed text-text-secondary">
+          {basisNote(basis.publisher, basis.words, basis.summaryOnly)}
+        </p>
         {prediction.prediction_summary && (
           <p className="text-[17px] leading-[1.7]">{prediction.prediction_summary}</p>
         )}
-        <dl className="mt-5 flex flex-wrap gap-x-10 gap-y-3">
-          {confidence != null && <Stat label="Confidence" value={`${confidence}%`} />}
-          <Stat label="Impact" value={`${Math.round(prediction.impact_score)} / 100`} />
-          <Stat label="Perspectives simulated" value={String(prediction.agent_count)} />
+        <dl className="mt-6 grid gap-x-8 gap-y-5 sm:grid-cols-3">
+          {confidence != null && (
+            <Stat label="Model confidence" value={`${confidence}%`} help={CONFIDENCE_HELP} />
+          )}
+          <Stat
+            label="Impact (estimate)"
+            value={`${Math.round(prediction.impact_score)} / 100`}
+            help={IMPACT_HELP}
+          />
+          <Stat label={method.label} value={method.value} help={method.help} />
         </dl>
       </div>
 
@@ -165,7 +199,8 @@ function OutlookReport({
 
       {sentiment && (
         <div>
-          <h3 className="font-display text-[15px] font-semibold">Public reaction</h3>
+          <h3 className="font-display text-[15px] font-semibold">Estimated public reaction</h3>
+          <p className="mt-1 text-[13.5px] text-text-tertiary">{REACTION_HELP}</p>
           <div
             className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-background-secondary"
             aria-hidden
@@ -186,9 +221,9 @@ function OutlookReport({
 
       {prediction.agent_perspectives.length > 0 && (
         <div>
-          <h3 className="font-display text-[15px] font-semibold">How people involved see it</h3>
-          <p className="mt-1 text-[13.5px] text-text-tertiary">
-            Open a perspective to ask that person a question.
+          <h3 className="font-display text-[15px] font-semibold">Simulated viewpoints</h3>
+          <p className="mt-1 max-w-[62ch] text-[13.5px] text-text-tertiary">
+            {PERSONA_HELP} Open one to ask it a question.
           </p>
           <div className="mt-4 grid gap-3 lg:grid-cols-2">
             {prediction.agent_perspectives.map((a) => (
@@ -203,11 +238,12 @@ function OutlookReport({
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, help }: { label: string; value: string; help: string }) {
   return (
     <div>
       <dt className="text-[12.5px] text-text-tertiary">{label}</dt>
       <dd className="font-display text-[20px] font-semibold tabular-nums">{value}</dd>
+      <dd className="mt-1 text-[12.5px] leading-snug text-text-secondary">{help}</dd>
     </div>
   );
 }
@@ -259,8 +295,11 @@ function Stakeholder({ agent, predictionId }: { agent: AgentPerspective; predict
               {stance.label}
             </span>
           </span>
-          <span className="block truncate text-[12.5px] text-text-tertiary">
-            {agent.agent_role}
+          <span className="flex items-center gap-1.5 text-[12.5px] text-text-tertiary">
+            <span className="flex-shrink-0 rounded border px-1.5 text-[10.5px] font-medium">
+              AI persona
+            </span>
+            <span className="truncate">{agent.agent_role}</span>
           </span>
           {!open && agent.key_argument && (
             <span className="mt-1.5 line-clamp-2 block text-[13.5px] leading-snug text-text-secondary">

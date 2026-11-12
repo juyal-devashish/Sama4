@@ -92,6 +92,7 @@ async def get_article_prediction(
         id=prediction.id,
         article_id=prediction.article_id,
         status=prediction.status,
+        method=prediction.method,
         agent_count=prediction.agent_count,
         simulation_rounds=prediction.simulation_rounds,
         platforms=prediction.platforms or [],

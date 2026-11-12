@@ -5,6 +5,7 @@ import { TrendingUp } from "lucide-react";
 import { useTrendingPredictions } from "@/hooks/usePrediction";
 import { Page } from "@/components/shell/Page";
 import { EmptyState, ErrorState } from "@/components/ui/states";
+import { CONFIDENCE_HELP, IMPACT_HELP } from "@/lib/outlook";
 import { formatTimeAgo } from "@/lib/utils";
 
 function impactColor(score: number) {
@@ -18,7 +19,17 @@ export default function OutlookPage() {
     <Page
       width="max-w-[960px]"
       title="Outlook"
-      description="Stories where samā4 has simulated what might happen next, ranked by how much the outcome could matter."
+      description={
+        <>
+          AI-generated projections of what might happen next in a story, ranked by the model&apos;s
+          estimate of impact. They are estimates, not confirmed events.
+          <span className="mt-2 block text-[13.5px] text-text-tertiary">
+            <strong className="font-medium text-text-secondary">Impact</strong>: {IMPACT_HELP}{" "}
+            <strong className="font-medium text-text-secondary">Model confidence</strong>:{" "}
+            {CONFIDENCE_HELP}
+          </span>
+        </>
+      }
     >
       {isLoading ? (
         <div className="space-y-3" aria-busy="true">
@@ -71,7 +82,7 @@ export default function OutlookPage() {
                   )}
                 </div>
                 <div className="pt-1">
-                  <p className="text-[12px] text-text-tertiary">Impact</p>
+                  <p className="text-[12px] text-text-tertiary">Impact (estimate)</p>
                   <p className="font-display text-[18px] font-semibold tabular-nums">
                     {Math.round(p.impact_score)}
                   </p>
@@ -89,7 +100,7 @@ export default function OutlookPage() {
                   </div>
                   {p.confidence_score != null && (
                     <p className="mt-2 text-[12px] text-text-tertiary">
-                      {Math.round(p.confidence_score * 100)}% confidence
+                      {Math.round(p.confidence_score * 100)}% model confidence
                     </p>
                   )}
                 </div>

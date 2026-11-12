@@ -144,10 +144,15 @@ export interface PredictionSummary {
   completed_at?: string;
 }
 
+/** "simulation": MiroFish simulated agent_count agents. "language_model": nothing was
+ *  simulated; samā4's AI wrote the outlook and its viewpoints directly. */
+export type PredictionMethod = "simulation" | "language_model";
+
 export interface PredictionDetail {
   id: string;
   article_id: string;
   status: string;
+  method?: PredictionMethod;
   agent_count: number;
   simulation_rounds: number;
   platforms: string[];
@@ -203,6 +208,7 @@ export interface TrendingPrediction {
   key_findings: string[];
   impact_score: number;
   confidence_score?: number;
+  method?: PredictionMethod;
   agent_count: number;
   completed_at?: string;
 }

@@ -70,6 +70,12 @@ class Prediction(Base):
         back_populates="prediction", cascade="all, delete-orphan"
     )
 
+    @property
+    def method(self) -> str:
+        """How the outlook was made: "simulation" (MiroFish ran its agents) or
+        "language_model" (the fallback: Claude wrote it directly; nothing was simulated)."""
+        return "simulation" if self.mirofish_simulation_id else "language_model"
+
     def is_stale(self, stale_after: timedelta, now: datetime | None = None) -> bool:
         """True if this run is still "running" but hasn't changed for ``stale_after``."""
         if self.status not in RUNNING_STATUSES:
