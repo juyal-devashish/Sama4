@@ -45,7 +45,7 @@ coverage.xml
 .ruff_cache/
 
 # spaCy models
-backend/models/
+/backend/models/
 
 # Node
 node_modules/
