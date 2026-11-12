@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useStoredValue } from "./storage";
+import { normalizeOnboarding, reduceOnboarding, type OnboardingEvent } from "./onboarding";
 import type { ArticleCard } from "@/types";
 
 // ---------- Theme ----------
@@ -55,8 +56,33 @@ export function useTopics() {
   return [topics.length ? topics : [...ALL_TOPICS], setTopics] as const;
 }
 
+/** @deprecated Read by the old WelcomeDialog only; replaced by `useOnboarding()`. */
 export function useOnboarded() {
   return useStoredValue<boolean>("sama4_onboarded", false);
+}
+
+/**
+ * First-run state (intro + in-app hints). See `lib/onboarding.ts` for the rules.
+ * Until something is saved under the new key, it's derived from the old
+ * `sama4_onboarded` flag so existing readers aren't interrupted.
+ */
+export function useOnboarding() {
+  const [legacy] = useOnboarded();
+  const [stored, setStored] = useStoredValue<unknown>("sama4_onboarding", null);
+  const state = useMemo(() => normalizeOnboarding(stored, legacy), [stored, legacy]);
+
+  const dispatch = useCallback(
+    (event: OnboardingEvent) =>
+      setStored((prev: unknown) => {
+        const current = normalizeOnboarding(prev, legacy);
+        const next = reduceOnboarding(current, event);
+        // Skip the write (and every listener re-render) when nothing changed.
+        return next === current && prev !== null ? prev : next;
+      }),
+    [setStored, legacy],
+  );
+
+  return { state, dispatch };
 }
 
 // ---------- Saved stories ----------
