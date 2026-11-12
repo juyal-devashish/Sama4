@@ -1139,7 +1139,7 @@
   color: var(--text-tertiary);
 }
 .dark .s4-landing .demo-source-date {
-  color: rgba(250, 250, 248, 0.3);
+  color: var(--text-muted);
 }
 .dark .s4-landing .demo-headline {
   color: var(--foreground);
