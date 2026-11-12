@@ -620,7 +620,7 @@
       },
       "context": {
         "text": "American composer known for minimalist music, including operas, symphonies, and film scores.",
-        "generated_at": "2026-11-12T16:35:32.516336Z",
+        "generated_at": "2026-11-12T16:38:23.612909Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -653,7 +653,7 @@
       },
       "context": {
         "text": "The nation's premier performing arts center in Washington D.C., named after President John F. Kennedy.",
-        "generated_at": "2026-11-12T16:35:32.520175Z",
+        "generated_at": "2026-11-12T16:38:23.617656Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -686,7 +686,7 @@
       },
       "context": {
         "text": "Major American orchestra based at the Kennedy Center in Washington D.C.",
-        "generated_at": "2026-11-12T16:35:32.523582Z",
+        "generated_at": "2026-11-12T16:38:23.620653Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -719,7 +719,7 @@
       },
       "context": {
         "text": "French-born American cellist, considered one of the greatest cellists of all time.",
-        "generated_at": "2026-11-12T16:35:32.526833Z",
+        "generated_at": "2026-11-12T16:38:23.623365Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -752,7 +752,7 @@
       },
       "context": {
         "text": "AI research company that created ChatGPT and the GPT series of language models.",
-        "generated_at": "2026-11-12T16:35:32.533691Z",
+        "generated_at": "2026-11-12T16:38:23.629699Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -785,7 +785,7 @@
       },
       "context": {
         "text": "CEO of OpenAI, former president of Y Combinator.",
-        "generated_at": "2026-11-12T16:35:32.536797Z",
+        "generated_at": "2026-11-12T16:38:23.632628Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -818,7 +818,7 @@
       },
       "context": {
         "text": "Google's AI research lab, known for AlphaGo and Gemini.",
-        "generated_at": "2026-11-12T16:35:32.539898Z",
+        "generated_at": "2026-11-12T16:38:23.635266Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -851,7 +851,7 @@
       },
       "context": {
         "text": "AI safety company founded by former OpenAI members, creator of the Claude AI assistant.",
-        "generated_at": "2026-11-12T16:35:32.543541Z",
+        "generated_at": "2026-11-12T16:38:23.637878Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -884,7 +884,7 @@
       },
       "context": {
         "text": "The central bank of the United States, responsible for monetary policy and interest rates.",
-        "generated_at": "2026-11-12T16:35:32.550172Z",
+        "generated_at": "2026-11-12T16:38:23.644525Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -917,7 +917,7 @@
       },
       "context": {
         "text": "Chair of the Federal Reserve since 2018, overseeing U.S. monetary policy.",
-        "generated_at": "2026-11-12T16:35:32.552825Z",
+        "generated_at": "2026-11-12T16:38:23.647189Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -950,7 +950,7 @@
       },
       "context": {
         "text": "A stock market index tracking 500 of the largest U.S. public companies, widely used as a market benchmark.",
-        "generated_at": "2026-11-12T16:35:32.555483Z",
+        "generated_at": "2026-11-12T16:38:23.649857Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -983,7 +983,7 @@
       },
       "context": {
         "text": "President of the European Central Bank since 2019, former head of the IMF.",
-        "generated_at": "2026-11-12T16:35:32.558004Z",
+        "generated_at": "2026-11-12T16:38:23.652390Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -1016,7 +1016,7 @@
       },
       "context": {
         "text": "The U.S. federal agency responsible for space exploration and aeronautics research.",
-        "generated_at": "2026-11-12T16:35:32.564043Z",
+        "generated_at": "2026-11-12T16:38:23.658150Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -1049,7 +1049,7 @@
       },
       "context": {
         "text": "Private aerospace company founded by Elon Musk, developing rockets and the Starship vehicle.",
-        "generated_at": "2026-11-12T16:35:32.566845Z",
+        "generated_at": "2026-11-12T16:38:23.660684Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -1082,7 +1082,7 @@
       },
       "context": {
         "text": "Administrator of NASA since 2021, former U.S. Senator from Florida.",
-        "generated_at": "2026-11-12T16:35:32.569661Z",
+        "generated_at": "2026-11-12T16:38:23.663188Z",
         "source": "rag_pipeline",
         "cached": false
       },
@@ -1115,7 +1115,7 @@
       },
       "context": {
         "text": "CEO of SpaceX and Tesla, one of the world's wealthiest people.",
-        "generated_at": "2026-11-12T16:35:32.572691Z",
+        "generated_at": "2026-11-12T16:38:23.665727Z",
         "source": "rag_pipeline",
         "cached": false
       },
