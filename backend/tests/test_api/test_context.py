@@ -57,6 +57,53 @@ async def test_context_uses_stored_context_when_llm_unavailable(client, containe
     assert container.llm.calls == []
 
 
+async def test_cache_hit_still_returns_related_entities_and_articles(client, container, db_session):
+    async with db_session() as db:
+        article = await make_article(db, title="Related story")
+        ada = await make_entity(db, name="Ada Lovelace", article=article)
+        await make_entity(db, name="Charles Babbage", article=article, start=10)
+        await db.commit()
+    container.vectors.matches = [
+        {"id": vector_id_for_article(article.id), "score": 0.9, "metadata": {"title": "Related"}}
+    ]
+
+    first = (await client.get(f"/api/v1/context/{ada.id}")).json()
+    second = (await client.get(f"/api/v1/context/{ada.id}")).json()
+
+    assert second["context"]["cached"] is True
+    assert second["related_entities"] == first["related_entities"] != []
+    assert second["related_articles"] == first["related_articles"] != []
+
+
+async def test_empty_reply_from_claude_is_not_cached(client, container, db_session):
+    async with db_session() as db:
+        ada = await make_entity(db, name="Ada", short_context="Stored context.")
+        await db.commit()
+    container.llm.default = ""  # Claude declined
+
+    first = (await client.get(f"/api/v1/context/{ada.id}")).json()
+    container.llm.default = "Ada was a mathematician."
+    second = (await client.get(f"/api/v1/context/{ada.id}")).json()
+
+    assert first["context"]["text"] == "Stored context."
+    assert second["context"] == {**second["context"], "text": "Ada was a mathematician."}
+    assert second["context"]["cached"] is False
+
+
+async def test_fallback_text_is_not_cached_while_claude_is_down(client, container, db_session):
+    async with db_session() as db:
+        ada = await make_entity(db, name="Ada", short_context="Stored context.")
+        await db.commit()
+    container.llm.available = False
+    await client.get(f"/api/v1/context/{ada.id}")
+
+    container.llm.available = True
+    container.llm.default = "Ada was a mathematician."
+    body = (await client.get(f"/api/v1/context/{ada.id}")).json()
+
+    assert body["context"]["text"] == "Ada was a mathematician."
+
+
 async def test_context_unknown_entity_404(client):
     response = await client.get(f"/api/v1/context/{uuid.uuid4()}")
     assert response.status_code == 404
