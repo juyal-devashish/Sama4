@@ -114,6 +114,12 @@ export const api = {
     });
   },
 
+  cancelPrediction(predictionId: string) {
+    return fetchAPI<PredictionStatus>(apiPath(`/predictions/${predictionId}/cancel`), {
+      method: "POST",
+    });
+  },
+
   getPredictionStatus(predictionId: string) {
     return fetchAPI<PredictionStatus>(apiPath(`/predictions/${predictionId}/status`));
   },

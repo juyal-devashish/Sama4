@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { basisNote, methodSummary } from "./outlook";
+import { basisNote, methodSummary, progressSteps } from "./outlook";
 
 describe("methodSummary", () => {
   it("never claims a simulation when the fallback wrote the outlook", () => {
@@ -23,5 +23,25 @@ describe("basisNote", () => {
     );
     expect(basisNote("Reuters", 900, false)).not.toMatch(/short excerpt/);
     expect(basisNote("Reuters", 0, true)).toMatch(/only on samā4's summary/);
+  });
+});
+
+describe("progressSteps", () => {
+  it("marks the current step and those still to come", () => {
+    expect(progressSteps("queued", new Set(["queued"])).map((s) => s.state)).toEqual([
+      "current",
+      "pending",
+      "pending",
+    ]);
+  });
+
+  it("never claims a simulation step the run skipped", () => {
+    const steps = progressSteps("generating_report", new Set(["queued", "generating_report"]));
+    expect(steps.map((s) => s.state)).toEqual(["done", "skipped", "current"]);
+  });
+
+  it("marks the simulation done when it was seen", () => {
+    const seen = new Set(["queued", "simulating", "generating_report"]);
+    expect(progressSteps("generating_report", seen)[1].state).toBe("done");
   });
 });

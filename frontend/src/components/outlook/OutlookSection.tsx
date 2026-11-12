@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Loader2, Send } from "lucide-react";
+import { Check, ChevronDown, Circle, Loader2, Minus, Send } from "lucide-react";
 import {
   useAgentInterview,
+  useCancelPrediction,
   usePrediction,
   usePredictionChat,
   usePredictionStatus,
@@ -18,6 +19,7 @@ import {
   REACTION_HELP,
   basisNote,
   methodSummary,
+  progressSteps,
 } from "@/lib/outlook";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/states";
 import type { AgentPerspective, PredictionDetail } from "@/types";
@@ -53,8 +55,21 @@ export function OutlookSection({
 }) {
   const { data: prediction, refetch } = usePrediction(articleId);
   const trigger = useTriggerSimulation();
+  const cancel = useCancelPrediction(articleId);
   const running = !!prediction && RUNNING_PREDICTION_STATES.includes(prediction.status);
   const { data: status } = usePredictionStatus(prediction?.id ?? "", running);
+  const current = status?.status ?? prediction?.status ?? "";
+  // A run just started but not loaded yet: keep Run disabled so it can't be started twice.
+  const starting =
+    trigger.isPending || (trigger.isSuccess && !running && prediction?.id !== trigger.data?.id);
+  const cancelled = cancel.isSuccess && cancel.variables === prediction?.id && !running;
+
+  // Statuses this run has been seen in, so skipped steps aren't shown as done.
+  const seen = useRef<{ id?: string; statuses: Set<string> }>({ statuses: new Set() });
+  if (prediction && seen.current.id !== prediction.id) {
+    seen.current = { id: prediction.id, statuses: new Set() };
+  }
+  if (current) seen.current.statuses.add(current);
 
   useEffect(() => {
     if (status?.status === "completed" || status?.status === "failed") refetch();
@@ -72,29 +87,67 @@ export function OutlookSection({
       {prediction?.status === "completed" ? (
         <OutlookReport prediction={prediction} articleTitle={articleTitle} basis={basis} />
       ) : running ? (
-        <div className="mt-4 flex items-center gap-3 text-[14.5px] text-text-secondary">
-          <Loader2 size={16} className="animate-spin text-accent-primary" />
-          <span>
-            {status?.progress_message ||
-              STATUS_COPY[status?.status ?? prediction!.status] ||
-              "Working"}
-            . This usually takes a few minutes; you can keep reading.
-          </span>
+        <div className="mt-4 rounded-xl border px-4 py-3.5">
+          <ol aria-label="Outlook progress" className="space-y-1.5 text-[14px]">
+            {progressSteps(current, seen.current.statuses).map((step) => (
+              <li
+                key={step.label}
+                aria-current={step.state === "current" ? "step" : undefined}
+                className={cn(
+                  "flex items-center gap-2.5",
+                  step.state === "current" ? "font-medium text-foreground" : "text-text-tertiary",
+                )}
+              >
+                {step.state === "current" ? (
+                  <Loader2 size={15} className="animate-spin text-accent-primary" aria-hidden />
+                ) : step.state === "done" ? (
+                  <Check size={15} className="text-success" aria-hidden />
+                ) : step.state === "skipped" ? (
+                  <Minus size={15} aria-hidden />
+                ) : (
+                  <Circle size={13} className="mx-px" aria-hidden />
+                )}
+                <span>
+                  {step.label}
+                  {step.state === "skipped" && " (skipped)"}
+                  {step.state === "done" && <span className="sr-only"> (done)</span>}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-3 text-[13.5px] text-text-secondary" role="status">
+            {STATUS_COPY[current] ?? "Working"}. This usually takes a few minutes; you can keep
+            reading.
+          </p>
+          <SecondaryButton
+            className="mt-3"
+            disabled={cancel.isPending}
+            onClick={() => prediction && cancel.mutate(prediction.id)}
+          >
+            {cancel.isPending ? "Cancelling" : "Cancel outlook"}
+          </SecondaryButton>
+          {cancel.isError && (
+            <p className="mt-2 text-[13px] text-error">
+              Couldn&apos;t cancel. It may have just finished; reload to check.
+            </p>
+          )}
         </div>
       ) : (
         <div className="mt-3">
           <p className="max-w-[60ch] text-[15px] leading-relaxed text-text-secondary">
-            {prediction?.status === "failed"
-              ? "The last outlook for this story didn't finish. You can run it again."
-              : "samā4 can simulate how the people and groups in this story are likely to react, and what that could lead to. It takes a few minutes."}
+            {cancelled
+              ? "You cancelled the outlook. You can run it again whenever you like."
+              : prediction?.status === "failed"
+                ? "The last outlook for this story didn't finish. You can run it again."
+                : "samā4 can simulate how the people and groups in this story are likely to react, and what that could lead to. It takes a few minutes."}
           </p>
           <PrimaryButton
             className="mt-4"
-            disabled={trigger.isPending}
+            disabled={starting}
             onClick={() => trigger.mutate({ articleId })}
           >
-            {trigger.isPending && <Loader2 size={14} className="animate-spin" />}
-            {trigger.isPending
+            {starting && <Loader2 size={14} className="animate-spin" />}
+            {starting
               ? "Starting"
               : prediction?.status === "failed"
                 ? "Run outlook again"

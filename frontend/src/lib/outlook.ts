@@ -47,3 +47,30 @@ export function basisNote(publisher: string, words: number, summaryOnly: boolean
     ? `${base} That's a short excerpt, so treat this outlook as a rough sketch.`
     : base;
 }
+
+export type StepState = "done" | "current" | "pending" | "skipped";
+
+const STEPS: { label: string; statuses: string[] }[] = [
+  { label: "Waiting to start", statuses: ["queued"] },
+  { label: "Simulating how people react", statuses: ["building_graph", "simulating"] },
+  { label: "Writing the outlook", statuses: ["generating_report"] },
+];
+
+/**
+ * Progress steps for a running outlook. A step the run never went through (the
+ * fallback jumps from queued straight to writing) is "skipped", never "done", so the
+ * list doesn't imply a simulation ran.
+ */
+export function progressSteps(
+  status: string,
+  seen: ReadonlySet<string>,
+): { label: string; state: StepState }[] {
+  const current = STEPS.findIndex((s) => s.statuses.includes(status));
+  return STEPS.map((step, i) => {
+    let state: StepState;
+    if (i === current) state = "current";
+    else if (current === -1 || i > current) state = "pending";
+    else state = step.statuses.some((s) => seen.has(s)) ? "done" : "skipped";
+    return { label: step.label, state };
+  });
+}

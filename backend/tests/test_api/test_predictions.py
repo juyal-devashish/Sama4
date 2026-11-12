@@ -1,15 +1,18 @@
 """Prediction lifecycle: runs that die with the process must not stay "running" forever."""
 
+import json
+import uuid
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 
-from app.ingestion.jobs import fail_interrupted_predictions
+from app.ingestion.jobs import fail_interrupted_predictions, run_simulation
 from app.models.prediction import (
     STATUS_COMPLETED,
     STATUS_FAILED,
     STATUS_QUEUED,
     STATUS_SIMULATING,
+    AgentPerspective,
     Prediction,
 )
 from tests.factories import make_article
@@ -105,3 +108,51 @@ async def test_outlook_says_whether_a_simulation_ran(client, db_session):
     assert a["method"] == "language_model"
     assert b["method"] == "simulation"
     assert {t["method"] for t in trending} == {"language_model", "simulation"}
+
+
+async def test_cancel_stops_a_running_outlook_and_only_once(client, db_session):
+    running = await _prediction(db_session, STATUS_SIMULATING)
+
+    first = await client.post(f"/api/v1/predictions/{running.id}/cancel")
+    again = await client.post(f"/api/v1/predictions/{running.id}/cancel")
+    missing = await client.post(f"/api/v1/predictions/{uuid.uuid4()}/cancel")
+
+    assert (first.status_code, first.json()["status"]) == (200, STATUS_FAILED)
+    assert again.status_code == 409
+    assert missing.status_code == 404
+
+
+async def test_a_run_cancelled_mid_generation_never_saves_its_result(container, db_session):
+    queued = await _prediction(db_session, STATUS_QUEUED)
+    reply = json.dumps(
+        {
+            "prediction_summary": "Should never be saved.",
+            "agent_perspectives": [{"agent_name": "X", "perspective_text": "Y"}],
+        }
+    )
+
+    async def generate_then_get_cancelled(prompt, **kwargs):
+        # The reader presses Cancel while Claude is writing the outlook.
+        async with db_session() as db:
+            row = await db.get(Prediction, queued.id)
+            row.status, row.error_message = STATUS_FAILED, "Cancelled by the reader."
+            await db.commit()
+        return reply
+
+    container.llm.generate = generate_then_get_cancelled
+    await run_simulation(container, str(queued.id))
+
+    async with db_session() as db:
+        row = await db.get(Prediction, queued.id)
+        perspectives = (
+            (
+                await db.execute(
+                    select(AgentPerspective).where(AgentPerspective.prediction_id == queued.id)
+                )
+            )
+            .scalars()
+            .all()
+        )
+    assert (row.status, row.error_message) == (STATUS_FAILED, "Cancelled by the reader.")
+    assert row.prediction_summary is None
+    assert perspectives == []

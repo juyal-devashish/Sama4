@@ -32,6 +32,7 @@ from app.schemas.prediction import (
     PredictionSummary,
     TrendingPrediction,
 )
+from app.services.predictions import CANCELLED_MESSAGE
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -146,6 +147,23 @@ async def get_prediction_status(
         id=prediction.id,
         status=prediction.status,
         progress_message=status_messages.get(prediction.status, prediction.status),
+    )
+
+
+@router.post("/{prediction_id}/cancel", response_model=PredictionStatusOut)
+async def cancel_prediction(
+    prediction_id: uuid.UUID,
+    db: DbSession,
+    prediction_service: PredictionServiceDep,
+) -> PredictionStatusOut:
+    """Stop a running prediction (the reader pressed Cancel). 409 if it isn't running."""
+    prediction = await db.get(Prediction, prediction_id)
+    if not prediction:
+        raise HTTPException(status_code=404, detail="Prediction not found")
+    if not await prediction_service.cancel(prediction, db):
+        raise HTTPException(status_code=409, detail=f"Prediction is {prediction.status}")
+    return PredictionStatusOut(
+        id=prediction.id, status=prediction.status, progress_message=CANCELLED_MESSAGE
     )
 
 
