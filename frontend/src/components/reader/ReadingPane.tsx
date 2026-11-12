@@ -11,6 +11,7 @@ import {
   Check,
   Library,
   Link2,
+  ListTree,
 } from "lucide-react";
 import { useArticle } from "@/hooks/useArticle";
 import { useSavedStories, TOPIC_LABELS } from "@/lib/preferences";
@@ -34,21 +35,32 @@ export function ReadingPane({ articleId, onBack, onOpenArticle }: Props) {
   const [term, setTerm] = useState<SelectedTerm | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
+  // Below the wide breakpoint the margin is a drawer: it opens for a selected term, or
+  // on the term list itself (the toolbar's Terms button), so the list stays reachable.
+  const [listOpen, setListOpen] = useState(false);
+  const drawerOpen = !!term || listOpen;
+  const closeDrawer = () => {
+    setTerm(null);
+    setListOpen(false);
+  };
 
   // New story: clear the margin and go back to the top.
   useEffect(() => {
     setTerm(null);
+    setListOpen(false);
     setProgress(0);
     scrollRef.current?.scrollTo({ top: 0 });
   }, [articleId]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && term) setTerm(null);
+      if (e.key !== "Escape") return;
+      if (term) setTerm(null);
+      else if (listOpen) setListOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [term]);
+  }, [term, listOpen]);
 
   const onScroll = () => {
     const el = scrollRef.current;
@@ -81,6 +93,8 @@ export function ReadingPane({ articleId, onBack, onOpenArticle }: Props) {
             onSelectTerm={setTerm}
             onBack={onBack}
             scrolled={progress > 0}
+            listOpen={listOpen}
+            onOpenTerms={() => setListOpen(true)}
           />
         )}
       </div>
@@ -89,7 +103,7 @@ export function ReadingPane({ articleId, onBack, onOpenArticle }: Props) {
       {article && (
         <>
           <AnimatePresence>
-            {term && (
+            {drawerOpen && (
               <motion.button
                 key="scrim"
                 type="button"
@@ -98,17 +112,18 @@ export function ReadingPane({ articleId, onBack, onOpenArticle }: Props) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                onClick={() => setTerm(null)}
+                onClick={closeDrawer}
               />
             )}
           </AnimatePresence>
           <aside
+            id="context-margin"
             aria-label={term ? `About ${term.name}` : "Terms in this story"}
             className={cn(
               "z-40 w-[380px] flex-shrink-0 border-l bg-background",
               "fixed inset-y-0 right-0 shadow-[var(--shadow-panel)] transition-transform duration-200 ease-out",
               "wide:static wide:translate-x-0 wide:shadow-none",
-              term ? "translate-x-0" : "invisible translate-x-full wide:visible",
+              drawerOpen ? "translate-x-0" : "invisible translate-x-full wide:visible",
             )}
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -129,7 +144,11 @@ export function ReadingPane({ articleId, onBack, onOpenArticle }: Props) {
                     onClose={() => setTerm(null)}
                   />
                 ) : (
-                  <KeyTerms article={article} onSelect={setTerm} />
+                  <KeyTerms
+                    article={article}
+                    onSelect={setTerm}
+                    onClose={listOpen ? () => setListOpen(false) : undefined}
+                  />
                 )}
               </motion.div>
             </AnimatePresence>
@@ -146,6 +165,8 @@ function Story({
   onSelectTerm,
   onBack,
   scrolled,
+  listOpen,
+  onOpenTerms,
 }: {
   article: ArticleDetail;
   term: SelectedTerm | null;
@@ -153,6 +174,9 @@ function Story({
   onBack: () => void;
   /** Once the story scrolls, the bar gets its rule and repeats the source name. */
   scrolled: boolean;
+  listOpen: boolean;
+  /** Narrow screens: open the margin drawer on the list of terms in this story. */
+  onOpenTerms: () => void;
 }) {
   const { isSaved, toggle } = useSavedStories();
   const saved = isSaved(article.id);
@@ -217,6 +241,19 @@ function Story({
           {article.source.name}
         </span>
         <div className="ml-auto flex items-center gap-1">
+          {termCount > 0 && (
+            <button
+              type="button"
+              onClick={onOpenTerms}
+              aria-expanded={listOpen}
+              aria-controls="context-margin"
+              aria-label="Terms in this story"
+              className="flex h-9 items-center gap-2 rounded-lg px-3 text-[13px] font-medium text-text-secondary transition-colors hover:bg-background-secondary hover:text-foreground wide:hidden"
+            >
+              <ListTree size={16} aria-hidden />
+              <span className="hidden sm:inline">Terms</span>
+            </button>
+          )}
           <Link
             href={`/article/${article.id}/reference`}
             aria-label="References"

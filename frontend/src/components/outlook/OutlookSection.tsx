@@ -71,8 +71,12 @@ export function OutlookSection({
   }
   if (current) seen.current.statuses.add(current);
 
+  // Tell screen-reader users when a run they started finishes while they read on.
+  const [announcement, setAnnouncement] = useState("");
   useEffect(() => {
     if (status?.status === "completed" || status?.status === "failed") refetch();
+    if (status?.status === "completed") setAnnouncement("The outlook for this story is ready.");
+    if (status?.status === "failed") setAnnouncement("The outlook for this story didn't finish.");
   }, [status?.status, refetch]);
 
   return (
@@ -80,6 +84,9 @@ export function OutlookSection({
       <h2 id="outlook-title" className="font-display text-[22px] font-semibold tracking-[-0.01em]">
         What might happen next
       </h2>
+      <p role="status" className="sr-only">
+        {announcement}
+      </p>
       <p className="mt-1.5 max-w-[60ch] text-[13.5px] leading-relaxed text-text-tertiary">
         {OUTLOOK_DISCLAIMER}
       </p>
@@ -460,7 +467,7 @@ function OutlookChat({
         )}
       </div>
       {messages.length > 0 && (
-        <div className="space-y-3 px-5 pt-4">
+        <div aria-live="polite" className="space-y-3 px-5 pt-4">
           {messages.map((m, i) => (
             <div
               key={i}

@@ -261,7 +261,10 @@ function FollowUp({
   return (
     <div className="flex-shrink-0 border-t bg-background-secondary/50">
       {turns.length > 0 && (
-        <div className="scroll-thin max-h-[40vh] space-y-4 overflow-y-auto px-6 pt-4">
+        <div
+          aria-live="polite"
+          className="scroll-thin max-h-[40vh] space-y-4 overflow-y-auto px-6 pt-4"
+        >
           {turns.map((t, i) => (
             <div key={i}>
               <p className="font-display text-[13.5px] font-semibold">{t.q}</p>
@@ -316,9 +319,12 @@ function FollowUp({
 export function KeyTerms({
   article,
   onSelect,
+  onClose,
 }: {
   article: ArticleDetail;
   onSelect: (t: SelectedTerm) => void;
+  /** Set when shown as a drawer (narrow screens), which needs its own close button. */
+  onClose?: () => void;
 }) {
   const unique = uniqueEntities(article.entities);
   const groups = ENTITY_TYPES.map((type) => ({
@@ -328,7 +334,20 @@ export function KeyTerms({
 
   return (
     <div className="scroll-thin h-full overflow-y-auto px-6 py-6">
-      <h2 className="font-display text-[15px] font-semibold">In this story</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-[15px] font-semibold">In this story</h2>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            title="Close (Esc)"
+            className="-mr-2 flex h-8 w-8 items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-secondary hover:text-foreground"
+          >
+            <X size={16} />
+            <span className="sr-only">Close the list of terms</span>
+          </button>
+        )}
+      </div>
       <p className="mt-1 text-[13px] leading-relaxed text-text-tertiary">
         Select any highlighted term, or one below, to see who or what it is.
       </p>
