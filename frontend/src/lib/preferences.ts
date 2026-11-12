@@ -18,7 +18,8 @@ function applyTheme(choice: ThemeChoice) {
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useStoredValue<ThemeChoice>("sama4_theme", "system");
+  // Light by default; "system" (Match system) is an explicit choice in Settings.
+  const [theme, setTheme] = useStoredValue<ThemeChoice>("sama4_theme", "light");
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
