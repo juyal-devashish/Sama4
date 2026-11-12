@@ -23,6 +23,23 @@ from app.services.llm_service import LLMService
 from app.services.mirofish_service import MirofishClient
 
 
+def _related_article_briefs(results: list[dict]) -> list[RelatedArticleBrief]:
+    """Map Pinecone matches to briefs. Vector ids are "article_<uuid>"; the uuid
+    is not stored in metadata, so parse it from the id and skip anything else."""
+    import uuid
+
+    briefs: list[RelatedArticleBrief] = []
+    for r in results:
+        try:
+            article_id = uuid.UUID(str(r.get("id", "")).removeprefix("article_"))
+        except ValueError:
+            continue
+        briefs.append(
+            RelatedArticleBrief(id=article_id, title=(r.get("metadata") or {}).get("title", ""))
+        )
+    return briefs
+
+
 class ContextService:
     """RAG pipeline orchestrator for generating entity context."""
 
@@ -119,14 +136,7 @@ class ContextService:
                 cached=False,
             ),
             related_entities=related_entities,
-            related_articles=[
-                RelatedArticleBrief(
-                    id=r["metadata"].get("id", ""),
-                    title=r["metadata"].get("title", ""),
-                )
-                for r in related_results
-                if r.get("metadata")
-            ],
+            related_articles=_related_article_briefs(related_results),
         )
 
     async def answer_followup(
