@@ -86,3 +86,7 @@ yarn-error.log*
 
 # Sentry
 .sentryclirc
+
+# Local SQLite databases (dev data; never commit)
+*.db
+*.db-journal
