@@ -87,7 +87,18 @@ export function useSavedStories() {
     [setSaved],
   );
 
-  return { saved, isSaved, toggle, remove };
+  /** Put back a story removed by mistake, in its original place (newest saved first). */
+  const restore = useCallback(
+    (story: SavedStory) =>
+      setSaved((prev) =>
+        prev.some((s) => s.id === story.id)
+          ? prev
+          : [...prev, story].sort((a, b) => b.saved_at.localeCompare(a.saved_at)),
+      ),
+    [setSaved],
+  );
+
+  return { saved, isSaved, toggle, remove, restore };
 }
 
 // ---------- Recent searches ----------
