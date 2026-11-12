@@ -15,6 +15,10 @@ import json
 import logging
 import re
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.clients.llm import LLMClient
 
 logger = logging.getLogger(__name__)
 
@@ -107,9 +111,10 @@ class ExtractedEntity:
 class NERService:
     """Hybrid NER: spaCy structural entities + LLM knowledge-gap detection."""
 
-    def __init__(self) -> None:
+    def __init__(self, llm: "LLMClient | None" = None) -> None:
+        """llm=None (or an LLM without a key) runs spaCy-only extraction."""
         self._nlp = None
-        self._llm = None
+        self.llm = llm
 
     @property
     def nlp(self):
@@ -123,15 +128,6 @@ class NERService:
                 logger.warning("en_core_web_trf not found, falling back to en_core_web_sm")
                 self._nlp = spacy.load("en_core_web_sm")
         return self._nlp
-
-    @property
-    def llm(self):
-        """Lazy-load LLM service."""
-        if self._llm is None:
-            from app.services.llm_service import LLMService
-
-            self._llm = LLMService()
-        return self._llm
 
     def extract_entities(self, content: str, title: str) -> list[ExtractedEntity]:
         """Extract entities using spaCy only (sync, for backward compat).
@@ -220,7 +216,7 @@ class NERService:
         people, historical references, domain-specific concepts — everything
         spaCy misses because they aren't standard named entities.
         """
-        if not self.llm.client:
+        if self.llm is None or not self.llm.available:
             return []
 
         # Truncate content to fit token budget

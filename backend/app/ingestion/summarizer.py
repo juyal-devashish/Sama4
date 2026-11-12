@@ -1,6 +1,6 @@
 import logging
 
-from app.services.llm_service import LLMService
+from app.clients.llm import LLMClient
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +26,8 @@ SUMMARY_PROMPT = """<headline>{title}</headline>
 class SummarizerService:
     """Generates article summaries using Claude."""
 
-    def __init__(self) -> None:
-        self.llm = LLMService()
+    def __init__(self, llm: LLMClient) -> None:
+        self.llm = llm
 
     async def summarize(self, article_text: str, title: str = "") -> str:
         """Generate a 2-3 sentence summary of an article.

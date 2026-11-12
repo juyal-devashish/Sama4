@@ -1,9 +1,11 @@
-import logging
+"""Claude (Anthropic API) client: the only place the app talks to an LLM."""
 
-from app.config import settings
-from app.services.cache_service import CacheService
+import logging
+from typing import Literal
 
 logger = logging.getLogger(__name__)
+
+Effort = Literal["low", "medium", "high", "xhigh", "max"]
 
 # Opus 5.5 thinks before answering, and thinking tokens count toward max_tokens.
 # Keep a generous ceiling so short answers are never cut off mid-thought.
@@ -14,48 +16,59 @@ MIN_MAX_TOKENS = 8000
 # on a suitable fallback model inside the same call.
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
+UNAVAILABLE_TEXT = "(LLM unavailable — set ANTHROPIC_API_KEY to enable context generation)"
 
-class LLMService:
-    """Claude interface for summaries, entity context, follow-ups and predictions."""
 
-    def __init__(self) -> None:
-        self.client = None
-        if settings.anthropic_api_key:
+class LLMClient:
+    """Thin async wrapper around the Anthropic Messages API."""
+
+    def __init__(self, api_key: str, model: str, default_effort: Effort = "low") -> None:
+        self.model = model
+        self.default_effort = default_effort
+        self._client = None
+        if api_key:
             from anthropic import AsyncAnthropic
 
-            self.client = AsyncAnthropic(api_key=settings.anthropic_api_key)
+            self._client = AsyncAnthropic(api_key=api_key)
         else:
             logger.warning("ANTHROPIC_API_KEY not set, LLM features disabled")
-        self.cache = CacheService()
+
+    @property
+    def available(self) -> bool:
+        """True when an API key is configured."""
+        return self._client is not None
 
     async def generate(
         self,
         prompt: str,
-        max_tokens: int = MIN_MAX_TOKENS,
-        effort: str | None = None,
+        *,
+        effort: Effort | None = None,
         system: str | None = None,
+        max_tokens: int = MIN_MAX_TOKENS,
     ) -> str:
         """Generate a completion from Claude.
 
         Args:
-            prompt: The user prompt to send.
-            max_tokens: Output ceiling (thinking + answer). Raised to MIN_MAX_TOKENS.
-            effort: "low" | "medium" | "high" | "xhigh" | "max". Defaults to
-                settings.anthropic_effort.
+            prompt: The user prompt.
+            effort: Thinking depth; defaults to the client's default_effort.
             system: Optional system prompt.
+            max_tokens: Output ceiling (thinking + answer), raised to MIN_MAX_TOKENS.
 
         Returns:
-            The generated text, or "" if Claude declined.
+            The generated text, "" if Claude declined, or UNAVAILABLE_TEXT when no key is set.
+
+        Raises:
+            anthropic.APIStatusError / APIConnectionError on API failures.
         """
-        if not self.client:
-            return "(LLM unavailable — set ANTHROPIC_API_KEY to enable context generation)"
+        if self._client is None:
+            return UNAVAILABLE_TEXT
 
         import anthropic
 
         kwargs: dict = {
-            "model": settings.anthropic_model,
+            "model": self.model,
             "max_tokens": max(max_tokens, MIN_MAX_TOKENS),
-            "output_config": {"effort": effort or settings.anthropic_effort},
+            "output_config": {"effort": effort or self.default_effort},
             "messages": [{"role": "user", "content": prompt}],
             "betas": [FALLBACK_BETA],
             "fallbacks": "default",
@@ -64,7 +77,7 @@ class LLMService:
             kwargs["system"] = system
 
         try:
-            response = await self.client.beta.messages.create(**kwargs)
+            response = await self._client.beta.messages.create(**kwargs)
         except anthropic.RateLimitError:
             logger.warning("Claude rate limited")
             raise
@@ -84,11 +97,6 @@ class LLMService:
 
         return "".join(b.text for b in response.content if b.type == "text").strip()
 
-    async def generate_embedding(self, text: str, input_type: str = "query") -> list[float]:
-        """Embed text for Pinecone. Claude has no embeddings API, so this uses
-        Pinecone's hosted embedding model (see app/services/vectors.py).
-        """
-        from app.services.vectors import embed_texts
-
-        vectors = await embed_texts([text], input_type=input_type)
-        return vectors[0] if vectors and vectors[0] is not None else []
+    async def aclose(self) -> None:
+        if self._client is not None:
+            await self._client.close()

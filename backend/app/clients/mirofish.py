@@ -6,25 +6,26 @@ from tempfile import NamedTemporaryFile
 
 import httpx
 
-from app.config import settings
-
 logger = logging.getLogger(__name__)
 
 
 class MirofishClient:
     """Async HTTP client for MiroFish simulation engine."""
 
-    def __init__(self) -> None:
-        self.base_url = settings.mirofish_url.rstrip("/")
+    def __init__(self, base_url: str, simulation_timeout: int, enabled: bool) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.enabled = enabled
         self.timeout = httpx.Timeout(
             connect=10.0,
-            read=float(settings.mirofish_simulation_timeout),
+            read=float(simulation_timeout),
             write=30.0,
             pool=10.0,
         )
 
     async def health_check(self) -> bool:
-        """Check if MiroFish backend is reachable."""
+        """True if MiroFish is enabled and reachable. Disabled -> False without a network call."""
+        if not self.enabled:
+            return False
         try:
             async with httpx.AsyncClient(timeout=httpx.Timeout(5.0)) as client:
                 resp = await client.get(f"{self.base_url}/api/health")

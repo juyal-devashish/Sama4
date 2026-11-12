@@ -8,13 +8,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.config import settings
+from app.clients.cache import Cache
+from app.clients.llm import LLMClient
+from app.clients.mirofish import MirofishClient
+from app.config import Settings
 from app.models.article import Article
 from app.models.prediction import AgentPerspective, Prediction
 from app.models.source import Source
-from app.services.cache_service import CacheService
-from app.services.llm_service import LLMService
-from app.services.mirofish_service import MirofishClient
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +22,13 @@ logger = logging.getLogger(__name__)
 class PredictionService:
     """Orchestrates the full MiroFish prediction pipeline for articles."""
 
-    def __init__(self) -> None:
-        self.mirofish = MirofishClient()
-        self.cache = CacheService()
-        self.llm = LLMService()
+    def __init__(
+        self, *, llm: LLMClient, cache: Cache, mirofish: MirofishClient, settings: Settings
+    ) -> None:
+        self.llm = llm
+        self.cache = cache
+        self.mirofish = mirofish
+        self.settings = settings
 
     async def trigger_simulation(
         self,
@@ -54,8 +57,8 @@ class PredictionService:
 
         prediction = Prediction(
             article_id=article.id,
-            agent_count=agent_count or settings.mirofish_default_agents,
-            simulation_rounds=simulation_rounds or settings.mirofish_default_rounds,
+            agent_count=agent_count or self.settings.mirofish_default_agents,
+            simulation_rounds=simulation_rounds or self.settings.mirofish_default_rounds,
             platforms=platforms or ["twitter", "reddit"],
             status="queued",
         )
@@ -242,7 +245,7 @@ Return ONLY valid JSON, no markdown code blocks."""  # noqa: E501 (LLM prompt te
             await self.cache.set(
                 f"prediction:article:{prediction.article_id}",
                 {"prediction_id": str(prediction.id), "status": "completed"},
-                ttl=settings.prediction_cache_ttl,
+                ttl=self.settings.prediction_cache_ttl,
             )
 
         except Exception as e:
@@ -326,7 +329,7 @@ Return ONLY valid JSON."""
         await self.cache.set(
             f"prediction:article:{prediction.article_id}",
             {"prediction_id": str(prediction.id), "status": "completed"},
-            ttl=settings.prediction_cache_ttl,
+            ttl=self.settings.prediction_cache_ttl,
         )
 
     async def get_prediction_for_article(

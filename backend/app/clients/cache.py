@@ -1,22 +1,22 @@
+"""Redis cache (JSON values). Every method is a no-op when Redis is unavailable."""
+
 import json
 import logging
 from typing import Any
 
-from app.config import settings
-
 logger = logging.getLogger(__name__)
 
 
-class CacheService:
+class Cache:
     """Redis cache for entity contexts and LLM responses."""
 
-    def __init__(self) -> None:
+    def __init__(self, redis_url: str) -> None:
         self._redis = None
-        if settings.redis_url:
+        if redis_url:
             try:
                 import redis.asyncio as redis
 
-                self._redis = redis.from_url(settings.redis_url, decode_responses=True)
+                self._redis = redis.from_url(redis_url, decode_responses=True)
             except Exception:
                 logger.warning("Redis not available, caching disabled")
 
@@ -54,7 +54,7 @@ class CacheService:
         except Exception:
             logger.warning("Redis delete failed", exc_info=True)
 
-    async def close(self) -> None:
+    async def aclose(self) -> None:
         """Close the Redis connection."""
         if self._redis:
-            await self._redis.close()
+            await self._redis.aclose()

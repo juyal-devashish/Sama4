@@ -3,12 +3,12 @@
 import logging
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.database import get_db
+from app.api.deps import ContainerDep, DbSession, PredictionServiceDep
+from app.ingestion import jobs
 from app.models.article import Article
 from app.models.prediction import AgentPerspective, Prediction
 from app.schemas.prediction import (
@@ -23,20 +23,19 @@ from app.schemas.prediction import (
     PredictionSummary,
     TrendingPrediction,
 )
-from app.services.prediction_service import PredictionService
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-prediction_service = PredictionService()
 
 
 @router.post("/simulate", response_model=PredictionSummary)
 async def trigger_simulation(
     request: PredictionRequest,
     background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db),
-):
+    db: DbSession,
+    prediction_service: PredictionServiceDep,
+    c: ContainerDep,
+) -> PredictionSummary:
     """Trigger a MiroFish simulation for an article."""
     # Verify article exists
     article = await db.get(Article, request.article_id)
@@ -55,7 +54,7 @@ async def trigger_simulation(
 
     # Only kick off background simulation if newly queued
     if prediction.status == "queued":
-        background_tasks.add_task(_run_simulation_background, str(prediction.id))
+        background_tasks.add_task(jobs.run_simulation, c, str(prediction.id))
 
     return PredictionSummary(
         id=prediction.id,
@@ -68,20 +67,12 @@ async def trigger_simulation(
     )
 
 
-async def _run_simulation_background(prediction_id: str) -> None:
-    """Background task wrapper for running the simulation pipeline."""
-    from app.database import async_session
-
-    async with async_session() as db:
-        service = PredictionService()
-        await service.run_simulation_pipeline(prediction_id, db)
-
-
 @router.get("/article/{article_id}", response_model=PredictionDetail | None)
 async def get_article_prediction(
     article_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-):
+    db: DbSession,
+    prediction_service: PredictionServiceDep,
+) -> PredictionDetail | None:
     """Get the latest prediction for an article."""
     prediction = await prediction_service.get_prediction_for_article(str(article_id), db)
     if not prediction:
@@ -122,8 +113,8 @@ async def get_article_prediction(
 @router.get("/{prediction_id}/status", response_model=PredictionStatusOut)
 async def get_prediction_status(
     prediction_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-):
+    db: DbSession,
+) -> PredictionStatusOut:
     """Check the status of a prediction simulation."""
     prediction = await db.get(Prediction, prediction_id)
     if not prediction:
@@ -148,8 +139,9 @@ async def get_prediction_status(
 @router.post("/chat", response_model=PredictionChatResponse)
 async def chat_with_prediction(
     request: PredictionChatRequest,
-    db: AsyncSession = Depends(get_db),
-):
+    db: DbSession,
+    prediction_service: PredictionServiceDep,
+) -> PredictionChatResponse:
     """Chat with a prediction report to ask follow-up questions."""
     prediction = await db.get(Prediction, request.prediction_id)
     if not prediction:
@@ -170,8 +162,9 @@ async def chat_with_prediction(
 @router.post("/interview", response_model=AgentInterviewResponse)
 async def interview_agent(
     request: AgentInterviewRequest,
-    db: AsyncSession = Depends(get_db),
-):
+    db: DbSession,
+    prediction_service: PredictionServiceDep,
+) -> AgentInterviewResponse:
     """Interview a specific agent from the simulation."""
     prediction = await db.execute(
         select(Prediction)
@@ -198,9 +191,10 @@ async def interview_agent(
 
 @router.get("/trending", response_model=list[TrendingPrediction])
 async def get_trending_predictions(
+    db: DbSession,
+    prediction_service: PredictionServiceDep,
     limit: int = 20,
-    db: AsyncSession = Depends(get_db),
-):
+) -> list[TrendingPrediction]:
     """Get trending predictions ranked by impact score."""
     results = await prediction_service.get_trending_predictions(db, limit=limit)
     return [TrendingPrediction(**r) for r in results]
