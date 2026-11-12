@@ -10,7 +10,10 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
       <>
         <p>
           If you join the{" "}
-          <Link href="/early-access#waitlist" className="text-accent-secondary underline underline-offset-2">
+          <Link
+            href="/early-access#waitlist"
+            className="text-accent-secondary underline underline-offset-2"
+          >
             early-access waitlist
           </Link>{" "}
           we store your email address, when you signed up and which page you used. We use it only to
