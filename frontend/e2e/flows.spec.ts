@@ -39,3 +39,21 @@ test("reference page is accessible", async ({ page }) => {
   const summary = await axeViolations(page);
   expect(summary, summary.join("\n")).toEqual([]);
 });
+
+test("reader toolbar controls stay inside the viewport", async ({ page }) => {
+  test.skip(!!process.env.CI, "needs a seeded backend (run `make seed` locally)");
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  const save = page.getByRole("button", { name: /^save/i });
+  await expect(save).toBeVisible({ timeout: 10_000 });
+  const width = page.viewportSize()!.width;
+  for (const control of [
+    page.getByRole("link", { name: "References" }),
+    page.getByRole("button", { name: /link copied|copy link/i }),
+    save,
+  ]) {
+    const box = await control.boundingBox();
+    expect(box, "control is rendered").not.toBeNull();
+    expect(box!.x + box!.width, "control fits horizontally").toBeLessThanOrEqual(width);
+  }
+});
