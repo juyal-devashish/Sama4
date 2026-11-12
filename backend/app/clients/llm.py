@@ -13,8 +13,17 @@ Effort = Literal["low", "medium", "high", "xhigh", "max"]
 MIN_MAX_TOKENS = 8000
 
 # Server-side refusal fallback: on a policy decline the API re-runs the request
-# on a suitable fallback model inside the same call.
+# on a suitable fallback model inside the same call. Only some models accept it
+# (Haiku 5.5 does not, and sending it there returns a 400).
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
+FALLBACK_MODELS = frozenset(
+    {"claude-fable-5-1", "claude-fable-5", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5-5"}
+)
+
+
+def supports_server_fallback(model: str) -> bool:
+    return model in FALLBACK_MODELS
+
 
 UNAVAILABLE_TEXT = "(LLM unavailable — set ANTHROPIC_API_KEY to enable context generation)"
 
@@ -70,14 +79,17 @@ class LLMClient:
             "max_tokens": max(max_tokens, MIN_MAX_TOKENS),
             "output_config": {"effort": effort or self.default_effort},
             "messages": [{"role": "user", "content": prompt}],
-            "betas": [FALLBACK_BETA],
-            "fallbacks": "default",
         }
         if system:
             kwargs["system"] = system
 
         try:
-            response = await self._client.beta.messages.create(**kwargs)
+            if supports_server_fallback(self.model):
+                response = await self._client.beta.messages.create(
+                    **kwargs, betas=[FALLBACK_BETA], fallbacks="default"
+                )
+            else:
+                response = await self._client.messages.create(**kwargs)
         except anthropic.RateLimitError:
             logger.warning("Claude rate limited")
             raise
