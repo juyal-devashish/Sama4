@@ -77,3 +77,19 @@ async def test_without_claude_only_possessives_are_fixed(client, container, db_s
 async def test_requires_admin_secret(client):
     assert (await client.post(URL)).status_code == 422  # header missing
     assert (await client.post(URL, headers={"X-Admin-Secret": "nope"})).status_code == 403
+
+
+async def test_possessive_that_is_part_of_the_name_is_kept(client, container, db_session):
+    text = "New drugs slow Alzheimer’s in trials."
+    async with db_session() as db:
+        article = await make_article(db, content=text)
+        await make_entity(db, name="Alzheimer’s", entity_type="CONCEPT", article=article, start=15)
+        await db.commit()
+    container.llm.default = json.dumps({"Alzheimer": "CONCEPT"})
+
+    body = (await client.post(f"{URL}?dry_run=false", headers=ADMIN)).json()
+
+    assert (body["renamed"], body["merged"], body["mentions_fixed"]) == (0, 0, 0)
+    entities, mentions = await _state(db_session)
+    assert entities == [("Alzheimer’s", "CONCEPT")]
+    assert mentions == [("Alzheimer’s", 15, 26)]

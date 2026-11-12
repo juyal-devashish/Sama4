@@ -1,6 +1,7 @@
 """One-off cleanup of stored entities written before NER canonicalized them.
 
-Two problems, both visible to readers:
+Two problems, both visible to readers (possessives are folded only into an entity that
+already has the plain name, so "Alzheimer's" stays as it is):
 - Possessive names stored as their own entity ("Jensen Huang's" next to "Jensen Huang"),
   shown as a separate person with no explanation.
 - spaCy's wrong types ("Nvidia" stored as LOCATION, so it was listed under Places).
@@ -98,7 +99,11 @@ async def canonicalize_entities(
     for entity in sorted(entities, key=lambda e: -(e.popularity_score or 0)):
         old = (entity.canonical_name, entity.entity_type)
         name = strip_possessive(entity.canonical_name)
-        new = (name, types.get(name.lower(), entity.entity_type))
+        new_type = types.get(name.lower(), entity.entity_type)
+        if name != entity.canonical_name and (name, new_type) not in by_key:
+            # No entity has the plain name: the 's is part of it ("Alzheimer's"). Keep it.
+            name = entity.canonical_name
+        new = (name, new_type)
         if new == old:
             continue
         target = by_key.get(new)
@@ -125,7 +130,7 @@ async def canonicalize_entities(
             }
 
         for m in mentions:
-            text = strip_possessive(m.mention_text)
+            text = strip_possessive(m.mention_text) if new[0] != old[0] else m.mention_text
             if text != m.mention_text:
                 report.mentions_fixed += 1
                 if not dry_run:
