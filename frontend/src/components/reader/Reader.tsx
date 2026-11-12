@@ -43,7 +43,7 @@ export function Reader() {
       if (replace) router.replace(url, { scroll: false });
       else router.push(url, { scroll: false });
     },
-    [params, router]
+    [params, router],
   );
 
   // On a desktop-width window, open the first story so the reading pane is never blank.
@@ -64,7 +64,12 @@ export function Reader() {
       if (id && id !== articleId) {
         go({ article: id });
         rows.current.get(id)?.scrollIntoView({ block: "nearest" });
-        if (e.key === "j" && next >= stories.length - 3 && feed.hasNextPage && !feed.isFetchingNextPage) {
+        if (
+          e.key === "j" &&
+          next >= stories.length - 3 &&
+          feed.hasNextPage &&
+          !feed.isFetchingNextPage
+        ) {
           feed.fetchNextPage();
         }
       }

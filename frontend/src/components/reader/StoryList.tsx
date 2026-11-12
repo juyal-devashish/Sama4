@@ -31,10 +31,10 @@ export function TopicChips({
               "h-8 rounded-full border px-3.5 text-[13px] font-medium transition-colors",
               on
                 ? "border-accent-primary bg-accent-primary text-on-accent"
-                : "bg-transparent text-text-secondary hover:border-accent-secondary hover:text-foreground"
+                : "bg-transparent text-text-secondary hover:border-accent-secondary hover:text-foreground",
             )}
           >
-            {t === "all" ? "All" : TOPIC_LABELS[t] ?? t}
+            {t === "all" ? "All" : (TOPIC_LABELS[t] ?? t)}
           </button>
         );
       })}
@@ -55,27 +55,38 @@ export const StoryRow = forwardRef<
       className={cn(
         "group relative flex w-full gap-4 rounded-xl px-4 text-left transition-colors",
         dense ? "py-3" : "py-4",
-        selected ? "bg-surface shadow-[0_1px_0_var(--border),0_0_0_1px_var(--border)]" : "hover:bg-surface/70"
+        selected
+          ? "bg-surface shadow-[0_1px_0_var(--border),0_0_0_1px_var(--border)]"
+          : "hover:bg-surface/70",
       )}
     >
       {selected && (
-        <span className="absolute inset-y-4 left-0 w-[3px] rounded-full bg-accent-primary" aria-hidden />
+        <span
+          className="absolute inset-y-4 left-0 w-[3px] rounded-full bg-accent-primary"
+          aria-hidden
+        />
       )}
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-baseline gap-2 text-[12px]">
-          <span className="truncate font-display font-semibold text-foreground">{story.source.name}</span>
-          <span className="flex-shrink-0 text-text-tertiary">{formatTimeAgo(story.published_at)}</span>
+          <span className="truncate font-display font-semibold text-foreground">
+            {story.source.name}
+          </span>
+          <span className="flex-shrink-0 text-text-tertiary">
+            {formatTimeAgo(story.published_at)}
+          </span>
         </div>
         <h3
           className={cn(
             "font-display text-[15px] font-semibold leading-snug tracking-[-0.005em]",
-            dense ? "line-clamp-2" : "line-clamp-3"
+            dense ? "line-clamp-2" : "line-clamp-3",
           )}
         >
           {story.title}
         </h3>
         {!dense && story.summary && (
-          <p className="mt-1.5 line-clamp-2 text-[13.5px] leading-[1.5] text-text-secondary">{story.summary}</p>
+          <p className="mt-1.5 line-clamp-2 text-[13.5px] leading-[1.5] text-text-secondary">
+            {story.summary}
+          </p>
         )}
       </div>
       {story.image_url && (
@@ -87,7 +98,7 @@ export const StoryRow = forwardRef<
           loading="lazy"
           className={cn(
             "flex-shrink-0 rounded-lg bg-background-secondary object-cover",
-            dense ? "h-14 w-14" : "h-[72px] w-[72px]"
+            dense ? "h-14 w-14" : "h-[72px] w-[72px]",
           )}
         />
       )}
@@ -149,7 +160,10 @@ export function StoryList({
   return (
     <section
       aria-label="Stories"
-      className={cn("flex w-full flex-shrink-0 flex-col border-r bg-background-secondary/40 lg:w-[340px]", className)}
+      className={cn(
+        "flex w-full flex-shrink-0 flex-col border-r bg-background-secondary/40 lg:w-[340px]",
+        className,
+      )}
     >
       <header className="px-6 pb-4 pt-6">
         <h1 className="font-display text-[24px] font-bold tracking-[-0.02em]">Today</h1>

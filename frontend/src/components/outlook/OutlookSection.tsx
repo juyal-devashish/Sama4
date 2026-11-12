@@ -30,7 +30,13 @@ const STATUS_COPY: Record<string, string> = {
 };
 
 /** "What might happen next": multi-agent prediction for one story. */
-export function OutlookSection({ articleId, articleTitle }: { articleId: string; articleTitle: string }) {
+export function OutlookSection({
+  articleId,
+  articleTitle,
+}: {
+  articleId: string;
+  articleTitle: string;
+}) {
   const { data: prediction, refetch } = usePrediction(articleId);
   const trigger = useTriggerSimulation();
   const running = !!prediction && RUNNING_PREDICTION_STATES.includes(prediction.status);
@@ -52,8 +58,10 @@ export function OutlookSection({ articleId, articleTitle }: { articleId: string;
         <div className="mt-4 flex items-center gap-3 text-[14.5px] text-text-secondary">
           <Loader2 size={16} className="animate-spin text-accent-primary" />
           <span>
-            {status?.progress_message || STATUS_COPY[status?.status ?? prediction!.status] || "Working"}. This
-            usually takes a few minutes; you can keep reading.
+            {status?.progress_message ||
+              STATUS_COPY[status?.status ?? prediction!.status] ||
+              "Working"}
+            . This usually takes a few minutes; you can keep reading.
           </span>
         </div>
       ) : (
@@ -69,10 +77,16 @@ export function OutlookSection({ articleId, articleTitle }: { articleId: string;
             onClick={() => trigger.mutate({ articleId })}
           >
             {trigger.isPending && <Loader2 size={14} className="animate-spin" />}
-            {trigger.isPending ? "Starting" : prediction?.status === "failed" ? "Run outlook again" : "Run outlook"}
+            {trigger.isPending
+              ? "Starting"
+              : prediction?.status === "failed"
+                ? "Run outlook again"
+                : "Run outlook"}
           </PrimaryButton>
           {trigger.isError && (
-            <p className="mt-2 text-[13px] text-error">The outlook didn&apos;t start. Check the server and try again.</p>
+            <p className="mt-2 text-[13px] text-error">
+              The outlook didn&apos;t start. Check the server and try again.
+            </p>
           )}
         </div>
       )}
@@ -80,7 +94,9 @@ export function OutlookSection({ articleId, articleTitle }: { articleId: string;
   );
 }
 
-function parseSentiment(raw?: string): { positive: number; neutral: number; negative: number } | null {
+function parseSentiment(
+  raw?: string,
+): { positive: number; neutral: number; negative: number } | null {
   if (!raw) return null;
   try {
     const v = JSON.parse(raw);
@@ -91,7 +107,13 @@ function parseSentiment(raw?: string): { positive: number; neutral: number; nega
   return null;
 }
 
-function OutlookReport({ prediction, articleTitle }: { prediction: PredictionDetail; articleTitle: string }) {
+function OutlookReport({
+  prediction,
+  articleTitle,
+}: {
+  prediction: PredictionDetail;
+  articleTitle: string;
+}) {
   const sentiment = parseSentiment(prediction.sentiment_distribution);
   const confidence =
     prediction.confidence_score != null ? Math.round(prediction.confidence_score * 100) : null;
@@ -118,7 +140,7 @@ function OutlookReport({ prediction, articleTitle }: { prediction: PredictionDet
                 <span
                   className={cn(
                     "pt-0.5 font-display text-[12.5px] font-semibold",
-                    i === 0 ? "text-success" : i === 1 ? "text-entity-event" : "text-text-tertiary"
+                    i === 0 ? "text-success" : i === 1 ? "text-entity-event" : "text-text-tertiary",
                   )}
                 >
                   {OUTCOME_LABELS[Math.min(i, 2)]}
@@ -144,9 +166,14 @@ function OutlookReport({ prediction, articleTitle }: { prediction: PredictionDet
       {sentiment && (
         <div>
           <h3 className="font-display text-[15px] font-semibold">Public reaction</h3>
-          <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-background-secondary" aria-hidden>
+          <div
+            className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-background-secondary"
+            aria-hidden
+          >
             <div style={{ width: `${sentiment.positive}%`, backgroundColor: "var(--success)" }} />
-            <div style={{ width: `${sentiment.neutral}%`, backgroundColor: "var(--text-tertiary)" }} />
+            <div
+              style={{ width: `${sentiment.neutral}%`, backgroundColor: "var(--text-tertiary)" }}
+            />
             <div style={{ width: `${sentiment.negative}%`, backgroundColor: "var(--error)" }} />
           </div>
           <p className="mt-2 flex gap-5 text-[13px] text-text-secondary">
@@ -160,7 +187,9 @@ function OutlookReport({ prediction, articleTitle }: { prediction: PredictionDet
       {prediction.agent_perspectives.length > 0 && (
         <div>
           <h3 className="font-display text-[15px] font-semibold">How people involved see it</h3>
-          <p className="mt-1 text-[13.5px] text-text-tertiary">Open a perspective to ask that person a question.</p>
+          <p className="mt-1 text-[13.5px] text-text-tertiary">
+            Open a perspective to ask that person a question.
+          </p>
           <div className="mt-4 grid gap-3 lg:grid-cols-2">
             {prediction.agent_perspectives.map((a) => (
               <Stakeholder key={a.id} agent={a} predictionId={prediction.id} />
@@ -223,12 +252,16 @@ function Stakeholder({ agent, predictionId }: { agent: AgentPerspective; predict
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline gap-2">
-            <span className="truncate font-display text-[14px] font-semibold">{agent.agent_name}</span>
+            <span className="truncate font-display text-[14px] font-semibold">
+              {agent.agent_name}
+            </span>
             <span className="flex-shrink-0 text-[12px] font-medium" style={{ color: stance.color }}>
               {stance.label}
             </span>
           </span>
-          <span className="block truncate text-[12.5px] text-text-tertiary">{agent.agent_role}</span>
+          <span className="block truncate text-[12.5px] text-text-tertiary">
+            {agent.agent_role}
+          </span>
           {!open && agent.key_argument && (
             <span className="mt-1.5 line-clamp-2 block text-[13.5px] leading-snug text-text-secondary">
               {agent.key_argument}
@@ -237,14 +270,20 @@ function Stakeholder({ agent, predictionId }: { agent: AgentPerspective; predict
         </span>
         <ChevronDown
           size={16}
-          className={cn("mt-1 flex-shrink-0 text-text-tertiary transition-transform", open && "rotate-180")}
+          className={cn(
+            "mt-1 flex-shrink-0 text-text-tertiary transition-transform",
+            open && "rotate-180",
+          )}
         />
       </button>
       {open && (
         <div className="border-t px-4 pb-4 pt-3">
           <p className="text-[14.5px] leading-[1.65]">{agent.perspective_text}</p>
           {agent.key_argument && (
-            <blockquote className="mt-3 border-l-2 pl-3 text-[14px] italic text-text-secondary" style={{ borderColor: stance.color }}>
+            <blockquote
+              className="mt-3 border-l-2 pl-3 text-[14px] italic text-text-secondary"
+              style={{ borderColor: stance.color }}
+            >
               {agent.key_argument}
             </blockquote>
           )}
@@ -280,7 +319,13 @@ function Stakeholder({ agent, predictionId }: { agent: AgentPerspective; predict
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
-function OutlookChat({ predictionId, articleTitle }: { predictionId: string; articleTitle: string }) {
+function OutlookChat({
+  predictionId,
+  articleTitle,
+}: {
+  predictionId: string;
+  articleTitle: string;
+}) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const chat = usePredictionChat();
@@ -297,10 +342,17 @@ function OutlookChat({ predictionId, articleTitle }: { predictionId: string; art
     setMessages(next);
     setInput("");
     try {
-      const res = await chat.mutateAsync({ prediction_id: predictionId, message: text, history: next });
+      const res = await chat.mutateAsync({
+        prediction_id: predictionId,
+        message: text,
+        history: next,
+      });
       setMessages([...next, { role: "assistant", content: res.response }]);
     } catch {
-      setMessages([...next, { role: "assistant", content: "No answer came back. Ask again in a moment." }]);
+      setMessages([
+        ...next,
+        { role: "assistant", content: "No answer came back. Ask again in a moment." },
+      ]);
     }
   };
 
@@ -310,18 +362,22 @@ function OutlookChat({ predictionId, articleTitle }: { predictionId: string; art
         <h3 className="font-display text-[15px] font-semibold">Ask about this outlook</h3>
         {messages.length === 0 && (
           <p className="mt-1 text-[13.5px] text-text-tertiary">
-            For example: what would change the outcome of &ldquo;{articleTitle.length > 60 ? `${articleTitle.slice(0, 60)}…` : articleTitle}&rdquo;?
+            For example: what would change the outcome of &ldquo;
+            {articleTitle.length > 60 ? `${articleTitle.slice(0, 60)}…` : articleTitle}&rdquo;?
           </p>
         )}
       </div>
       {messages.length > 0 && (
         <div className="space-y-3 px-5 pt-4">
           {messages.map((m, i) => (
-            <div key={i} className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}>
+            <div
+              key={i}
+              className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}
+            >
               <p
                 className={cn(
                   "max-w-[85%] rounded-2xl px-4 py-2.5 text-[14.5px] leading-[1.6]",
-                  m.role === "user" ? "bg-accent-primary text-on-accent" : "border bg-surface"
+                  m.role === "user" ? "bg-accent-primary text-on-accent" : "border bg-surface",
                 )}
               >
                 {m.content}

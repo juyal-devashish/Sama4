@@ -11,7 +11,8 @@ import { isTypingTarget } from "@/components/shell/AppShell";
 import { ErrorState } from "@/components/ui/states";
 import { ContextPanel, KeyTerms } from "@/components/context/ContextPanel";
 import { OutlookSection } from "@/components/outlook/OutlookSection";
-import { ArticleBody, MatchedText, uniqueEntities, type SelectedTerm } from "./ArticleText";
+import { uniqueEntities } from "@/lib/highlight";
+import { ArticleBody, MatchedText, type SelectedTerm } from "./ArticleText";
 import type { ArticleDetail } from "@/types";
 
 interface Props {
@@ -50,21 +51,23 @@ export function ReadingPane({ articleId, onBack, onOpenArticle }: Props) {
 
   return (
     <div className="flex min-w-0 flex-1">
-      <div ref={scrollRef} onScroll={onScroll} className="scroll-thin relative min-w-0 flex-1 overflow-y-auto bg-surface">
+      <div
+        ref={scrollRef}
+        onScroll={onScroll}
+        className="scroll-thin relative min-w-0 flex-1 overflow-y-auto bg-surface"
+      >
         <div className="sticky top-0 z-20">
-          <div className="h-[2px] bg-accent-primary transition-[width] duration-150" style={{ width: `${progress}%` }} />
+          <div
+            className="h-[2px] bg-accent-primary transition-[width] duration-150"
+            style={{ width: `${progress}%` }}
+          />
         </div>
         {isLoading ? (
           <ArticleSkeleton />
         ) : isError || !article ? (
           <ErrorState what="this story" onRetry={() => refetch()} />
         ) : (
-          <Story
-            article={article}
-            term={term}
-            onSelectTerm={setTerm}
-            onBack={onBack}
-          />
+          <Story article={article} term={term} onSelectTerm={setTerm} onBack={onBack} />
         )}
       </div>
 
@@ -91,7 +94,7 @@ export function ReadingPane({ articleId, onBack, onOpenArticle }: Props) {
               "z-40 w-[380px] flex-shrink-0 border-l bg-background",
               "fixed inset-y-0 right-0 shadow-[var(--shadow-panel)] transition-transform duration-200 ease-out",
               "wide:static wide:translate-x-0 wide:shadow-none",
-              term ? "translate-x-0" : "invisible translate-x-full wide:visible"
+              term ? "translate-x-0" : "invisible translate-x-full wide:visible",
             )}
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -182,7 +185,9 @@ function Story({
         >
           <ArrowLeft size={16} /> Stories
         </button>
-        <span className="truncate font-display text-[13px] font-semibold">{article.source.name}</span>
+        <span className="truncate font-display text-[13px] font-semibold">
+          {article.source.name}
+        </span>
         <div className="ml-auto flex items-center gap-1">
           <Link
             href={`/article/${article.id}/reference`}
@@ -205,7 +210,7 @@ function Story({
             title={saved ? "Remove from saved (S)" : "Save for later (S)"}
             className={cn(
               "flex h-9 items-center gap-2 rounded-lg px-3 text-[13px] font-medium transition-colors hover:bg-background-secondary",
-              saved ? "text-accent-primary" : "text-text-secondary hover:text-foreground"
+              saved ? "text-accent-primary" : "text-text-secondary hover:text-foreground",
             )}
           >
             {saved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
@@ -230,7 +235,9 @@ function Story({
               {formatTimeAgo(article.published_at)}
             </time>
           )}
-          {article.reading_time_minutes ? <span>{article.reading_time_minutes} min read</span> : null}
+          {article.reading_time_minutes ? (
+            <span>{article.reading_time_minutes} min read</span>
+          ) : null}
           {termCount > 0 && <span>{termCount} terms explained</span>}
         </div>
 
@@ -238,7 +245,7 @@ function Story({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={article.image_url}
-          onError={(e) => (e.currentTarget.style.display = "none")}
+            onError={(e) => (e.currentTarget.style.display = "none")}
             alt=""
             className="mt-8 aspect-[16/9] w-full rounded-xl bg-background-secondary object-cover"
           />
@@ -272,7 +279,12 @@ function Story({
               {article.source.url && (
                 <>
                   {" "}
-                  <a href={article.source.url} target="_blank" rel="noopener noreferrer" className="text-accent-secondary hover:underline">
+                  <a
+                    href={article.source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent-secondary hover:underline"
+                  >
                     Visit {article.source.name}
                   </a>{" "}
                   for the full text.

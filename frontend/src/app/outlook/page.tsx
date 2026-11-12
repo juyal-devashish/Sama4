@@ -47,8 +47,13 @@ export default function OutlookPage() {
         <ol className="divide-y border-y">
           {data.map((p, i) => (
             <li key={p.id}>
-              <Link href={`/?article=${p.article_id}`} className="group grid grid-cols-[40px_1fr_140px] items-start gap-6 py-6">
-                <span className="pt-0.5 font-display text-[22px] font-semibold tabular-nums text-text-tertiary">{i + 1}</span>
+              <Link
+                href={`/?article=${p.article_id}`}
+                className="group grid grid-cols-[40px_1fr_140px] items-start gap-6 py-6"
+              >
+                <span className="pt-0.5 font-display text-[22px] font-semibold tabular-nums text-text-tertiary">
+                  {i + 1}
+                </span>
                 <div className="min-w-0">
                   <p className="flex gap-3 text-[12.5px]">
                     <span className="font-display font-semibold">{p.article_source}</span>
@@ -67,11 +72,19 @@ export default function OutlookPage() {
                 </div>
                 <div className="pt-1">
                   <p className="text-[12px] text-text-tertiary">Impact</p>
-                  <p className="font-display text-[18px] font-semibold tabular-nums">{Math.round(p.impact_score)}</p>
-                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-background-secondary" aria-hidden>
+                  <p className="font-display text-[18px] font-semibold tabular-nums">
+                    {Math.round(p.impact_score)}
+                  </p>
+                  <div
+                    className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-background-secondary"
+                    aria-hidden
+                  >
                     <div
                       className="h-full rounded-full"
-                      style={{ width: `${Math.min(100, p.impact_score)}%`, backgroundColor: impactColor(p.impact_score) }}
+                      style={{
+                        width: `${Math.min(100, p.impact_score)}%`,
+                        backgroundColor: impactColor(p.impact_score),
+                      }}
                     />
                   </div>
                   {p.confidence_score != null && (

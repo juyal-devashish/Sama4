@@ -11,8 +11,7 @@ export type ThemeChoice = "light" | "dark" | "system";
 function applyTheme(choice: ThemeChoice) {
   const dark =
     choice === "dark" ||
-    (choice === "system" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches);
+    (choice === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.classList.toggle("dark", dark);
   return dark;
 }
@@ -77,15 +76,15 @@ export function useSavedStories() {
       setSaved((prev) =>
         prev.some((s) => s.id === story.id)
           ? prev.filter((s) => s.id !== story.id)
-          : [{ ...story, saved_at: new Date().toISOString() }, ...prev]
+          : [{ ...story, saved_at: new Date().toISOString() }, ...prev],
       );
     },
-    [setSaved]
+    [setSaved],
   );
 
   const remove = useCallback(
     (id: string) => setSaved((prev) => prev.filter((s) => s.id !== id)),
-    [setSaved]
+    [setSaved],
   );
 
   return { saved, isSaved, toggle, remove };
@@ -99,9 +98,11 @@ export function useRecentSearches() {
     (q: string) => {
       const term = q.trim();
       if (!term) return;
-      setRecent((prev) => [term, ...prev.filter((p) => p.toLowerCase() !== term.toLowerCase())].slice(0, 8));
+      setRecent((prev) =>
+        [term, ...prev.filter((p) => p.toLowerCase() !== term.toLowerCase())].slice(0, 8),
+      );
     },
-    [setRecent]
+    [setRecent],
   );
   const clear = useCallback(() => setRecent([]), [setRecent]);
   return { recent, add, clear };

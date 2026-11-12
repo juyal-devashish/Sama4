@@ -7,10 +7,26 @@ import { cn } from "@/lib/utils";
 import { useSavedStories, useTheme } from "@/lib/preferences";
 
 const NAV = [
-  { href: "/", label: "Today", icon: Newspaper, match: (p: string) => p === "/" || p.startsWith("/article") },
-  { href: "/search", label: "Search", icon: Search, match: (p: string) => p.startsWith("/search"), hint: "/" },
+  {
+    href: "/",
+    label: "Today",
+    icon: Newspaper,
+    match: (p: string) => p === "/" || p.startsWith("/article"),
+  },
+  {
+    href: "/search",
+    label: "Search",
+    icon: Search,
+    match: (p: string) => p.startsWith("/search"),
+    hint: "/",
+  },
   { href: "/saved", label: "Saved", icon: Bookmark, match: (p: string) => p.startsWith("/saved") },
-  { href: "/outlook", label: "Outlook", icon: TrendingUp, match: (p: string) => p.startsWith("/outlook") },
+  {
+    href: "/outlook",
+    label: "Outlook",
+    icon: TrendingUp,
+    match: (p: string) => p.startsWith("/outlook"),
+  },
 ];
 
 export function Sidebar() {
@@ -53,7 +69,7 @@ export function Sidebar() {
                   "group flex h-10 items-center justify-center gap-3 rounded-lg px-2.5 font-display text-[14px] font-medium transition-colors xwide:justify-start",
                   active
                     ? "bg-accent-primary text-on-accent"
-                    : "text-text-secondary hover:bg-background-secondary hover:text-foreground"
+                    : "text-text-secondary hover:bg-background-secondary hover:text-foreground",
                 )}
               >
                 <Icon size={18} strokeWidth={active ? 2.2 : 1.8} className="flex-shrink-0" />
@@ -62,7 +78,7 @@ export function Sidebar() {
                   <span
                     className={cn(
                       "hidden text-[12px] tabular-nums xwide:inline",
-                      active ? "text-on-accent/80" : "text-text-tertiary"
+                      active ? "text-on-accent/80" : "text-text-tertiary",
                     )}
                   >
                     {count}
@@ -97,7 +113,7 @@ export function Sidebar() {
             "flex h-10 items-center justify-center gap-3 rounded-lg px-2.5 font-display text-[14px] font-medium transition-colors xwide:justify-start",
             pathname.startsWith("/settings")
               ? "bg-accent-primary text-on-accent"
-              : "text-text-secondary hover:bg-background-secondary hover:text-foreground"
+              : "text-text-secondary hover:bg-background-secondary hover:text-foreground",
           )}
         >
           <Settings size={18} strokeWidth={1.8} />

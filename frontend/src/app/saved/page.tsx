@@ -13,7 +13,9 @@ export default function SavedPage() {
   return (
     <Page
       title="Saved"
-      description={saved.length > 0 ? "Stories you kept for later. They stay on this computer." : undefined}
+      description={
+        saved.length > 0 ? "Stories you kept for later. They stay on this computer." : undefined
+      }
     >
       {saved.length === 0 ? (
         <EmptyState icon={Bookmark} title="Nothing saved yet">
@@ -35,7 +37,9 @@ export default function SavedPage() {
                     {s.title}
                   </h2>
                   {s.summary && (
-                    <p className="mt-1.5 line-clamp-2 text-[14px] leading-relaxed text-text-secondary">{s.summary}</p>
+                    <p className="mt-1.5 line-clamp-2 text-[14px] leading-relaxed text-text-secondary">
+                      {s.summary}
+                    </p>
                   )}
                 </div>
                 {s.image_url && (

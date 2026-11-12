@@ -27,10 +27,10 @@ export default function SearchPage() {
             (a) =>
               a.title.toLowerCase().includes(q) ||
               (a.summary ?? "").toLowerCase().includes(q) ||
-              a.source.name.toLowerCase().includes(q)
+              a.source.name.toLowerCase().includes(q),
           )
         : [],
-    [data, q]
+    [data, q],
   );
 
   const open = (id: string) => {
@@ -63,7 +63,11 @@ export default function SearchPage() {
           className="h-full flex-1 bg-transparent text-[16px] outline-none placeholder:text-text-tertiary"
         />
         {query && (
-          <button type="button" onClick={() => setQuery("")} className="text-text-tertiary hover:text-foreground">
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="text-text-tertiary hover:text-foreground"
+          >
             <X size={18} />
             <span className="sr-only">Clear search</span>
           </button>
@@ -75,8 +79,14 @@ export default function SearchPage() {
           recent.length > 0 && (
             <section>
               <div className="flex items-baseline justify-between">
-                <h2 className="font-display text-[14px] font-semibold text-text-secondary">Recent searches</h2>
-                <button type="button" onClick={clear} className="text-[13px] text-text-tertiary hover:text-foreground">
+                <h2 className="font-display text-[14px] font-semibold text-text-secondary">
+                  Recent searches
+                </h2>
+                <button
+                  type="button"
+                  onClick={clear}
+                  className="text-[13px] text-text-tertiary hover:text-foreground"
+                >
                   Clear
                 </button>
               </div>

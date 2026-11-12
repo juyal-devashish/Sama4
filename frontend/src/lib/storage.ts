@@ -53,18 +53,17 @@ export function useStoredValue<T>(key: string, fallback: T) {
   const value = useSyncExternalStore(
     subscribe,
     () => read(key, fallback),
-    () => fallback
+    () => fallback,
   );
   const set = useCallback(
     (next: T | ((prev: T) => T)) => {
       const prev = read(key, fallback);
-      const resolved =
-        typeof next === "function" ? (next as (p: T) => T)(prev) : next;
+      const resolved = typeof next === "function" ? (next as (p: T) => T)(prev) : next;
       write(key, resolved);
     },
     // fallback is expected to be a stable literal per call site
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [key]
+    [key],
   );
   return [value, set] as const;
 }

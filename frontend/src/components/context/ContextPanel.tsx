@@ -6,7 +6,8 @@ import { useEntityContext } from "@/hooks/useEntityContext";
 import { useExplain } from "@/hooks/useExplain";
 import { usePrediction } from "@/hooks/usePrediction";
 import { EntityBadge } from "@/components/ui/entity-badge";
-import { uniqueEntities, type SelectedTerm } from "@/components/reader/ArticleText";
+import type { SelectedTerm } from "@/components/reader/ArticleText";
+import { uniqueEntities } from "@/lib/highlight";
 import { ENTITY_LABELS, ENTITY_TYPES, entityColor, entityKind } from "@/lib/utils";
 import type { ArticleDetail } from "@/types";
 
@@ -90,7 +91,11 @@ export function ContextPanel({ term, articleId, onSelectTerm, onOpenArticle, onC
                       onClick={() => onSelectTerm({ id: r.id, name: r.name, type: r.type })}
                       className="inline-flex h-7 items-center gap-1.5 rounded-full border bg-surface px-2.5 text-[12.5px] font-medium text-foreground transition-colors hover:border-accent-secondary"
                     >
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: entityColor(r.type) }} aria-hidden />
+                      <span
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={{ backgroundColor: entityColor(r.type) }}
+                        aria-hidden
+                      />
                       {r.name}
                     </button>
                   ))}
@@ -122,11 +127,16 @@ export function ContextPanel({ term, articleId, onSelectTerm, onOpenArticle, onC
 
             {prediction?.status === "completed" && prediction.prediction_summary && (
               <section className="mt-7 rounded-xl bg-background-secondary px-4 py-3.5">
-                <h3 className="text-[13px] font-semibold text-text-secondary">Where this story may go</h3>
+                <h3 className="text-[13px] font-semibold text-text-secondary">
+                  Where this story may go
+                </h3>
                 <p className="mt-1.5 line-clamp-4 text-[13.5px] leading-[1.55] text-foreground">
                   {prediction.prediction_summary}
                 </p>
-                <a href="#outlook" className="mt-2 inline-block text-[13px] font-medium text-accent-secondary hover:underline">
+                <a
+                  href="#outlook"
+                  className="mt-2 inline-block text-[13px] font-medium text-accent-secondary hover:underline"
+                >
                   See the full outlook
                 </a>
               </section>
@@ -142,7 +152,15 @@ export function ContextPanel({ term, articleId, onSelectTerm, onOpenArticle, onC
 
 type Turn = { q: string; a?: string; failed?: boolean };
 
-function FollowUp({ term, articleId, disabled }: { term: SelectedTerm; articleId: string; disabled: boolean }) {
+function FollowUp({
+  term,
+  articleId,
+  disabled,
+}: {
+  term: SelectedTerm;
+  articleId: string;
+  disabled: boolean;
+}) {
   const [question, setQuestion] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const explain = useExplain();
@@ -153,7 +171,11 @@ function FollowUp({ term, articleId, disabled }: { term: SelectedTerm; articleId
     setQuestion("");
     setTurns((t) => [...t, { q }]);
     try {
-      const res = await explain.mutateAsync({ entity_id: term.id, article_id: articleId, question: q });
+      const res = await explain.mutateAsync({
+        entity_id: term.id,
+        article_id: articleId,
+        question: q,
+      });
       setTurns((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, a: res.explanation } : x)));
     } catch {
       setTurns((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, failed: true } : x)));
@@ -170,7 +192,9 @@ function FollowUp({ term, articleId, disabled }: { term: SelectedTerm; articleId
               {t.a ? (
                 <p className="mt-1 text-[14px] leading-[1.6] text-foreground">{t.a}</p>
               ) : t.failed ? (
-                <p className="mt-1 text-[13.5px] text-error">No answer came back. Ask again in a moment.</p>
+                <p className="mt-1 text-[13.5px] text-error">
+                  No answer came back. Ask again in a moment.
+                </p>
               ) : (
                 <p className="mt-1 inline-flex items-center gap-2 text-[13.5px] text-text-tertiary">
                   <Loader2 size={13} className="animate-spin" /> Writing an answer
@@ -233,13 +257,19 @@ export function KeyTerms({
         Select any highlighted term, or one below, to see who or what it is.
       </p>
       {groups.length === 0 ? (
-        <p className="mt-6 text-[13.5px] text-text-secondary">No terms were picked out for this story.</p>
+        <p className="mt-6 text-[13.5px] text-text-secondary">
+          No terms were picked out for this story.
+        </p>
       ) : (
         <div className="mt-6 space-y-6">
           {groups.map((g) => (
             <section key={g.type}>
               <h3 className="flex items-center gap-2 text-[12.5px] font-semibold text-text-secondary">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entityColor(g.type) }} aria-hidden />
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: entityColor(g.type) }}
+                  aria-hidden
+                />
                 {ENTITY_LABELS[g.type].many}
               </h3>
               <ul className="mt-1.5">

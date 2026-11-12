@@ -50,13 +50,19 @@ export function WelcomeDialog() {
             <div className="px-10 pb-8 pt-10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/sama4-logo.jpg" alt="" className="mb-6 h-12 w-12 rounded-xl" />
-              <h1 id="welcome-title" className="font-display text-[30px] font-bold leading-[1.15] tracking-[-0.02em]">
+              <h1
+                id="welcome-title"
+                className="font-display text-[30px] font-bold leading-[1.15] tracking-[-0.02em]"
+              >
                 News, understood.
               </h1>
               <p className="mt-3 max-w-[44ch] text-[16px] leading-relaxed text-text-secondary">
                 Stories assume you already know the people, places and ideas in them. samā4
                 doesn&apos;t. Anything{" "}
-                <span className="term" style={{ ["--term-color" as string]: "var(--entity-person)" }}>
+                <span
+                  className="term"
+                  style={{ ["--term-color" as string]: "var(--entity-person)" }}
+                >
                   highlighted
                 </span>{" "}
                 can be selected to see what it is, right beside the story.
@@ -79,7 +85,7 @@ export function WelcomeDialog() {
                           "h-9 rounded-full border px-4 text-[14px] font-medium transition-colors",
                           on
                             ? "border-accent-primary bg-accent-primary text-on-accent"
-                            : "text-text-secondary hover:border-accent-secondary hover:text-foreground"
+                            : "text-text-secondary hover:border-accent-secondary hover:text-foreground",
                         )}
                       >
                         {TOPIC_LABELS[t]}
@@ -87,7 +93,9 @@ export function WelcomeDialog() {
                     );
                   })}
                 </div>
-                <p className="mt-2 text-[13px] text-text-tertiary">You can change these any time in Settings.</p>
+                <p className="mt-2 text-[13px] text-text-tertiary">
+                  You can change these any time in Settings.
+                </p>
               </fieldset>
             </div>
             <div className="flex items-center justify-end border-t bg-background-secondary/50 px-10 py-4">

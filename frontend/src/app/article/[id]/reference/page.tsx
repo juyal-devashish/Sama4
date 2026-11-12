@@ -7,7 +7,14 @@ import { ArrowLeft, ArrowUpRight, ChevronDown } from "lucide-react";
 import { useReferencePage } from "@/hooks/useReferencePage";
 import { Page } from "@/components/shell/Page";
 import { ErrorState } from "@/components/ui/states";
-import { ENTITY_LABELS, ENTITY_TYPES, cn, entityColor, entityKind, formatTimeAgo } from "@/lib/utils";
+import {
+  ENTITY_LABELS,
+  ENTITY_TYPES,
+  cn,
+  entityColor,
+  entityKind,
+  formatTimeAgo,
+} from "@/lib/utils";
 import type { ReferenceEntityContext } from "@/types";
 
 export default function ReferencesPage() {
@@ -56,7 +63,8 @@ export default function ReferencesPage() {
       description={
         <>
           Everyone and everything mentioned in{" "}
-          <span className="font-medium text-foreground">{data.article.title}</span>, {data.entities.length} in total.
+          <span className="font-medium text-foreground">{data.article.title}</span>,{" "}
+          {data.entities.length} in total.
         </>
       }
     >
@@ -64,14 +72,26 @@ export default function ReferencesPage() {
         <div className="space-y-10">
           {groups.map((g) => (
             <section key={g.type} aria-labelledby={`g-${g.type}`}>
-              <h2 id={`g-${g.type}`} className="flex items-center gap-2 font-display text-[15px] font-semibold">
-                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entityColor(g.type) }} aria-hidden />
+              <h2
+                id={`g-${g.type}`}
+                className="flex items-center gap-2 font-display text-[15px] font-semibold"
+              >
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: entityColor(g.type) }}
+                  aria-hidden
+                />
                 {ENTITY_LABELS[g.type]?.many ?? "Other"}
                 <span className="font-normal text-text-tertiary">{g.items.length}</span>
               </h2>
               <ul className="mt-3 divide-y border-y">
                 {g.items.map((e) => (
-                  <ReferenceRow key={e.id} entity={e} open={open === e.id} onToggle={() => setOpen(open === e.id ? null : e.id)} />
+                  <ReferenceRow
+                    key={e.id}
+                    entity={e}
+                    open={open === e.id}
+                    onToggle={() => setOpen(open === e.id ? null : e.id)}
+                  />
                 ))}
               </ul>
             </section>
@@ -120,11 +140,24 @@ function ReferenceRow({
         onClick={onToggle}
         className="flex w-full items-start gap-4 py-3.5 text-left"
       >
-        <span className="w-[200px] flex-shrink-0 font-display text-[14.5px] font-semibold">{entity.name}</span>
-        <span className={cn("min-w-0 flex-1 text-[14px] leading-relaxed text-text-secondary", !open && "line-clamp-1")}>
+        <span className="w-[200px] flex-shrink-0 font-display text-[14.5px] font-semibold">
+          {entity.name}
+        </span>
+        <span
+          className={cn(
+            "min-w-0 flex-1 text-[14px] leading-relaxed text-text-secondary",
+            !open && "line-clamp-1",
+          )}
+        >
           {entity.context ?? "No explanation yet. Select this term in the story to generate one."}
         </span>
-        <ChevronDown size={16} className={cn("mt-1 flex-shrink-0 text-text-tertiary transition-transform", open && "rotate-180")} />
+        <ChevronDown
+          size={16}
+          className={cn(
+            "mt-1 flex-shrink-0 text-text-tertiary transition-transform",
+            open && "rotate-180",
+          )}
+        />
       </button>
       {open && entity.wikipedia_url && (
         <div className="pb-4 pl-[216px]">
