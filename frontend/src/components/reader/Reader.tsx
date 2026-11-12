@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Newspaper } from "lucide-react";
 import { useFeedPages } from "@/hooks/useFeed";
-import { useTopics } from "@/lib/preferences";
+import { ALL_TOPICS, useTopics } from "@/lib/preferences";
 import { cn } from "@/lib/utils";
 import { isTypingTarget } from "@/components/shell/AppShell";
 import { EmptyState } from "@/components/ui/states";
@@ -16,7 +16,9 @@ export function Reader() {
   const router = useRouter();
   const params = useSearchParams();
   const articleId = params.get("article") ?? undefined;
-  const topic = params.get("topic") ?? "all";
+  // Unknown topics (a stale or mistyped link) fall back to all stories.
+  const rawTopic = params.get("topic") ?? "all";
+  const topic = (ALL_TOPICS as readonly string[]).includes(rawTopic) ? rawTopic : "all";
   const [topics] = useTopics();
 
   const feed = useFeedPages(topic);
