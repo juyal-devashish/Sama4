@@ -812,11 +812,26 @@
 .s4-landing .waitlist-form button:hover {
   background: var(--accent-hover);
 }
+.s4-landing .waitlist-label {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
 .s4-landing .form-note {
-  margin-top: 14px;
-  font-size: 12px;
+  margin: 14px auto 0;
+  max-width: 480px;
+  font-size: 13px;
+  line-height: 1.5;
   color: var(--text-muted);
-  font-family: var(--mono);
+  font-family: var(--sans);
+}
+.s4-landing .form-note a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 .s4-landing .form-success {
   display: none;
@@ -1089,17 +1104,17 @@
   margin-right: 6px;
 }
 .s4-landing .waitlist-form.error {
-  border-color: #ef4444;
+  border-color: var(--error);
 }
+/* Always rendered (it's the role=alert region); empty until there is an error. */
 .s4-landing .form-error {
-  display: none;
   margin-top: 10px;
-  font-size: 12px;
-  font-family: var(--mono);
-  color: #ef4444;
+  font-size: 13px;
+  font-family: var(--sans);
+  color: var(--error);
 }
-.s4-landing .form-error.visible {
-  display: block;
+.s4-landing .form-error:empty {
+  margin-top: 0;
 }
 .s4-landing .reveal.visible {
   opacity: 1;

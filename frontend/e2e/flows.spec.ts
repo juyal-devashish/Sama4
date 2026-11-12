@@ -187,3 +187,47 @@ test("an empty explanation in the margin offers a retry instead of a blank", asy
   await expect(page.getByText(/couldn't write an explanation for this term/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
 });
+
+test("waitlist email has a real label and accessible inline errors", async ({ page }) => {
+  let posted = 0;
+  await mockApi(page);
+  await page.route("**/api/v1/waitlist", (route) => {
+    posted++;
+    return route.fulfill({ status: 500, headers: { "access-control-allow-origin": "*" } });
+  });
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto("/early-access");
+  const email = page.getByRole("textbox", { name: "Your email address" });
+  await expect(email).toHaveAttribute("type", "email");
+  await expect(email).toHaveAttribute("autocomplete", "email");
+  const submit = page.getByRole("button", { name: "Get early access" });
+
+  await submit.click();
+  await expect(page.getByRole("alert")).toHaveText("Enter your email address.");
+  await expect(email).toHaveAttribute("aria-invalid", "true");
+  await expect(email).toBeFocused();
+
+  await email.fill("not-an-email");
+  await expect(email).not.toHaveAttribute("aria-invalid", "true"); // cleared while typing
+  await email.press("Enter");
+  await expect(page.getByRole("alert")).toHaveText(/doesn't look like an email address/);
+  expect(posted).toBe(0); // invalid input never reaches the server
+
+  await email.fill("reader@example.com");
+  await email.press("Enter");
+  await expect(page.getByRole("alert")).toHaveText(/not on the list yet/);
+  expect(posted).toBe(1);
+
+  await expect(page.getByRole("link", { name: "How samā4 handles your data" })).toHaveAttribute(
+    "href",
+    "/privacy",
+  );
+});
+
+test("privacy page explains how data is handled", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto("/privacy");
+  await expect(page.getByRole("heading", { name: "Privacy", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "The early-access waitlist" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "No tracking" })).toBeVisible();
+});
