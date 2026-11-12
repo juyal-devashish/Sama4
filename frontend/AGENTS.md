@@ -7,7 +7,7 @@ Next.js 14 (App Router), React 18, TypeScript (strict), TanStack Query v5 and Ta
 ```
 src/
   app/                 routes: / (reader), /article/[id], /article/[id]/reference,
-                       /search, /saved, /outlook (predictions), /announcements
+                       /search, /saved, /outlook (predictions), /early-access
                        (product intro + waitlist), /settings
   components/
     shell/             AppShell, Sidebar, Page, WelcomeDialog

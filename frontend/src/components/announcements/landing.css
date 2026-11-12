@@ -1297,3 +1297,10 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Inside the app the sidebar is the navigation and Landing.tsx renders an app-style
+   bar ("Back to today's stories" + on-page links), so the page's own nav is hidden. */
+.s4-landing > nav,
+.s4-landing > .mobile-menu {
+  display: none !important;
+}
