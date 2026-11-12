@@ -109,3 +109,19 @@ test("every story links to its original article in a new tab", async ({ page }) 
   await link.focus();
   await expect(link).toBeFocused();
 });
+
+test("publisher text and samā4-generated text are labelled", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  await expect(
+    page.getByRole("heading", { name: /In brief AI summary written by samā4/ }),
+  ).toBeVisible({
+    timeout: 10_000,
+  });
+  await expect(page.getByRole("heading", { name: /^From .+ The publisher's text/ })).toBeVisible();
+  await page.locator(".term").first().click();
+  await expect(
+    page.getByText("Written by samā4's AI from Wikipedia and this story."),
+  ).toBeVisible();
+});

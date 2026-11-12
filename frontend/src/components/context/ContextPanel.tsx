@@ -72,6 +72,9 @@ export function ContextPanel({ term, articleId, onSelectTerm, onOpenArticle, onC
         ) : (
           <>
             <p className="mt-4 text-[15.5px] leading-[1.65] text-foreground">{data.context.text}</p>
+            <p className="mt-2 text-[12.5px] text-text-tertiary">
+              Written by samā4&apos;s AI from Wikipedia and this story.
+            </p>
 
             {data.entity.wikipedia_url && (
               <a
