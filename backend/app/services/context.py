@@ -99,27 +99,29 @@ class ContextService:
         return f"context:entity:{entity.id}"
 
     async def get_context(self, entity: Entity, db: AsyncSession) -> ContextResponse:
-        """Explain an entity. Cached responses omit related entities/articles."""
+        """Explain an entity.
+
+        Only Claude's explanation is cached. Related entities (one SQL query) and related
+        articles (one vector search) are looked up on every request, so a cache hit returns
+        the same shape as a miss and "Also in the news" stays current.
+        """
         cached = await self.cache.get(self.cache_key(entity))
         if cached:
-            return ContextResponse(
-                entity=entity_info(entity),
-                context=ContextData(
-                    text=cached["text"], generated_at=cached["generated_at"], cached=True
-                ),
+            context = ContextData(
+                text=cached["text"], generated_at=cached["generated_at"], cached=True
             )
-
-        if entity.short_context and not self.llm.available:
-            context_text = entity.short_context
         else:
-            context_text = await self._generate_context(entity, db)
-
-        now = datetime.now(UTC)
-        await self.cache.set(
-            self.cache_key(entity),
-            {"text": context_text, "generated_at": now.isoformat()},
-            ttl=self.context_ttl,
-        )
+            text = await self._generate_context(entity, db) if self.llm.available else ""
+            now = datetime.now(UTC)
+            if text:
+                await self.cache.set(
+                    self.cache_key(entity),
+                    {"text": text, "generated_at": now.isoformat()},
+                    ttl=self.context_ttl,
+                )
+            # Claude unavailable or declined: fall back to the linker's short description,
+            # uncached, so the real explanation appears as soon as Claude is back.
+            context = ContextData(text=text or entity.short_context or "", generated_at=now)
 
         related_entities = [
             RelatedEntity(id=e.id, name=e.canonical_name, type=e.entity_type)
@@ -131,7 +133,7 @@ class ContextService:
 
         return ContextResponse(
             entity=entity_info(entity),
-            context=ContextData(text=context_text, generated_at=now, cached=False),
+            context=context,
             related_entities=related_entities,
             related_articles=related_articles,
         )

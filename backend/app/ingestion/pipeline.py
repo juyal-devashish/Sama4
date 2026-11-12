@@ -69,18 +69,36 @@ class IngestionPipeline:
             raise RuntimeError(f"Source row missing for {source_config['url']}")
 
         processed = 0
+        category = source_config["category"]
         for fetched in await self.fetcher.fetch_feed(source_config):
-            if self.dedup.is_duplicate(fetched) or await article_repo.exists_by_url(
-                db, fetched.url
-            ):
+            if self.dedup.is_duplicate(fetched):
                 continue
+            existing = await article_repo.get_by_url(db, fetched.url)
+            if existing is not None and not article_repo.due_for_retry(existing):
+                continue  # already stored, or failed recently
             try:
                 # Savepoint: a failing article is rolled back alone; earlier ones are kept.
                 async with db.begin_nested():
-                    await self._process_article(fetched, source, source_config["category"], db)
+                    if existing is not None:  # retrying: replace the "failed" row
+                        await db.delete(existing)
+                        await db.flush()
+                    await self._process_article(fetched, source, category, db)
                 processed += 1
-            except Exception:
+            except Exception as exc:
                 logger.error("Failed to process article: %s", fetched.url, exc_info=True)
+                try:
+                    async with db.begin_nested():
+                        await article_repo.record_failure(
+                            db,
+                            url=fetched.url,
+                            title=fetched.title,
+                            source_id=source.id,
+                            category=category,
+                            published_at=fetched.published_at,
+                            error=f"{type(exc).__name__}: {exc}",
+                        )
+                except Exception:
+                    logger.error("Could not record failure for %s", fetched.url, exc_info=True)
 
         source.last_fetched_at = datetime.now(UTC)
         return processed
@@ -155,6 +173,6 @@ class IngestionPipeline:
             )
             article.processing_status = article_repo.STATUS_COMPLETED
         except Exception:
-            article.processing_status = "failed"
+            # The caller's savepoint rolls this row back and stores a "failed" row instead.
             logger.error("Pipeline failed for article: %s", article.url, exc_info=True)
             raise

@@ -10,7 +10,16 @@ from sqlalchemy.orm import selectinload
 from app.api.deps import ContainerDep, DbSession, PredictionServiceDep
 from app.ingestion import jobs
 from app.models.article import Article
-from app.models.prediction import AgentPerspective, Prediction
+from app.models.prediction import (
+    STATUS_BUILDING_GRAPH,
+    STATUS_COMPLETED,
+    STATUS_FAILED,
+    STATUS_GENERATING_REPORT,
+    STATUS_QUEUED,
+    STATUS_SIMULATING,
+    AgentPerspective,
+    Prediction,
+)
 from app.schemas.prediction import (
     AgentInterviewRequest,
     AgentInterviewResponse,
@@ -53,7 +62,7 @@ async def trigger_simulation(
     await db.commit()
 
     # Only kick off background simulation if newly queued
-    if prediction.status == "queued":
+    if prediction.status == STATUS_QUEUED:
         background_tasks.add_task(jobs.run_simulation, c, str(prediction.id))
 
     return PredictionSummary(
@@ -77,6 +86,7 @@ async def get_article_prediction(
     prediction = await prediction_service.get_prediction_for_article(str(article_id), db)
     if not prediction:
         return None
+    await prediction_service.expire_if_stale(prediction, db)
 
     return PredictionDetail(
         id=prediction.id,
@@ -114,19 +124,21 @@ async def get_article_prediction(
 async def get_prediction_status(
     prediction_id: uuid.UUID,
     db: DbSession,
+    prediction_service: PredictionServiceDep,
 ) -> PredictionStatusOut:
     """Check the status of a prediction simulation."""
     prediction = await db.get(Prediction, prediction_id)
     if not prediction:
         raise HTTPException(status_code=404, detail="Prediction not found")
+    await prediction_service.expire_if_stale(prediction, db)
 
     status_messages = {
-        "queued": "Waiting to start simulation...",
-        "building_graph": "Building knowledge graph from article...",
-        "simulating": f"Running simulation with {prediction.agent_count} agents...",
-        "generating_report": "Analyzing simulation results...",
-        "completed": "Prediction complete!",
-        "failed": f"Simulation failed: {prediction.error_message or 'Unknown error'}",
+        STATUS_QUEUED: "Waiting to start simulation...",
+        STATUS_BUILDING_GRAPH: "Building knowledge graph from article...",
+        STATUS_SIMULATING: f"Running simulation with {prediction.agent_count} agents...",
+        STATUS_GENERATING_REPORT: "Analyzing simulation results...",
+        STATUS_COMPLETED: "Prediction complete!",
+        STATUS_FAILED: f"Simulation failed: {prediction.error_message or 'Unknown error'}",
     }
 
     return PredictionStatusOut(
@@ -146,7 +158,7 @@ async def chat_with_prediction(
     prediction = await db.get(Prediction, request.prediction_id)
     if not prediction:
         raise HTTPException(status_code=404, detail="Prediction not found")
-    if prediction.status != "completed":
+    if prediction.status != STATUS_COMPLETED:
         raise HTTPException(status_code=400, detail="Prediction is not yet complete")
 
     response = await prediction_service.chat_with_prediction(

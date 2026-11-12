@@ -45,6 +45,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Postgres or SQLite. Additive model changes only; see backend/CLAUDE.md.
     await create_tables()
 
+    from app.ingestion.jobs import fail_interrupted_predictions
+
+    await fail_interrupted_predictions()
+
     container = get_container()
     scheduler = None
     if container.settings.scheduler_enabled:

@@ -23,7 +23,9 @@ export const metadata: Metadata = {
 };
 
 // Applies the saved theme before first paint so there is no light flash in dark mode.
-const themeScript = `(function(){try{var t=localStorage.getItem('sama4_theme');if(!t){t=localStorage.getItem('sama4_dark_mode')==='true'?'dark':'system'}var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark')}catch(e){}})();`;
+// lib/storage.ts saves values as JSON (`"dark"`, quotes included), so parse before
+// comparing; fall back to the raw string for anything saved before that.
+const themeScript = `(function(){try{var t=localStorage.getItem('sama4_theme');try{t=JSON.parse(t)}catch(e){}if(!t){t=localStorage.getItem('sama4_dark_mode')==='true'?'dark':'system'}var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark')}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
