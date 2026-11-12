@@ -19,7 +19,7 @@ for (const route of routes) {
       // mid-fade colours unless we let the animations finish first.
       if (route === "/announcements") await page.waitForTimeout(4000);
       const results = await new AxeBuilder({ page })
-        .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+        .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"])
         .analyze();
       const summary = results.violations.map(
         (v) => `${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes[0]?.target.join(" ")}`,
@@ -34,7 +34,7 @@ test("first-run welcome dialog is accessible", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: /news, understood/i })).toBeVisible();
   await page.waitForTimeout(1200); // entrance animation
   const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"])
     .analyze();
   const summary = results.violations.map(
     (v) => `${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes[0]?.target.join(" ")}`,
@@ -50,7 +50,7 @@ test("loading skeletons are accessible (feed request held open)", async ({ page 
   await page.goto("/");
   await expect(page.getByLabel("Loading stories")).toBeVisible();
   const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"])
     .analyze();
   const summary = results.violations.map(
     (v) => `${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes[0]?.target.join(" ")}`,
