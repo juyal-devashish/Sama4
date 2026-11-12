@@ -40,10 +40,10 @@ PostgreSQL / SQLite  ·  Redis  ·  Pinecone  ·  OpenAI API
 - **Language**: TypeScript (strict mode)
 - **Data fetching**: React Query (TanStack Query v5)
 - **Styling**: Tailwind CSS 3.4 with hex-based CSS custom properties
-- **Animation**: Framer Motion (entity context bottom sheet)
-- **UI components**: shadcn/ui (Button, Card) + custom Figma-matched components
+- **Animation**: Framer Motion (context margin, welcome dialog)
+- **UI components**: custom components (no component library)
 - **Typography**: Poppins (headings/UI/buttons) + Roboto (body text)
-- **Design**: Mobile-first (393px max-width), light/dark mode
+- **Design**: Desktop app (three-pane reader), light/dark/system theme
 - **Deployment**: Vercel
 
 ---
@@ -103,63 +103,29 @@ sama4/
 ├── frontend/
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── layout.tsx           # Root layout (Poppins + Roboto fonts)
-│   │   │   ├── page.tsx             # Tab-based SPA with SwipeableHome landing (CardSwiper ↔ FeedList)
-│   │   │   ├── providers.tsx        # React Query provider
-│   │   │   ├── article/[id]/
-│   │   │   │   ├── page.tsx         # Article detail route
-│   │   │   │   └── reference/page.tsx  # Reference page route
-│   │   │   └── search/page.tsx      # Search route (unused, SPA tab used instead)
+│   │   │   ├── layout.tsx           # Root layout: fonts, pre-paint theme script, AppShell
+│   │   │   ├── page.tsx             # Today: three-pane reader (state in URL: ?article=&topic=)
+│   │   │   ├── article/[id]/page.tsx        # Redirects shared links to /?article=<id>
+│   │   │   ├── article/[id]/reference/page.tsx  # References: entities grouped by type + related stories
+│   │   │   ├── search/page.tsx      # Search (client-side over latest 100 stories; server search is a stub)
+│   │   │   ├── saved/page.tsx       # Saved stories (localStorage)
+│   │   │   ├── outlook/page.tsx     # Trending predictions ranked by impact
+│   │   │   └── settings/page.tsx    # Theme, topics, keyboard shortcuts, about
 │   │   ├── components/
-│   │   │   ├── SplashScreen.tsx     # Animated splash (text → logo → fade out)
-│   │   │   ├── feed/
-│   │   │   │   ├── SwipeableHome.tsx # Horizontal swipe: CardSwiper ↔ FeedList
-│   │   │   │   ├── CardSwiper.tsx   # Full-page vertical scroll-snap swiper + entity detail fetch + ContextPopup
-│   │   │   │   ├── FullPageCard.tsx  # Full-screen card with inline entity highlights on summary
-│   │   │   │   ├── ArticleCard.tsx  # 3 variants: hero, standard, compact
-│   │   │   │   ├── CategoryTabs.tsx # Chip-style category filter
-│   │   │   │   └── FeedList.tsx     # Traditional feed (hero first + standard rest)
-│   │   │   ├── article/
-│   │   │   │   ├── ArticleView.tsx      # Full article with scroll progress, hero image
-│   │   │   │   ├── ArticleContent.tsx   # Content wrapper
-│   │   │   │   ├── HighlightedText.tsx  # Entity text segmentation
-│   │   │   │   ├── EntityHighlight.tsx  # Tappable entity spans (gold underlines)
-│   │   │   │   └── ArticleHeader.tsx    # Legacy header component
-│   │   │   ├── context/
-│   │   │   │   ├── ContextPopup.tsx     # Animated bottom sheet (framer-motion)
-│   │   │   │   ├── ContextCard.tsx      # Legacy card component
-│   │   │   │   └── FollowupInput.tsx    # Follow-up question input
-│   │   │   ├── reference/
-│   │   │   │   ├── ReferencePage.tsx     # Entities grouped by type, expandable
-│   │   │   │   ├── EntityList.tsx       # Legacy entity list
-│   │   │   │   └── RelatedArticles.tsx  # Related articles section
-│   │   │   ├── navigation/
-│   │   │   │   └── BottomTabBar.tsx     # 5-tab bottom bar (Feed, Search, Bookmarks, Trending, Profile)
-│   │   │   ├── search/
-│   │   │   │   └── SearchScreen.tsx     # Search with recent searches + compact results
-│   │   │   ├── profile/
-│   │   │   │   └── ProfileScreen.tsx    # Settings, dark mode toggle
-│   │   │   ├── onboarding/
-│   │   │   │   └── OnboardingScreen.tsx # 3-step onboarding + category selection
-│   │   │   └── ui/
-│   │   │       ├── entity-badge.tsx     # Color-coded entity type badges
-│   │   │       ├── PlaceholderScreen.tsx # Generic placeholder (bookmarks, trending)
-│   │   │       ├── button.tsx           # shadcn/ui Button
-│   │   │       └── card.tsx             # shadcn/ui Card
-│   │   ├── hooks/
-│   │   │   ├── useFeed.ts          # Feed query with category + pagination
-│   │   │   ├── useArticle.ts       # Article detail query
-│   │   │   ├── useEntityContext.ts  # Entity context query
-│   │   │   ├── useReferencePage.ts  # Reference page query
-│   │   │   └── usePrefetch.ts      # Prefetch utilities
+│   │   │   ├── shell/               # AppShell (global keys), Sidebar, WelcomeDialog, Page
+│   │   │   ├── reader/              # Reader, StoryList, ReadingPane, ArticleText (term highlighting)
+│   │   │   ├── context/ContextPanel.tsx  # Context margin: explanation, related terms, follow-up Q&A, KeyTerms
+│   │   │   ├── outlook/OutlookSection.tsx # "What might happen next": run, progress, report, stakeholders, chat
+│   │   │   └── ui/                  # entity-badge, states (EmptyState, ErrorState, buttons)
+│   │   ├── hooks/                   # React Query hooks (feed pages, article, context, explain, prediction)
 │   │   ├── lib/
-│   │   │   ├── api.ts              # Fetch wrapper (all API calls)
-│   │   │   ├── queryClient.ts      # React Query client config
-│   │   │   └── utils.ts            # cn() utility + formatTimeAgo()
-│   │   ├── types/index.ts          # All TypeScript interfaces
-│   │   └── styles/globals.css      # Figma design tokens (light + dark mode)
-│   ├── tailwind.config.js          # Hex-based color tokens
-│   ├── tsconfig.json               # strict: true
+│   │   │   ├── api.ts               # Fetch wrapper (all API calls)
+│   │   │   ├── storage.ts           # Guarded localStorage store (useSyncExternalStore)
+│   │   │   ├── preferences.ts       # Theme, topics, saved stories, recent searches
+│   │   │   └── utils.ts             # cn(), dates, entityKind()/entityColor()
+│   │   ├── types/index.ts
+│   │   └── styles/globals.css      # Design tokens (light + dark), .term highlight styles
+│   ├── tailwind.config.js          # Token colours, font families, wide/xwide breakpoints
 │   └── package.json
 │
 ├── src-2/                      # New design reference (full-page card swiper prototype)
@@ -327,16 +293,13 @@ make seed            # seed sample data
 - **Roboto**: body text, paragraphs, inputs (weights: 400, 500)
 
 ### Key UI Patterns
-- Mobile-first: `max-w-[393px] mx-auto` container
-- **Splash screen**: Animated intro — "samā4" text (phase 0) → owl logo + "News, understood" tagline (phase 1) → fade out (phase 2)
-- **Landing page**: Full-page card swiper (CardSwiper) with vertical scroll-snap — default view on app open
-- **Swipeable feed**: Horizontal swipe (react-swipeable) toggles between CardSwiper (default) and traditional FeedList
-- **View indicator**: Bottom dots show which view is active (card swiper vs feed list)
-- **Card-level entity highlights**: Summary text on FullPageCard has inline entity highlighting via text-matching (entities fetched from article detail API). Tap opens ContextPopup directly from card — no need to enter article detail view
-- Entity highlighting: gold background (`--entity-highlight: #F5E6C8`) + entity-type-colored borders (person=#4A7AB5, org=#7A5AB5, event=#B5764A, concept=#4AB58A, location=#B54A6E)
-- Bottom sheet: framer-motion spring animation (damping: 25, stiffness: 300)
-- Category chips: filled (active) vs outlined (inactive)
-- Article cards: full-page (card swiper, 35% image), hero (400px), standard (180px), compact (72x72 thumb)
+- Desktop layout: sidebar (72px icons, 232px with labels at ≥1720px) | story list (340px) | reading pane | context margin (380px)
+- **Context margin**: selecting a highlighted term opens its explanation beside the story. Inline column at ≥1400px (`wide`), drawer over the story below that. With no term selected it lists every term in the story ("In this story")
+- Term highlighting: gold background (`--entity-highlight`) + underline in the entity-type colour; priority sets underline weight; the selected term turns `--entity-highlight-active`
+- Backend sends NER labels (`ORG`, `PERSON`, `LOCATION`…); always go through `entityKind()` / `entityColor()` in `lib/utils.ts`
+- Keyboard: J/K next/previous story, S save, Esc close explanation, / search
+- Topic chips: filled (active) vs outlined (inactive)
+- Below 1024px the story list and reading pane swap (one at a time)
 
 ---
 
