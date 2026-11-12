@@ -1,0 +1,264 @@
+"use client";
+
+import { useState } from "react";
+import { ArrowUpRight, Loader2, Send, X } from "lucide-react";
+import { useEntityContext } from "@/hooks/useEntityContext";
+import { useExplain } from "@/hooks/useExplain";
+import { usePrediction } from "@/hooks/usePrediction";
+import { EntityBadge } from "@/components/ui/entity-badge";
+import { uniqueEntities, type SelectedTerm } from "@/components/reader/ArticleText";
+import { ENTITY_LABELS, ENTITY_TYPES, entityColor, entityKind } from "@/lib/utils";
+import type { ArticleDetail } from "@/types";
+
+interface Props {
+  term: SelectedTerm;
+  articleId: string;
+  onSelectTerm: (t: SelectedTerm) => void;
+  onOpenArticle: (id: string) => void;
+  onClose: () => void;
+}
+
+/** Explanation of one term, shown in the margin beside the story. */
+export function ContextPanel({ term, articleId, onSelectTerm, onOpenArticle, onClose }: Props) {
+  const { data, isLoading, isError, refetch } = useEntityContext(term.id);
+  const { data: prediction } = usePrediction(articleId);
+  const color = entityColor(term.type);
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="h-[3px] flex-shrink-0" style={{ backgroundColor: color }} aria-hidden />
+      <div className="flex items-center justify-between px-6 pb-1 pt-4">
+        <EntityBadge type={term.type} />
+        <button
+          type="button"
+          onClick={onClose}
+          title="Close (Esc)"
+          className="-mr-2 flex h-8 w-8 items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-secondary hover:text-foreground"
+        >
+          <X size={16} />
+          <span className="sr-only">Close explanation</span>
+        </button>
+      </div>
+
+      <div className="scroll-thin flex-1 overflow-y-auto px-6 pb-6">
+        <h2 className="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em]">
+          {data?.entity.name ?? term.name}
+        </h2>
+
+        {isLoading ? (
+          <div className="mt-5 space-y-2.5" aria-busy="true" aria-label="Loading explanation">
+            <div className="skeleton h-4 w-full" />
+            <div className="skeleton h-4 w-full" />
+            <div className="skeleton h-4 w-11/12" />
+            <div className="skeleton h-4 w-3/5" />
+          </div>
+        ) : isError || !data ? (
+          <div className="mt-5 text-[14px] leading-relaxed text-text-secondary">
+            <p>The explanation didn&apos;t load. The server may be busy generating it.</p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="mt-3 h-8 rounded-lg border px-3 text-[13px] font-medium text-foreground hover:bg-background-secondary"
+            >
+              Try again
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="mt-4 text-[15.5px] leading-[1.65] text-foreground">{data.context.text}</p>
+
+            {data.entity.wikipedia_url && (
+              <a
+                href={data.entity.wikipedia_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1 text-[13.5px] font-medium text-accent-secondary hover:underline"
+              >
+                Read more on Wikipedia
+                <ArrowUpRight size={14} aria-hidden />
+              </a>
+            )}
+
+            {data.related_entities.length > 0 && (
+              <section className="mt-7">
+                <h3 className="text-[13px] font-semibold text-text-secondary">Connected to</h3>
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  {data.related_entities.slice(0, 8).map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => onSelectTerm({ id: r.id, name: r.name, type: r.type })}
+                      className="inline-flex h-7 items-center gap-1.5 rounded-full border bg-surface px-2.5 text-[12.5px] font-medium text-foreground transition-colors hover:border-accent-secondary"
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: entityColor(r.type) }} aria-hidden />
+                      {r.name}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {data.related_articles.filter((a) => a.id !== articleId).length > 0 && (
+              <section className="mt-7">
+                <h3 className="text-[13px] font-semibold text-text-secondary">Also in the news</h3>
+                <ul className="mt-2 divide-y">
+                  {data.related_articles
+                    .filter((a) => a.id !== articleId)
+                    .slice(0, 4)
+                    .map((a) => (
+                      <li key={a.id}>
+                        <button
+                          type="button"
+                          onClick={() => onOpenArticle(a.id)}
+                          className="w-full py-2.5 text-left text-[14px] leading-snug text-foreground hover:text-accent-secondary"
+                        >
+                          {a.title}
+                        </button>
+                      </li>
+                    ))}
+                </ul>
+              </section>
+            )}
+
+            {prediction?.status === "completed" && prediction.prediction_summary && (
+              <section className="mt-7 rounded-xl bg-background-secondary px-4 py-3.5">
+                <h3 className="text-[13px] font-semibold text-text-secondary">Where this story may go</h3>
+                <p className="mt-1.5 line-clamp-4 text-[13.5px] leading-[1.55] text-foreground">
+                  {prediction.prediction_summary}
+                </p>
+                <a href="#outlook" className="mt-2 inline-block text-[13px] font-medium text-accent-secondary hover:underline">
+                  See the full outlook
+                </a>
+              </section>
+            )}
+          </>
+        )}
+      </div>
+
+      <FollowUp key={term.id} term={term} articleId={articleId} disabled={isLoading} />
+    </div>
+  );
+}
+
+type Turn = { q: string; a?: string; failed?: boolean };
+
+function FollowUp({ term, articleId, disabled }: { term: SelectedTerm; articleId: string; disabled: boolean }) {
+  const [question, setQuestion] = useState("");
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const explain = useExplain();
+
+  const ask = async () => {
+    const q = question.trim();
+    if (!q || explain.isPending) return;
+    setQuestion("");
+    setTurns((t) => [...t, { q }]);
+    try {
+      const res = await explain.mutateAsync({ entity_id: term.id, article_id: articleId, question: q });
+      setTurns((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, a: res.explanation } : x)));
+    } catch {
+      setTurns((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, failed: true } : x)));
+    }
+  };
+
+  return (
+    <div className="flex-shrink-0 border-t bg-background-secondary/50">
+      {turns.length > 0 && (
+        <div className="scroll-thin max-h-[40vh] space-y-4 overflow-y-auto px-6 pt-4">
+          {turns.map((t, i) => (
+            <div key={i}>
+              <p className="font-display text-[13.5px] font-semibold">{t.q}</p>
+              {t.a ? (
+                <p className="mt-1 text-[14px] leading-[1.6] text-foreground">{t.a}</p>
+              ) : t.failed ? (
+                <p className="mt-1 text-[13.5px] text-error">No answer came back. Ask again in a moment.</p>
+              ) : (
+                <p className="mt-1 inline-flex items-center gap-2 text-[13.5px] text-text-tertiary">
+                  <Loader2 size={13} className="animate-spin" /> Writing an answer
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      <form
+        className="flex items-center gap-2 px-4 py-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          ask();
+        }}
+      >
+        <label htmlFor="followup" className="sr-only">
+          Ask a follow-up question about {term.name}
+        </label>
+        <input
+          id="followup"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          disabled={disabled}
+          placeholder={`Ask about ${term.name}`}
+          autoComplete="off"
+          className="h-10 min-w-0 flex-1 rounded-lg border bg-surface px-3.5 text-[14px] text-foreground outline-none placeholder:text-text-tertiary focus:border-accent-secondary"
+        />
+        <button
+          type="submit"
+          disabled={!question.trim() || explain.isPending}
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-accent-primary text-on-accent transition-opacity hover:opacity-90 disabled:opacity-40"
+        >
+          <Send size={15} />
+          <span className="sr-only">Ask</span>
+        </button>
+      </form>
+    </div>
+  );
+}
+
+/** Margin content when no term is selected: every term in the story, grouped by type. */
+export function KeyTerms({
+  article,
+  onSelect,
+}: {
+  article: ArticleDetail;
+  onSelect: (t: SelectedTerm) => void;
+}) {
+  const unique = uniqueEntities(article.entities);
+  const groups = ENTITY_TYPES.map((type) => ({
+    type,
+    items: unique.filter((e) => entityKind(e.type) === type),
+  })).filter((g) => g.items.length > 0);
+
+  return (
+    <div className="scroll-thin h-full overflow-y-auto px-6 py-6">
+      <h2 className="font-display text-[15px] font-semibold">In this story</h2>
+      <p className="mt-1 text-[13px] leading-relaxed text-text-tertiary">
+        Select any highlighted term, or one below, to see who or what it is.
+      </p>
+      {groups.length === 0 ? (
+        <p className="mt-6 text-[13.5px] text-text-secondary">No terms were picked out for this story.</p>
+      ) : (
+        <div className="mt-6 space-y-6">
+          {groups.map((g) => (
+            <section key={g.type}>
+              <h3 className="flex items-center gap-2 text-[12.5px] font-semibold text-text-secondary">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entityColor(g.type) }} aria-hidden />
+                {ENTITY_LABELS[g.type].many}
+              </h3>
+              <ul className="mt-1.5">
+                {g.items.map((e) => (
+                  <li key={e.id}>
+                    <button
+                      type="button"
+                      onClick={() => onSelect({ id: e.id, name: e.text, type: e.type })}
+                      className="-mx-2 block w-[calc(100%+1rem)] rounded-md px-2 py-1.5 text-left text-[14px] text-foreground transition-colors hover:bg-background-secondary"
+                    >
+                      {e.text}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
