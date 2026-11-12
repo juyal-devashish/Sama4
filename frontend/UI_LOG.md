@@ -86,6 +86,49 @@ First Load JS: / 173 kB, shared 84.3 kB, others 95–115 kB.
 Home LCP element is the first-run welcome dialog paragraph (element render delay ~750 ms:
 the dialog fades in). TTFB is ~5 ms. Idea: don't fade the dialog's text from opacity 0.
 
+## Round 3: UI/UX fix checklist (12 Nov, afternoon)
+
+Worked through Devashish's checklist one item at a time, one PR each.
+
+**P1, sources and AI material**
+
+- #21 "Read the original at <publisher>" link on every story.
+- #23 Labels: "In brief" is an AI summary; the body is "From <publisher>"; explanations say they are AI-written.
+- #22 (backend) Possessives folded ("Jensen Huang's" → Jensen Huang); Claude types every spaCy name (Nvidia → ORG).
+  `POST /admin/entities/canonicalize` (dry run by default) cleans stored data.
+- #24 (backend) Follow-ups grounded in the article text and the explanation shown; answers tag sources, shown as links.
+- #27 Missing explanations say so and offer a next step.
+- #25 (backend field) Outlook labelled as an AI projection; Confidence/Impact explained; "500 simulated" was false for the
+  LLM fallback → `method` field, "Viewpoints written: 5"; reaction = estimate; personas tagged "AI persona".
+- #26 (backend) Outlook progress steps (skipped steps never shown as done), Cancel, no double starts.
+
+**P2**
+
+- #28 Announcements → Early access (/announcements redirects), one navigation, click/keyboard copy, "samā4" spelling.
+- #30 Waitlist: real label, inline accessible errors, data-use note, /privacy page. Found and fixed a production bug:
+  waitlist error/success messages never appeared (re-render replaced the static markup's nodes).
+- #29 Search filters (topic, source, date) + "newest first".
+- #31 Topic/chip/feed/open-story sync; hidden and unknown topic links; chips are toggle buttons; regression test.
+- #32 Saved: undo after removal; remove button visible on touch.
+- #33 Terms list reachable on phones/tablets (toolbar Terms button); live regions for answers and outlook completion.
+- #35 Offline state that recovers by itself; reader-facing error copy.
+
+**P3**
+
+- #34 Demo labelled as a sample; stats show final values (no zero); benefits-first cards (Claude, not Mistral); one CTA.
+
+**Backend PRs need `make deploy-backend`** (auto-deploy skips without RAILWAY_TOKEN): #22, #24, #25, #26.
+After deploying #22, run the entity cleanup as a dry run first and read the report.
+
+**Still open (needs Devashish)**
+
+- Terms of service, and a contact for data requests (waitlist removal) on /privacy.
+- Marketing claims the app doesn't back: browser extension/Chrome, Substack/newsletters, voice briefings,
+  multi-language, depth control; stats (50K+ articles, 99.7% uptime, <200ms) need a source and period or removal.
+- `next/font` fetches Google Fonts at build time and flaked several times today (CI and Vercel); self-hosting the
+  fonts would remove the flake.
+- Ultra-wide (2560px): line length is good; the reading toolbar's actions sit far from the text column.
+
 ## Final summary (round 1, 11:15 to about 11:50 EST)
 
 Shipped: #13–#17 merged (#18 open): AA contrast token fix, axe suite in CI (6 routes x 2 themes x
