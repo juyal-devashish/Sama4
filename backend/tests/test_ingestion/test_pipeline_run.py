@@ -165,3 +165,38 @@ async def test_pipeline_skips_mentions_whose_offsets_miss_the_text(container):
     for m in mentions:
         span = article.cleaned_content[m.start_position : m.end_position]
         assert span.lower() == m.mention_text.lower()
+
+
+async def test_max_articles_caps_the_run_and_spreads_it_over_sources(container):
+    sources = [
+        {"name": f"Feed {n}", "url": f"https://feeds.test/{n}", "category": "tech"}
+        for n in range(3)
+    ]
+    pipeline = IngestionPipeline(container, async_session, sources=sources, max_articles=4)
+    pipeline.ner.extract_entities_hybrid = AsyncMock(return_value=[])
+    # Disable dedup: these synthetic stories are deliberately similar.
+    pipeline.dedup.is_duplicate = lambda _fetched: False
+
+    def feed(source: dict) -> list[FetchedArticle]:
+        return [
+            FetchedArticle(
+                title=f"{source['name']} story {i}",
+                url=f"{source['url']}/story-{i}",
+                raw_content=f"<p>Body {i} from {source['name']}.</p>",
+                published_at=datetime.now(UTC),
+                author=None,
+                image_url=None,
+                source_name=source["name"],
+                category="tech",
+            )
+            for i in range(5)
+        ]
+
+    pipeline.fetcher.fetch_feed = AsyncMock(side_effect=feed)
+
+    assert await pipeline.run() == 4
+
+    async with async_session() as db:
+        urls = (await db.execute(select(Article.url))).scalars().all()
+    per_feed = {n: sum(u.startswith(f"https://feeds.test/{n}/") for u in urls) for n in range(3)}
+    assert per_feed == {0: 2, 1: 1, 2: 1}  # ceil(4/3), ceil(2/2), ceil(1/1)

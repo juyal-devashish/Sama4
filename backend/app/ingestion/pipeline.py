@@ -33,9 +33,12 @@ class IngestionPipeline:
         container: Container,
         session_factory: async_sessionmaker[AsyncSession],
         sources: list[dict] | None = None,
+        max_articles: int = 0,
     ) -> None:
         self.session_factory = session_factory
         self.sources = sources if sources is not None else NEWS_SOURCES
+        # Cap on articles attempted per run (successes and failures both cost API calls).
+        self.max_articles = max_articles
         self.vectors = container.vectors
         self.fetcher = FetcherService()
         self.dedup = DeduplicationService()
@@ -52,10 +55,20 @@ class IngestionPipeline:
             await db.commit()
 
         processed = 0
-        for source_config in self.sources:
+        remaining = self.max_articles
+        for i, source_config in enumerate(self.sources):
+            # Split what's left of the budget evenly over the sources still to run,
+            # so a capped run samples every feed instead of draining the first one.
+            limit = None
+            if self.max_articles > 0:
+                if remaining <= 0:
+                    break
+                limit = -(-remaining // (len(self.sources) - i))  # ceil division
             try:
                 async with self.session_factory() as db:
-                    processed += await self._process_source(source_config, db)
+                    stored, attempted = await self._process_source(source_config, db, limit)
+                    processed += stored
+                    remaining -= attempted
                     await db.commit()
             except Exception:
                 logger.error("Failed to process source: %s", source_config["name"], exc_info=True)
@@ -63,19 +76,25 @@ class IngestionPipeline:
         logger.info("Ingestion pipeline complete. Processed %d articles.", processed)
         return processed
 
-    async def _process_source(self, source_config: dict, db: AsyncSession) -> int:
+    async def _process_source(
+        self, source_config: dict, db: AsyncSession, limit: int | None = None
+    ) -> tuple[int, int]:
+        """Process one feed. Returns (articles stored, articles attempted)."""
         source = await source_repo.get_by_feed_url(db, source_config["url"])
         if source is None:
             raise RuntimeError(f"Source row missing for {source_config['url']}")
 
-        processed = 0
+        processed = attempted = 0
         category = source_config["category"]
         for fetched in await self.fetcher.fetch_feed(source_config):
+            if limit is not None and attempted >= limit:
+                break
             if self.dedup.is_duplicate(fetched):
                 continue
             existing = await article_repo.get_by_url(db, fetched.url)
             if existing is not None and not article_repo.due_for_retry(existing):
                 continue  # already stored, or failed recently
+            attempted += 1
             try:
                 # Savepoint: a failing article is rolled back alone; earlier ones are kept.
                 async with db.begin_nested():
@@ -101,7 +120,7 @@ class IngestionPipeline:
                     logger.error("Could not record failure for %s", fetched.url, exc_info=True)
 
         source.last_fetched_at = datetime.now(UTC)
-        return processed
+        return processed, attempted
 
     async def _process_article(
         self, fetched: FetchedArticle, source: Source, category: str, db: AsyncSession

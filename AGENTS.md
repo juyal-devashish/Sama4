@@ -7,7 +7,7 @@ Instructions for AI coding agents (and humans) changing this repo. Read this fil
 
 ## What the product is
 
-samā4 is a news reader that explains unfamiliar people, organizations, places and concepts **inline**. An hourly-ish pipeline pulls RSS news, finds the terms a reader probably doesn't know, and summarizes each article with Claude. In the app, tapping a highlighted term opens a short, sourced explanation.
+samā4 is a news reader that explains unfamiliar people, organizations, places and concepts **inline**. A nightly pipeline (03:00 New York, capped at 10 articles while in development) pulls RSS news, finds the terms a reader probably doesn't know, and summarizes each article with Claude. In the app, tapping a highlighted term opens a short, sourced explanation.
 
 ## Repo map
 
