@@ -14,7 +14,7 @@ from app.ingestion.cleaner import CleanerService
 from app.ingestion.dedup import DeduplicationService
 from app.ingestion.fetcher import FetchedArticle, FetcherService
 from app.ingestion.linker import EntityLinker
-from app.ingestion.ner import NERService
+from app.ingestion.ner import NERService, is_aligned
 from app.ingestion.sources import NEWS_SOURCES
 from app.ingestion.summarizer import SummarizerService
 from app.models.article import Article
@@ -111,6 +111,16 @@ class IngestionPipeline:
                 cleaned, fetched.title, categories=[category]
             )
             for linked in await self.linker.link_entities(extracted):
+                # The reader highlights cleaned_content[start:end]; never store a miss.
+                if not is_aligned(cleaned, linked.text, linked.start, linked.end):
+                    logger.warning(
+                        "Skipping misaligned mention %r at %d:%d in %s",
+                        linked.text,
+                        linked.start,
+                        linked.end,
+                        article.url,
+                    )
+                    continue
                 entity = await entity_repo.get_or_create(
                     db,
                     name=linked.text,

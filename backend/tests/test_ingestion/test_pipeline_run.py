@@ -18,7 +18,7 @@ SOURCE = {"name": "Test Feed", "url": "https://feeds.test/rss", "category": "tec
 TITLES = ["Lovelace notes resurface", "Rates rise again"]
 BODIES = [
     "Ada Lovelace published notes on the Analytical Engine describing an algorithm.",
-    "Central banks raised interest rates again as inflation stayed above target.",
+    "Ada Lovelace would note that central banks raised rates as inflation stayed high.",
 ]
 
 
@@ -95,3 +95,30 @@ async def test_failing_article_does_not_discard_earlier_ones(container):
     async with async_session() as db:
         titles = (await db.execute(select(Article.title))).scalars().all()
     assert titles == [TITLES[0]]
+
+
+async def test_pipeline_skips_mentions_whose_offsets_miss_the_text(container):
+    pipeline = _pipeline(container, [_fetched(1)])
+    good = pipeline.ner.extract_entities_hybrid.return_value[0]
+    bad = ExtractedEntity(
+        text="Analytical Engine",
+        type="CONCEPT",
+        start=0,  # cleaned_content[0:17] is "Ada Lovelace publ"
+        end=17,
+        in_title=False,
+        mention_count=1,
+        priority="high",
+    )
+    pipeline.ner.extract_entities_hybrid.return_value = [good, bad]
+
+    assert await pipeline.run() == 1
+
+    async with async_session() as db:
+        article = (await db.execute(select(Article))).scalar_one()
+        mentions = (await db.execute(select(ArticleEntity))).scalars().all()
+        names = (await db.execute(select(Entity.canonical_name))).scalars().all()
+    assert [m.mention_text for m in mentions] == ["Ada Lovelace"]
+    assert names == ["Ada Lovelace"]  # no entity row created for the skipped mention
+    for m in mentions:
+        span = article.cleaned_content[m.start_position : m.end_position]
+        assert span.lower() == m.mention_text.lower()
