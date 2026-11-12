@@ -89,6 +89,7 @@ export default function ReferencesPage() {
                   <ReferenceRow
                     key={e.id}
                     entity={e}
+                    storyId={id}
                     open={open === e.id}
                     onToggle={() => setOpen(open === e.id ? null : e.id)}
                   />
@@ -125,13 +126,16 @@ export default function ReferencesPage() {
 
 function ReferenceRow({
   entity,
+  storyId,
   open,
   onToggle,
 }: {
   entity: ReferenceEntityContext;
+  storyId: string;
   open: boolean;
   onToggle: () => void;
 }) {
+  const explained = !!entity.context?.trim();
   return (
     <li>
       <button
@@ -145,11 +149,12 @@ function ReferenceRow({
         </span>
         <span
           className={cn(
-            "min-w-0 flex-1 text-[14px] leading-relaxed text-text-secondary",
+            "min-w-0 flex-1 text-[14px] leading-relaxed",
+            explained ? "text-text-secondary" : "text-text-tertiary",
             !open && "line-clamp-1",
           )}
         >
-          {entity.context ?? "No explanation yet. Select this term in the story to generate one."}
+          {explained ? entity.context : "Not explained yet"}
         </span>
         <ChevronDown
           size={16}
@@ -159,6 +164,19 @@ function ReferenceRow({
           )}
         />
       </button>
+      {open && !explained && (
+        <p className="pb-2 pl-[216px] text-[13.5px] leading-relaxed text-text-secondary">
+          samā4 hasn&apos;t written an explanation for {entity.name} yet.{" "}
+          <Link
+            href={`/?article=${storyId}`}
+            className="font-medium text-accent-secondary hover:underline"
+          >
+            Open the story
+          </Link>{" "}
+          and select the term to get one
+          {entity.wikipedia_url ? ", or read about it on Wikipedia." : "."}
+        </p>
+      )}
       {open && entity.wikipedia_url && (
         <div className="pb-4 pl-[216px]">
           <a

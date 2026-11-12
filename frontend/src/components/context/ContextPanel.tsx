@@ -72,10 +72,32 @@ export function ContextPanel({ term, articleId, onSelectTerm, onOpenArticle, onC
           </div>
         ) : (
           <>
-            <p className="mt-4 text-[15.5px] leading-[1.65] text-foreground">{data.context.text}</p>
-            <p className="mt-2 text-[12.5px] text-text-tertiary">
-              Written by samā4&apos;s AI from Wikipedia and this story.
-            </p>
+            {data.context.text.trim() ? (
+              <>
+                <p className="mt-4 text-[15.5px] leading-[1.65] text-foreground">
+                  {data.context.text}
+                </p>
+                <p className="mt-2 text-[12.5px] text-text-tertiary">
+                  Written by samā4&apos;s AI from Wikipedia and this story.
+                </p>
+              </>
+            ) : (
+              <div className="mt-4 text-[14px] leading-relaxed text-text-secondary">
+                <p>
+                  samā4 couldn&apos;t write an explanation for this term right now.
+                  {data.entity.wikipedia_url
+                    ? " Wikipedia has background on it below."
+                    : " You can still ask a question about it below."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => refetch()}
+                  className="mt-3 h-8 rounded-lg border px-3 text-[13px] font-medium text-foreground hover:bg-background-secondary"
+                >
+                  Try again
+                </button>
+              </div>
+            )}
 
             {data.entity.wikipedia_url && (
               <a

@@ -141,3 +141,49 @@ test("publisher text and samā4-generated text are labelled", async ({ page }) =
     page.getByText("Written by samā4's AI from Wikipedia and this story."),
   ).toBeVisible();
 });
+
+test("a term with no explanation says so and offers a next step", async ({ page }) => {
+  await mockApi(page);
+  const ref = JSON.parse(
+    JSON.stringify((fixtures.references as Record<string, unknown>)[ARTICLE_ID]),
+  ) as { entities: { name: string; context?: string | null }[] };
+  ref.entities[0].context = null;
+  await page.route(`**/api/v1/articles/${ARTICLE_ID}/reference`, (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      headers: { "access-control-allow-origin": "*" },
+      body: JSON.stringify(ref),
+    }),
+  );
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(`/article/${ARTICLE_ID}/reference`);
+
+  const row = page.getByRole("button", {
+    name: new RegExp(`${ref.entities[0].name}.*Not explained yet`),
+  });
+  await row.click();
+  await expect(page.getByText(/hasn't written an explanation for/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open the story" })).toHaveAttribute(
+    "href",
+    `/?article=${ARTICLE_ID}`,
+  );
+});
+
+test("an empty explanation in the margin offers a retry instead of a blank", async ({ page }) => {
+  await mockApi(page);
+  await page.route("**/api/v1/context/*", (route) => {
+    if (route.request().method() !== "GET") return route.fallback();
+    const id = new URL(route.request().url()).pathname.split("/").pop()!;
+    const body = (fixtures.context as Record<string, { context: object }>)[id];
+    return route.fulfill({
+      contentType: "application/json",
+      headers: { "access-control-allow-origin": "*" },
+      body: JSON.stringify({ ...body, context: { ...body.context, text: "" } }),
+    });
+  });
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  await page.locator(".term").first().click();
+  await expect(page.getByText(/couldn't write an explanation for this term/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
+});
