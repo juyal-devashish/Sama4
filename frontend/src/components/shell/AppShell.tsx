@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
-import { WelcomeDialog } from "./WelcomeDialog";
+import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
+import { Splash } from "@/components/onboarding/Splash";
 import { useTheme } from "@/lib/preferences";
 
 export function isTypingTarget(target: EventTarget | null) {
@@ -34,10 +35,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
-      <main className="flex min-w-0 flex-1 overflow-hidden">{children}</main>
-      <WelcomeDialog />
-    </div>
+    <>
+      <div data-app-shell className="flex h-screen overflow-hidden bg-background">
+        <Sidebar />
+        <main className="flex min-w-0 flex-1 overflow-hidden">{children}</main>
+      </div>
+      <Splash />
+      <OnboardingGate />
+    </>
   );
 }

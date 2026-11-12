@@ -31,19 +31,7 @@ for (const route of routes) {
   }
 }
 
-test("first-run welcome dialog is accessible", async ({ page }) => {
-  await mockApi(page);
-  await page.goto("/");
-  await expect(page.getByRole("dialog", { name: /news, understood/i })).toBeVisible();
-  await page.waitForTimeout(1200); // entrance animation
-  const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"])
-    .analyze();
-  const summary = results.violations.map(
-    (v) => `${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes[0]?.target.join(" ")}`,
-  );
-  expect(summary, summary.join("\n")).toEqual([]);
-});
+// The first-run intro has its own checks in onboarding.spec.ts.
 
 test("loading skeletons are accessible (feed request held open)", async ({ page }) => {
   await mockApi(page);

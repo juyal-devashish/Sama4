@@ -8,6 +8,7 @@ import {
   normalizeOnboarding,
   reduceOnboarding,
   startScreen,
+  FIRST_VISIT_SCRIPT,
   type HintContext,
   type OnboardingState,
 } from "./onboarding";
@@ -168,5 +169,96 @@ describe("eligibleHint", () => {
   it("shows nothing once every hint is seen", () => {
     const done = withStories(5, { hintsSeen: [...HINTS] });
     expect(eligibleHint(done, ctx({ articleWithTerms: true, contextPanelOpen: true }))).toBeNull();
+  });
+});
+
+describe("FIRST_VISIT_SCRIPT", () => {
+  /** Run the inline script against fake browser globals; return the classes it added. */
+  function run(path: string, storage: Record<string, string>) {
+    const added: string[] = [];
+    const url = new URL(path, "https://www.sama4.online");
+    const document = {
+      documentElement: { classList: { add: (...c: string[]) => added.push(...c) } },
+    };
+    const location = { pathname: url.pathname, search: url.search };
+    const localStorage = { getItem: (k: string) => storage[k] ?? null };
+    new Function("document", "location", "localStorage", FIRST_VISIT_SCRIPT)(
+      document,
+      location,
+      localStorage,
+    );
+    return added;
+  }
+
+  const save = (v: unknown) => JSON.stringify(v);
+  const cases: [string, Record<string, string>][] = [
+    ["new visitor", {}],
+    ["old welcome dialog done", { sama4_onboarded: "true" }],
+    ["old flag false", { sama4_onboarded: "false" }],
+    ["intro done", { sama4_onboarding: save({ ...INITIAL_ONBOARDING, introDone: true }) }],
+    ["intro not done", { sama4_onboarding: save(INITIAL_ONBOARDING) }],
+    [
+      "intro done on an older version",
+      { sama4_onboarding: save({ version: ONBOARDING_VERSION - 1, introDone: true }) },
+    ],
+    [
+      "new state wins over old flag",
+      { sama4_onboarding: save(INITIAL_ONBOARDING), sama4_onboarded: "true" },
+    ],
+    ["corrupt new state", { sama4_onboarding: "{oops", sama4_onboarded: "true" }],
+  ];
+
+  for (const [name, storage] of cases) {
+    it(`agrees with startScreen: ${name}`, () => {
+      const parse = (k: string) => {
+        try {
+          return storage[k] === undefined ? null : JSON.parse(storage[k]);
+        } catch {
+          return null;
+        }
+      };
+      const state = normalizeOnboarding(
+        parse("sama4_onboarding"),
+        parse("sama4_onboarded") === true,
+      );
+      const expected = startScreen(state, { deepLink: false }) === "splash";
+      expect(run("/", storage).length > 0).toBe(expected);
+    });
+  }
+
+  it("never fires on deep links", () => {
+    for (const path of [
+      "/?article=abc",
+      "/?topic=tech&article=abc",
+      "/settings",
+      "/early-access",
+    ]) {
+      expect(run(path, {})).toEqual([]);
+    }
+    expect(run("/?topic=tech", {})).toEqual(["intro", "intro-splash"]);
+  });
+
+  it("does nothing when storage throws", () => {
+    const document = {
+      documentElement: {
+        classList: {
+          add: () => {
+            throw new Error("added");
+          },
+        },
+      },
+    };
+    const localStorage = {
+      getItem: () => {
+        throw new Error("blocked");
+      },
+    };
+    expect(() =>
+      new Function("document", "location", "localStorage", FIRST_VISIT_SCRIPT)(
+        document,
+        { pathname: "/", search: "" },
+        localStorage,
+      ),
+    ).not.toThrow();
   });
 });

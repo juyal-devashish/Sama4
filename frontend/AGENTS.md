@@ -10,7 +10,8 @@ src/
                        /search, /saved, /outlook (predictions), /early-access
                        (product intro + waitlist), /settings
   components/
-    shell/             AppShell, Sidebar, Page, WelcomeDialog
+    shell/             AppShell, Sidebar, Page
+    onboarding/        first-visit Splash, IntroFlow (welcome + topics), OnboardingGate
     reader/            Reader (3 panes) = StoryList | ReadingPane | context/ContextPanel
                        ArticleText renders highlighted entities
     context/           ContextPanel: explanation + follow-up questions for a selected term
@@ -21,7 +22,8 @@ src/
     api.ts             the ONLY place that calls fetch; throws ApiError(status)
     queryKeys.ts       every React Query key
     highlight.ts       pure entity-highlighting logic (tested)
-    preferences.ts     localStorage-backed user prefs (theme, topics, saved stories)
+    preferences.ts     localStorage-backed user prefs (theme, topics, saved stories, onboarding)
+    onboarding.ts      first-run rules: start screen, intro steps, hints, pre-paint script (tested)
     utils.ts           formatting + entity type → color/label
   types/index.ts       API types; mirrors backend/app/schemas
   styles/globals.css   design tokens (CSS variables), light and dark

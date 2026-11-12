@@ -178,3 +178,13 @@ export function eligibleHint(state: OnboardingState, ctx: HintContext): HintId |
   };
   return HINTS.find((h) => !seen(h) && rules[h]) ?? null;
 }
+
+/**
+ * Inline <head> script (see app/layout.tsx). Runs before first paint and adds
+ * `intro intro-splash` to <html> when this visit should open on the splash, so the
+ * splash shows at once and the app never flashes underneath it. It mirrors
+ * `startScreen(normalizeOnboarding(...), { deepLink })`; the tests keep the two in step.
+ *
+ * Only a plain visit to "/" counts. Every other route, and `/?article=…`, is a deep link.
+ */
+export const FIRST_VISIT_SCRIPT = `(function(){try{if(location.pathname!=='/'||/[?&]article=/.test(location.search))return;var s=null;try{s=JSON.parse(localStorage.getItem('sama4_onboarding'))}catch(e){}var done;if(s&&typeof s==='object'){done=s.introDone===true&&typeof s.version==='number'&&s.version>=${ONBOARDING_VERSION}}else{var l=null;try{l=JSON.parse(localStorage.getItem('sama4_onboarded'))}catch(e){}done=l===true}if(!done)document.documentElement.classList.add('intro','intro-splash')}catch(e){}})();`;
