@@ -3,8 +3,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-
 # ============ Agent Perspectives ============
+
 
 class AgentPerspectiveOut(BaseModel):
     id: uuid.UUID
@@ -20,8 +20,10 @@ class AgentPerspectiveOut(BaseModel):
 
 # ============ Prediction ============
 
+
 class PredictionSummary(BaseModel):
     """Lightweight prediction info for feed cards."""
+
     id: uuid.UUID
     status: str
     prediction_summary: str | None = None
@@ -33,6 +35,7 @@ class PredictionSummary(BaseModel):
 
 class PredictionDetail(BaseModel):
     """Full prediction with agent perspectives."""
+
     id: uuid.UUID
     article_id: uuid.UUID
     status: str
@@ -41,7 +44,9 @@ class PredictionDetail(BaseModel):
     platforms: list[str]
     prediction_summary: str | None = None
     key_findings: list[str] = []
-    sentiment_distribution: str | None = None  # JSON string of {positive: %, negative: %, neutral: %}
+    sentiment_distribution: str | None = (
+        None  # JSON string of {positive: %, negative: %, neutral: %}
+    )
     predicted_outcomes: list[str] = []
     confidence_score: float | None = None
     impact_score: int = 0
@@ -52,6 +57,7 @@ class PredictionDetail(BaseModel):
 
 class PredictionRequest(BaseModel):
     """Request to trigger a simulation for an article."""
+
     article_id: uuid.UUID
     agent_count: int = 500
     simulation_rounds: int = 30
@@ -67,6 +73,7 @@ class PredictionStatusOut(BaseModel):
 
 # ============ Chat with Report ============
 
+
 class PredictionChatRequest(BaseModel):
     prediction_id: uuid.UUID
     message: str
@@ -80,6 +87,7 @@ class PredictionChatResponse(BaseModel):
 
 
 # ============ Agent Interview ============
+
 
 class AgentInterviewRequest(BaseModel):
     prediction_id: uuid.UUID
@@ -96,8 +104,10 @@ class AgentInterviewResponse(BaseModel):
 
 # ============ Trending ============
 
+
 class TrendingPrediction(BaseModel):
     """Prediction with article info for trending tab."""
+
     id: uuid.UUID
     article_id: uuid.UUID
     article_title: str

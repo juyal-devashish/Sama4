@@ -67,7 +67,9 @@ async def _regenerate_summaries() -> None:
             await db.commit()
         updated = sum(1 for d in done if d is True)
         failed = sum(1 for d in done if isinstance(d, Exception))
-        logger.info(f"Summary regeneration done: {updated}/{len(articles)} updated, {failed} errors.")
+        logger.info(
+            f"Summary regeneration done: {updated}/{len(articles)} updated, {failed} errors."
+        )
     except Exception:
         logger.error("Summary regeneration failed.", exc_info=True)
 
@@ -137,4 +139,6 @@ async def regenerate_summaries(
     """
     _check_secret(x_admin_secret)
     background_tasks.add_task(_regenerate_summaries)
-    return AdminResponse(message="Summary regeneration started in the background.", status="accepted")
+    return AdminResponse(
+        message="Summary regeneration started in the background.", status="accepted"
+    )

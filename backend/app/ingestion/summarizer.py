@@ -15,7 +15,7 @@ Use only facts present in the text. When the text is short, write a shorter summ
 instead of commenting on its length.
 
 Output only the summary text, in plain prose with no markdown, headings, labels, notes \
-to the reader, or requests for more information."""
+to the reader, or requests for more information."""  # noqa: E501 (LLM prompt text)
 
 SUMMARY_PROMPT = """<headline>{title}</headline>
 <article>

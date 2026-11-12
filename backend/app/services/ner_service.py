@@ -4,8 +4,9 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.ingestion.ner import ExtractedEntity, NERService as _NEREngine
-from app.models.entity import Entity, ArticleEntity
+from app.ingestion.ner import ExtractedEntity
+from app.ingestion.ner import NERService as _NEREngine
+from app.models.entity import ArticleEntity, Entity
 
 logger = logging.getLogger(__name__)
 
@@ -103,14 +104,10 @@ class NERService:
             persisted.append(entity)
 
         await db.commit()
-        logger.info(
-            f"Stored {len(persisted)} entities for article {article_id}"
-        )
+        logger.info(f"Stored {len(persisted)} entities for article {article_id}")
         return persisted
 
-    async def _get_or_create_entity(
-        self, db: AsyncSession, ent: ExtractedEntity
-    ) -> Entity:
+    async def _get_or_create_entity(self, db: AsyncSession, ent: ExtractedEntity) -> Entity:
         """Find an existing entity by name+type or create a new one."""
         result = await db.execute(
             select(Entity).where(

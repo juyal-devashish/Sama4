@@ -94,9 +94,7 @@ class BatchEmbeddingService:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    async def embed_articles(
-        self, articles: list[ArticleEmbedInput]
-    ) -> list[EmbedResult]:
+    async def embed_articles(self, articles: list[ArticleEmbedInput]) -> list[EmbedResult]:
         """Embed a list of articles and upsert vectors to Pinecone.
 
         Args:
@@ -110,7 +108,9 @@ class BatchEmbeddingService:
 
         if not self._client:
             return [
-                EmbedResult(a.article_id, f"article_{a.article_id}", False, "embeddings not configured")
+                EmbedResult(
+                    a.article_id, f"article_{a.article_id}", False, "embeddings not configured"
+                )
                 for a in articles
             ]
 
@@ -128,7 +128,9 @@ class BatchEmbeddingService:
             vector_id = f"article_{article.article_id}"
 
             if embedding is None:
-                results.append(EmbedResult(article.article_id, vector_id, False, "embedding failed"))
+                results.append(
+                    EmbedResult(article.article_id, vector_id, False, "embedding failed")
+                )
                 continue
 
             metadata = {
@@ -177,14 +179,9 @@ class BatchEmbeddingService:
         if not embeddings or embeddings[0] is None:
             return []
 
-        results = self._index.query(
-            vector=embeddings[0], top_k=top_k, include_metadata=True
-        )
+        results = self._index.query(vector=embeddings[0], top_k=top_k, include_metadata=True)
 
-        return [
-            {"id": m.id, "score": m.score, "metadata": m.metadata}
-            for m in results.matches
-        ]
+        return [{"id": m.id, "score": m.score, "metadata": m.metadata} for m in results.matches]
 
     # ------------------------------------------------------------------
     # Internals
@@ -212,15 +209,15 @@ class BatchEmbeddingService:
             except Exception:
                 logger.error(
                     "Embedding batch failed (offset %d, size %d)",
-                    start, len(chunk), exc_info=True,
+                    start,
+                    len(chunk),
+                    exc_info=True,
                 )
                 # Leave these as None — they'll be marked as failed
 
         return all_embeddings
 
-    async def _batch_upsert(
-        self, vectors: list[tuple[str, list[float], dict]]
-    ) -> set[str]:
+    async def _batch_upsert(self, vectors: list[tuple[str, list[float], dict]]) -> set[str]:
         """Upsert vectors to Pinecone in batches.
 
         Returns set of vector IDs that failed to upsert.
@@ -237,7 +234,9 @@ class BatchEmbeddingService:
             except Exception:
                 logger.error(
                     "Pinecone upsert batch failed (offset %d, size %d)",
-                    start, len(chunk), exc_info=True,
+                    start,
+                    len(chunk),
+                    exc_info=True,
                 )
                 failed.update(vid for vid, _, _ in chunk)
 

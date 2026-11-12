@@ -57,9 +57,7 @@ class EntityLinkerService:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    async def extract_and_link(
-        self, content: str, title: str
-    ) -> list[LinkedEntity]:
+    async def extract_and_link(self, content: str, title: str) -> list[LinkedEntity]:
         """Extract entities from text and enrich them via Wikidata.
 
         Runs NER first, then enriches all entities concurrently.
@@ -104,9 +102,7 @@ class EntityLinkerService:
     # ------------------------------------------------------------------
     # Concurrent enrichment
     # ------------------------------------------------------------------
-    async def _enrich_batch(
-        self, entities: list[ExtractedEntity]
-    ) -> list[LinkedEntity]:
+    async def _enrich_batch(self, entities: list[ExtractedEntity]) -> list[LinkedEntity]:
         """Enrich all entities concurrently, respecting the semaphore."""
         tasks = [self._enrich_one(ent) for ent in entities]
         return await asyncio.gather(*tasks)
@@ -115,9 +111,7 @@ class EntityLinkerService:
         """Search Wikidata + fetch facts for a single entity."""
         async with self._semaphore:
             try:
-                facts_result = await self._wikidata.search_and_get_facts(
-                    ent.text, ent.type
-                )
+                facts_result = await self._wikidata.search_and_get_facts(ent.text, ent.type)
             except Exception:
                 logger.warning("Wikidata lookup failed for '%s'", ent.text, exc_info=True)
                 facts_result = None
@@ -125,9 +119,7 @@ class EntityLinkerService:
         return self._merge(ent, facts_result)
 
     @staticmethod
-    def _merge(
-        ent: ExtractedEntity, facts: EntityFacts | None
-    ) -> LinkedEntity:
+    def _merge(ent: ExtractedEntity, facts: EntityFacts | None) -> LinkedEntity:
         """Combine NER extraction with Wikidata facts into a LinkedEntity."""
         if facts is None:
             return LinkedEntity(
@@ -184,15 +176,11 @@ class EntityLinkerService:
             persisted.append(entity)
 
         await db.commit()
-        logger.info(
-            "Linked and stored %d entities for article %s", len(persisted), article_id
-        )
+        logger.info("Linked and stored %d entities for article %s", len(persisted), article_id)
         return persisted
 
     @staticmethod
-    async def _get_or_create_entity(
-        db: AsyncSession, ent: LinkedEntity
-    ) -> Entity:
+    async def _get_or_create_entity(db: AsyncSession, ent: LinkedEntity) -> Entity:
         """Find existing entity by name+type or create with Wikidata data."""
         result = await db.execute(
             select(Entity).where(

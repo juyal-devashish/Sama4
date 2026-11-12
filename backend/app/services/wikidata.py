@@ -92,9 +92,7 @@ class WikidataService:
     # ------------------------------------------------------------------
     # 1. Search entity by name
     # ------------------------------------------------------------------
-    async def search(
-        self, name: str, *, limit: int = 3
-    ) -> list[WikidataSearchResult]:
+    async def search(self, name: str, *, limit: int = 3) -> list[WikidataSearchResult]:
         """Search Wikidata for entities matching *name*.
 
         Args:
@@ -142,9 +140,7 @@ class WikidataService:
     # ------------------------------------------------------------------
     # 2. Get facts and dates for entity
     # ------------------------------------------------------------------
-    async def get_facts(
-        self, qid: str, entity_type: str = "CONCEPT"
-    ) -> EntityFacts:
+    async def get_facts(self, qid: str, entity_type: str = "CONCEPT") -> EntityFacts:
         """Fetch structured facts for a Wikidata entity.
 
         Uses the property set matching *entity_type* (PERSON, ORG, etc.)
@@ -176,15 +172,9 @@ class WikidataService:
 
         entity_data = resp.json().get("entities", {}).get(qid, {})
 
-        label = (
-            entity_data.get("labels", {}).get("en", {}).get("value", qid)
-        )
-        description = (
-            entity_data.get("descriptions", {}).get("en", {}).get("value")
-        )
-        wikipedia_url = (
-            entity_data.get("sitelinks", {}).get("enwiki", {}).get("url")
-        )
+        label = entity_data.get("labels", {}).get("en", {}).get("value", qid)
+        description = entity_data.get("descriptions", {}).get("en", {}).get("value")
+        wikipedia_url = entity_data.get("sitelinks", {}).get("enwiki", {}).get("url")
 
         # Extract claims matching our property set
         claims = entity_data.get("claims", {})
@@ -214,9 +204,7 @@ class WikidataService:
     # ------------------------------------------------------------------
     # Claim parsing helpers
     # ------------------------------------------------------------------
-    def _extract_claims(
-        self, claims: dict, prop_map: dict[str, str]
-    ) -> dict[str, str]:
+    def _extract_claims(self, claims: dict, prop_map: dict[str, str]) -> dict[str, str]:
         """Pull human-readable values from Wikidata claims.
 
         Handles three snak value types:
@@ -323,8 +311,19 @@ def _format_wikidata_time(time_str: str) -> str:
         return date_part
 
     months = [
-        "", "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December",
+        "",
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
     ]
 
     if month == 0:

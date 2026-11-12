@@ -45,7 +45,7 @@ class MirofishClient:
         md_content = f"# {title}\n\n{content}"
         if metadata:
             md_content = (
-                f"---\n"
+                "---\n"
                 + "\n".join(f"{k}: {v}" for k, v in metadata.items())
                 + f"\n---\n\n{md_content}"
             )
@@ -150,9 +150,7 @@ class MirofishClient:
             resp.raise_for_status()
             return resp.json()
 
-    async def interview_agent(
-        self, simulation_id: str, agent_id: str, question: str
-    ) -> dict:
+    async def interview_agent(self, simulation_id: str, agent_id: str, question: str) -> dict:
         """Interview a specific simulated agent."""
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             resp = await client.post(

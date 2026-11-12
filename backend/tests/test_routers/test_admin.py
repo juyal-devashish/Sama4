@@ -36,7 +36,9 @@ async def test_regenerate_rewrites_summaries_and_keeps_old_on_empty():
     await create_tables()
     tag = uuid.uuid4().hex
     ok = Article(url=f"https://x/{tag}/1", title="Ok", cleaned_content="Text one.", summary="old 1")
-    empty = Article(url=f"https://x/{tag}/2", title="Empty", cleaned_content="Text two.", summary="old 2")
+    empty = Article(
+        url=f"https://x/{tag}/2", title="Empty", cleaned_content="Text two.", summary="old 2"
+    )
     async with async_session() as db:
         db.add_all([ok, empty])
         await db.commit()

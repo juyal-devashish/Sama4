@@ -2,7 +2,6 @@
 
 import logging
 import uuid
-from datetime import UTC, datetime
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy import select
@@ -56,9 +55,7 @@ async def trigger_simulation(
 
     # Only kick off background simulation if newly queued
     if prediction.status == "queued":
-        background_tasks.add_task(
-            _run_simulation_background, str(prediction.id)
-        )
+        background_tasks.add_task(_run_simulation_background, str(prediction.id))
 
     return PredictionSummary(
         id=prediction.id,
@@ -189,9 +186,7 @@ async def interview_agent(
     if not perspective or perspective.prediction_id != prediction.id:
         raise HTTPException(status_code=404, detail="Agent perspective not found")
 
-    response = await prediction_service.interview_agent(
-        prediction, perspective, request.question
-    )
+    response = await prediction_service.interview_agent(prediction, perspective, request.question)
 
     return AgentInterviewResponse(
         agent_name=perspective.agent_name,

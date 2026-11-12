@@ -155,11 +155,14 @@ class ContextService:
         prediction_context = ""
         try:
             from app.models.prediction import Prediction
+
             pred_result = await db.execute(
-                select(Prediction).where(
+                select(Prediction)
+                .where(
                     Prediction.article_id == article.id,
                     Prediction.status == "completed",
-                ).limit(1)
+                )
+                .limit(1)
             )
             prediction = pred_result.scalar_one_or_none()
             if prediction and prediction.prediction_summary:
@@ -208,7 +211,10 @@ class ContextService:
             # Query the graph for entity relationships and context
             result = await self.mirofish.query_graph(
                 project_id="global",
-                query=f"What are the key relationships and recent developments involving {entity.canonical_name}?",
+                query=(
+                    "What are the key relationships and recent developments involving "
+                    f"{entity.canonical_name}?"
+                ),
             )
             return result.get("context", result.get("answer", ""))
         except Exception:

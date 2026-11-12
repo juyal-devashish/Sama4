@@ -44,7 +44,9 @@ class PredictionService:
         existing = await db.execute(
             select(Prediction).where(
                 Prediction.article_id == article.id,
-                Prediction.status.in_(["queued", "building_graph", "simulating", "generating_report", "completed"]),
+                Prediction.status.in_(
+                    ["queued", "building_graph", "simulating", "generating_report", "completed"]
+                ),
             )
         )
         if pred := existing.scalar_one_or_none():
@@ -87,7 +89,9 @@ class PredictionService:
             await self._run_with_mirofish(prediction, article, db)
         else:
             # Fallback: use LLM to generate synthetic prediction
-            logger.warning("MiroFish unavailable — using LLM fallback for prediction %s", prediction_id)
+            logger.warning(
+                "MiroFish unavailable — using LLM fallback for prediction %s", prediction_id
+            )
             await self._run_llm_fallback(prediction, article, db)
 
     async def _run_with_mirofish(
@@ -123,7 +127,9 @@ class PredictionService:
                 agent_count=prediction.agent_count,
                 rounds=prediction.simulation_rounds,
                 platforms=prediction.platforms,
-                prediction_focus=f"Predict public reaction and future developments regarding: {article.title}",
+                prediction_focus=(
+                    f"Predict public reaction and future developments regarding: {article.title}"
+                ),
             )
             config_id = setup_result.get("config_id", setup_result.get("id"))
 
@@ -140,7 +146,9 @@ class PredictionService:
             await self._process_mirofish_report(prediction, report, db)
 
         except Exception as e:
-            logger.error("MiroFish simulation failed for prediction %s: %s", prediction.id, e, exc_info=True)
+            logger.error(
+                "MiroFish simulation failed for prediction %s: %s", prediction.id, e, exc_info=True
+            )
             # Fall back to LLM
             logger.info("Falling back to LLM prediction for %s", prediction.id)
             await self._run_llm_fallback(prediction, article, db)
@@ -189,7 +197,7 @@ Provide your analysis in the following JSON format:
 }}
 
 Generate exactly 5 diverse agent perspectives covering different stakeholder viewpoints.
-Return ONLY valid JSON, no markdown code blocks."""
+Return ONLY valid JSON, no markdown code blocks."""  # noqa: E501 (LLM prompt text)
 
             raw_response = await self.llm.generate(prompt, effort="medium")
 
@@ -238,7 +246,9 @@ Return ONLY valid JSON, no markdown code blocks."""
             )
 
         except Exception as e:
-            logger.error("LLM fallback failed for prediction %s: %s", prediction.id, e, exc_info=True)
+            logger.error(
+                "LLM fallback failed for prediction %s: %s", prediction.id, e, exc_info=True
+            )
             prediction.status = "failed"
             prediction.error_message = str(e)
             await db.commit()
@@ -296,16 +306,18 @@ Return ONLY valid JSON."""
         prediction.impact_score = data.get("impact_score", 50)
 
         for ap_data in data.get("agent_perspectives", []):
-            db.add(AgentPerspective(
-                prediction_id=prediction.id,
-                agent_name=ap_data.get("agent_name", "Agent"),
-                agent_role=ap_data.get("agent_role", "analyst"),
-                stance=ap_data.get("stance", "neutral"),
-                perspective_text=ap_data.get("perspective_text", ""),
-                key_argument=ap_data.get("key_argument"),
-                influence_score=ap_data.get("influence_score", 50),
-                sentiment_score=ap_data.get("sentiment_score"),
-            ))
+            db.add(
+                AgentPerspective(
+                    prediction_id=prediction.id,
+                    agent_name=ap_data.get("agent_name", "Agent"),
+                    agent_role=ap_data.get("agent_role", "analyst"),
+                    stance=ap_data.get("stance", "neutral"),
+                    perspective_text=ap_data.get("perspective_text", ""),
+                    key_argument=ap_data.get("key_argument"),
+                    influence_score=ap_data.get("influence_score", 50),
+                    sentiment_score=ap_data.get("sentiment_score"),
+                )
+            )
 
         prediction.status = "completed"
         prediction.completed_at = datetime.now(UTC)
@@ -330,9 +342,7 @@ Return ONLY valid JSON."""
         )
         return result.scalar_one_or_none()
 
-    async def get_trending_predictions(
-        self, db: AsyncSession, limit: int = 20
-    ) -> list[dict]:
+    async def get_trending_predictions(self, db: AsyncSession, limit: int = 20) -> list[dict]:
         """Get top predictions by impact score for the trending tab."""
         result = await db.execute(
             select(Prediction, Article, Source)
@@ -345,19 +355,21 @@ Return ONLY valid JSON."""
 
         trending = []
         for pred, article, source in result.all():
-            trending.append({
-                "id": pred.id,
-                "article_id": article.id,
-                "article_title": article.title,
-                "article_image_url": article.image_url,
-                "article_source": source.name if source else "Unknown",
-                "prediction_summary": pred.prediction_summary,
-                "key_findings": pred.key_findings or [],
-                "impact_score": pred.impact_score,
-                "confidence_score": pred.confidence_score,
-                "agent_count": pred.agent_count,
-                "completed_at": pred.completed_at,
-            })
+            trending.append(
+                {
+                    "id": pred.id,
+                    "article_id": article.id,
+                    "article_title": article.title,
+                    "article_image_url": article.image_url,
+                    "article_source": source.name if source else "Unknown",
+                    "prediction_summary": pred.prediction_summary,
+                    "key_findings": pred.key_findings or [],
+                    "impact_score": pred.impact_score,
+                    "confidence_score": pred.confidence_score,
+                    "agent_count": pred.agent_count,
+                    "completed_at": pred.completed_at,
+                }
+            )
         return trending
 
     async def chat_with_prediction(
@@ -384,9 +396,7 @@ Predicted Outcomes: {', '.join(prediction.predicted_outcomes or [])}
 Sentiment: {prediction.sentiment_distribution}
 Confidence: {prediction.confidence_score}"""
 
-        history_text = "\n".join(
-            f"{msg['role'].upper()}: {msg['content']}" for msg in history[-6:]
-        )
+        history_text = "\n".join(f"{msg['role'].upper()}: {msg['content']}" for msg in history[-6:])
 
         prompt = f"""You are an AI analyst discussing a news prediction report. Use the report data to answer questions.
 
@@ -397,7 +407,7 @@ CONVERSATION HISTORY:
 
 USER QUESTION: {message}
 
-Answer concisely based on the prediction data. If speculating beyond the data, say so."""
+Answer concisely based on the prediction data. If speculating beyond the data, say so."""  # noqa: E501 (LLM prompt text)
 
         return await self.llm.generate(prompt, effort="low")
 
@@ -434,6 +444,6 @@ YOUR KEY ARGUMENT: {perspective.key_argument or 'N/A'}
 
 A journalist asks you: "{question}"
 
-Respond in character, staying true to your established viewpoint and role. Keep your response under 150 words."""
+Respond in character, staying true to your established viewpoint and role. Keep your response under 150 words."""  # noqa: E501 (LLM prompt text)
 
         return await self.llm.generate(prompt, effort="low")

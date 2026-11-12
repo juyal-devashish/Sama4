@@ -49,9 +49,7 @@ async def _auto_simulate_high_impact() -> None:
                 .where(
                     Article.processing_status == "completed",
                     entity_count >= settings.mirofish_impact_threshold,
-                    ~Article.id.in_(
-                        select(Prediction.article_id)
-                    ),
+                    ~Article.id.in_(select(Prediction.article_id)),
                 )
                 .order_by(Article.published_at.desc())
                 .limit(5)  # max 5 auto-simulations per cycle

@@ -4,7 +4,7 @@ All external calls (embedder, Pinecone) are mocked.
 """
 
 import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -14,10 +14,10 @@ from app.services.embeddings import (
     EmbedResult,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _article(
     title: str = "Test Article",
@@ -80,8 +80,8 @@ def service(mock_embedder, mock_pinecone):
 # 1. Single article embedding
 # ---------------------------------------------------------------------------
 
-class TestSingleEmbed:
 
+class TestSingleEmbed:
     @pytest.mark.asyncio
     async def test_embed_single_article(self, service, mock_embedder, mock_pinecone):
         mock_embedder.embed.return_value = _mock_embedding_response([[0.1, 0.2, 0.3]])
@@ -109,8 +109,11 @@ class TestSingleEmbed:
         mock_embedder.embed.return_value = _mock_embedding_response([[0.1]])
 
         article = _article(
-            title="Title", summary="Summary", source="BBC",
-            categories=["politics", "world"], published_at="2026-02-01",
+            title="Title",
+            summary="Summary",
+            source="BBC",
+            categories=["politics", "world"],
+            published_at="2026-02-01",
         )
         await service.embed_single(article)
 
@@ -125,7 +128,9 @@ class TestSingleEmbed:
         assert metadata["published_at"] == "2026-02-01"
 
     @pytest.mark.asyncio
-    async def test_published_at_none_becomes_empty_string(self, service, mock_embedder, mock_pinecone):
+    async def test_published_at_none_becomes_empty_string(
+        self, service, mock_embedder, mock_pinecone
+    ):
         mock_embedder.embed.return_value = _mock_embedding_response([[0.1]])
 
         article = _article(published_at=None)
@@ -139,8 +144,8 @@ class TestSingleEmbed:
 # 2. Batch embedding
 # ---------------------------------------------------------------------------
 
-class TestBatchEmbed:
 
+class TestBatchEmbed:
     @pytest.mark.asyncio
     async def test_empty_list_returns_empty(self, service):
         result = await service.embed_articles([])
@@ -184,9 +189,7 @@ class TestBatchEmbed:
         service = _make_service(mock_embedder, mock_pinecone, upsert_batch_size=2)
         articles = [_article(f"A{i}") for i in range(5)]
 
-        mock_embedder.embed.return_value = _mock_embedding_response(
-            [[float(i)] for i in range(5)]
-        )
+        mock_embedder.embed.return_value = _mock_embedding_response([[float(i)] for i in range(5)])
 
         results = await service.embed_articles(articles)
 
@@ -198,8 +201,8 @@ class TestBatchEmbed:
 # 3. Error handling
 # ---------------------------------------------------------------------------
 
-class TestErrorHandling:
 
+class TestErrorHandling:
     @pytest.mark.asyncio
     async def test_no_embedder(self, mock_pinecone):
         service = _make_service(embedder=None, pinecone_index=mock_pinecone)
@@ -273,8 +276,8 @@ class TestErrorHandling:
 # 4. Search
 # ---------------------------------------------------------------------------
 
-class TestSearch:
 
+class TestSearch:
     @pytest.mark.asyncio
     async def test_search_returns_matches(self, service, mock_embedder, mock_pinecone):
         mock_embedder.embed.return_value = _mock_embedding_response([[0.1, 0.2]])
@@ -311,8 +314,8 @@ class TestSearch:
 # 5. available property
 # ---------------------------------------------------------------------------
 
-class TestAvailable:
 
+class TestAvailable:
     def test_available_when_both_configured(self, mock_embedder, mock_pinecone):
         service = _make_service(mock_embedder, mock_pinecone)
         assert service.available is True
@@ -330,12 +333,15 @@ class TestAvailable:
 # 6. Dataclasses
 # ---------------------------------------------------------------------------
 
-class TestDataclasses:
 
+class TestDataclasses:
     def test_article_embed_input_defaults(self):
         a = ArticleEmbedInput(
-            article_id=uuid.uuid4(), title="T", summary="S",
-            source="Src", categories=["news"],
+            article_id=uuid.uuid4(),
+            title="T",
+            summary="S",
+            source="Src",
+            categories=["news"],
         )
         assert a.published_at is None
 

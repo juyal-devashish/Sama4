@@ -15,7 +15,9 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "postgresql+asyncpg://sama4:sama4_dev@localhost:5432/sama4"
-    # Set automatically when sslmode=require is in DATABASE_URL; override with DATABASE_SSL=true/false
+    # Set automatically when sslmode=require is in DATABASE_URL;
+    # override with DATABASE_SSL=true/false
+
     database_ssl: bool = False
 
     @field_validator("database_url", mode="before")
@@ -36,6 +38,7 @@ class Settings(BaseSettings):
     def auto_set_ssl(self) -> "Settings":
         """Enable SSL automatically if the original DATABASE_URL contained sslmode=require."""
         import os
+
         raw = os.environ.get("DATABASE_URL", "")
         if not self.database_ssl and "sslmode=require" in raw:
             self.database_ssl = True

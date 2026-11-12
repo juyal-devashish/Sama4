@@ -4,18 +4,18 @@ All external calls (spaCy, Wikidata API) are mocked.
 """
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from app.ingestion.ner import ExtractedEntity
 from app.services.entity_linker import EntityLinkerService, LinkedEntity
-from app.services.wikidata import EntityFacts, WikidataSearchResult
-
+from app.services.wikidata import EntityFacts
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 def _ent(
     text: str = "Modi",
@@ -27,8 +27,13 @@ def _ent(
     priority: str = "low",
 ) -> ExtractedEntity:
     return ExtractedEntity(
-        text=text, type=entity_type, start=start, end=end,
-        in_title=in_title, mention_count=mention_count, priority=priority,
+        text=text,
+        type=entity_type,
+        start=start,
+        end=end,
+        in_title=in_title,
+        mention_count=mention_count,
+        priority=priority,
     )
 
 
@@ -40,7 +45,9 @@ def _facts(
     facts: dict | None = None,
 ) -> EntityFacts:
     return EntityFacts(
-        qid=qid, label=label, description=description,
+        qid=qid,
+        label=label,
+        description=description,
         wikipedia_url=wikipedia_url,
         facts=facts or {"date_of_birth": "17 September 1950", "citizenship": "India"},
     )
@@ -69,8 +76,8 @@ def service(mock_ner, mock_wikidata):
 # 1. extract_and_link — merging NER + Wikidata
 # ---------------------------------------------------------------------------
 
-class TestExtractAndLink:
 
+class TestExtractAndLink:
     @pytest.mark.asyncio
     async def test_empty_content_returns_empty(self, service, mock_ner):
         mock_ner.extract.return_value = []
@@ -123,8 +130,8 @@ class TestExtractAndLink:
 # 2. Concurrent processing
 # ---------------------------------------------------------------------------
 
-class TestConcurrentProcessing:
 
+class TestConcurrentProcessing:
     @pytest.mark.asyncio
     async def test_multiple_entities_processed_concurrently(self, mock_ner, mock_wikidata):
         """All entities should be enriched via asyncio.gather."""
@@ -140,7 +147,9 @@ class TestConcurrentProcessing:
         async def fake_search(name, entity_type):
             call_order.append(name)
             await asyncio.sleep(0.01)  # simulate I/O
-            return _facts(qid=f"Q{len(call_order)}", label=name, description=f"desc-{name}", facts={})
+            return _facts(
+                qid=f"Q{len(call_order)}", label=name, description=f"desc-{name}", facts={}
+            )
 
         mock_wikidata.search_and_get_facts = fake_search
 
@@ -215,8 +224,8 @@ class TestConcurrentProcessing:
 # 3. LinkedEntity merge logic
 # ---------------------------------------------------------------------------
 
-class TestMerge:
 
+class TestMerge:
     def test_merge_with_facts(self):
         ent = _ent("Modi", "PERSON", 5, 9, in_title=True, mention_count=3, priority="high")
         facts = _facts()
@@ -249,9 +258,13 @@ class TestMerge:
 
     def test_merge_preserves_all_ner_fields(self):
         ent = _ent("London", "LOCATION", 42, 48, in_title=False, mention_count=2, priority="medium")
-        facts = _facts(qid="Q84", label="London", description="capital of England",
-                       wikipedia_url="https://en.wikipedia.org/wiki/London",
-                       facts={"country": "United Kingdom", "population": "8982000"})
+        facts = _facts(
+            qid="Q84",
+            label="London",
+            description="capital of England",
+            wikipedia_url="https://en.wikipedia.org/wiki/London",
+            facts={"country": "United Kingdom", "population": "8982000"},
+        )
 
         result = EntityLinkerService._merge(ent, facts)
 
@@ -266,12 +279,17 @@ class TestMerge:
 # 4. LinkedEntity dataclass
 # ---------------------------------------------------------------------------
 
-class TestLinkedEntityDataclass:
 
+class TestLinkedEntityDataclass:
     def test_defaults(self):
         le = LinkedEntity(
-            text="Test", entity_type="CONCEPT", start=0, end=4,
-            in_title=False, mention_count=1, priority="low",
+            text="Test",
+            entity_type="CONCEPT",
+            start=0,
+            end=4,
+            in_title=False,
+            mention_count=1,
+            priority="low",
         )
         assert le.wikidata_id is None
         assert le.wikipedia_url is None
@@ -280,8 +298,13 @@ class TestLinkedEntityDataclass:
 
     def test_with_all_fields(self):
         le = LinkedEntity(
-            text="NASA", entity_type="ORG", start=0, end=4,
-            in_title=True, mention_count=5, priority="high",
+            text="NASA",
+            entity_type="ORG",
+            start=0,
+            end=4,
+            in_title=True,
+            mention_count=5,
+            priority="high",
             wikidata_id="Q23548",
             wikipedia_url="https://en.wikipedia.org/wiki/NASA",
             description="American space agency",
@@ -295,8 +318,8 @@ class TestLinkedEntityDataclass:
 # 5. DB persistence (mock AsyncSession)
 # ---------------------------------------------------------------------------
 
-class TestPersistence:
 
+class TestPersistence:
     @pytest.mark.asyncio
     async def test_extract_link_and_store_calls_commit(self, mock_ner, mock_wikidata):
         """Full pipeline should commit to DB."""
@@ -317,6 +340,7 @@ class TestPersistence:
         service = EntityLinkerService(ner=mock_ner, wikidata=mock_wikidata)
 
         import uuid as uuid_mod
+
         await service.extract_link_and_store(uuid_mod.uuid4(), "Modi spoke.", "News", mock_db)
 
         mock_db.commit.assert_awaited_once()
@@ -327,8 +351,11 @@ class TestPersistence:
         """If entity exists in DB without wikidata_id, it should be updated."""
         mock_ner.extract.return_value = [_ent("NASA", "ORG")]
         mock_wikidata.search_and_get_facts.return_value = _facts(
-            qid="Q23548", label="NASA", description="space agency",
-            wikipedia_url="https://en.wikipedia.org/wiki/NASA", facts={},
+            qid="Q23548",
+            label="NASA",
+            description="space agency",
+            wikipedia_url="https://en.wikipedia.org/wiki/NASA",
+            facts={},
         )
 
         existing_entity = MagicMock()
@@ -348,6 +375,7 @@ class TestPersistence:
         service = EntityLinkerService(ner=mock_ner, wikidata=mock_wikidata)
 
         import uuid as uuid_mod
+
         await service.extract_link_and_store(uuid_mod.uuid4(), "NASA launched.", "Space", mock_db)
 
         assert existing_entity.wikidata_id == "Q23548"
@@ -360,8 +388,11 @@ class TestPersistence:
         """If entity already has wikidata fields, don't overwrite them."""
         mock_ner.extract.return_value = [_ent("NASA", "ORG")]
         mock_wikidata.search_and_get_facts.return_value = _facts(
-            qid="Q99999", label="Wrong NASA",
-            description="wrong", wikipedia_url="https://wrong.example.com", facts={},
+            qid="Q99999",
+            label="Wrong NASA",
+            description="wrong",
+            wikipedia_url="https://wrong.example.com",
+            facts={},
         )
 
         existing_entity = MagicMock()
@@ -381,6 +412,7 @@ class TestPersistence:
         service = EntityLinkerService(ner=mock_ner, wikidata=mock_wikidata)
 
         import uuid as uuid_mod
+
         await service.extract_link_and_store(uuid_mod.uuid4(), "NASA launched.", "Space", mock_db)
 
         # Should NOT be overwritten
@@ -395,6 +427,7 @@ class TestPersistence:
         mock_db.commit = AsyncMock()
 
         import uuid as uuid_mod
+
         result = await service.extract_link_and_store(uuid_mod.uuid4(), "", "", mock_db)
 
         assert result == []
