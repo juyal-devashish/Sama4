@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import { ArrowUpRight, Loader2, Send, X } from "lucide-react";
 import { useEntityContext } from "@/hooks/useEntityContext";
 import { useExplain } from "@/hooks/useExplain";
 import { usePrediction } from "@/hooks/usePrediction";
 import { EntityBadge } from "@/components/ui/entity-badge";
+import { Tip } from "@/components/onboarding/Tip";
 import type { SelectedTerm } from "@/components/reader/ArticleText";
 import { uniqueEntities } from "@/lib/highlight";
 import { ENTITY_LABELS, ENTITY_TYPES, entityColor, entityKind } from "@/lib/utils";
@@ -18,10 +20,25 @@ interface Props {
   onSelectTerm: (t: SelectedTerm) => void;
   onOpenArticle: (id: string) => void;
   onClose: () => void;
+  /** First-run tip about follow-up questions; set while it should show. */
+  followUpTip?: FollowUpTip;
 }
 
 /** Explanation of one term, shown in the margin beside the story. */
-export function ContextPanel({ term, articleId, onSelectTerm, onOpenArticle, onClose }: Props) {
+export interface FollowUpTip {
+  /** They asked a question, or saw the tip and moved on. */
+  onDone: () => void;
+  onDismiss: () => void;
+}
+
+export function ContextPanel({
+  term,
+  articleId,
+  onSelectTerm,
+  onOpenArticle,
+  onClose,
+  followUpTip,
+}: Props) {
   const { data, isLoading, isError, refetch } = useEntityContext(term.id);
   const { data: prediction } = usePrediction(articleId);
   const color = entityColor(term.type);
@@ -176,7 +193,13 @@ export function ContextPanel({ term, articleId, onSelectTerm, onOpenArticle, onC
         )}
       </div>
 
-      <FollowUp key={term.id} term={term} articleId={articleId} disabled={isLoading} />
+      <FollowUp
+        key={term.id}
+        term={term}
+        articleId={articleId}
+        disabled={isLoading}
+        tip={followUpTip}
+      />
     </div>
   );
 }
@@ -228,18 +251,35 @@ function FollowUp({
   term,
   articleId,
   disabled,
+  tip,
 }: {
   term: SelectedTerm;
   articleId: string;
   disabled: boolean;
+  tip?: FollowUpTip;
 }) {
   const [question, setQuestion] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const explain = useExplain();
 
+  // Once the tip has been on screen for a moment, moving on (closing the panel or
+  // picking another term) counts as having seen it. The delay keeps React's dev-mode
+  // double mount, or a panel closed straight away, from using it up.
+  const tipRef = useRef(tip);
+  tipRef.current = tip;
+  const showing = !!tip;
+  useEffect(() => {
+    if (!showing) return;
+    const shownAt = Date.now();
+    return () => {
+      if (Date.now() - shownAt > 1500) tipRef.current?.onDone();
+    };
+  }, [showing]);
+
   const ask = async () => {
     const q = question.trim();
     if (!q || explain.isPending) return;
+    tip?.onDone();
     setQuestion("");
     setTurns((t) => [...t, { q }]);
     try {
@@ -259,7 +299,19 @@ function FollowUp({
   };
 
   return (
-    <div className="flex-shrink-0 border-t bg-background-secondary/50">
+    <div className="relative flex-shrink-0 border-t bg-background-secondary/50">
+      <AnimatePresence>
+        {tip && turns.length === 0 && (
+          <Tip
+            arrow="bottom"
+            escape={false}
+            onDismiss={tip.onDismiss}
+            className="absolute bottom-full left-4 right-4 z-10 mb-3 max-w-none"
+          >
+            Ask a follow-up about {term.name}. Answers cite where they come from.
+          </Tip>
+        )}
+      </AnimatePresence>
       {turns.length > 0 && (
         <div
           aria-live="polite"

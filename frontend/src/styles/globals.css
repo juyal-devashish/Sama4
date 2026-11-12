@@ -200,6 +200,30 @@ html.intro [data-app-shell] {
   }
 }
 
+/* First-run tip: a soft pulse around the highlighted term it points at. */
+.hint-ring {
+  border-radius: 5px;
+  box-shadow: 0 0 0 2px var(--accent-secondary);
+  animation: hint-pulse 1.8s ease-out infinite;
+}
+@keyframes hint-pulse {
+  0% {
+    box-shadow:
+      0 0 0 2px var(--accent-secondary),
+      0 0 0 2px color-mix(in srgb, var(--accent-secondary) 45%, transparent);
+  }
+  100% {
+    box-shadow:
+      0 0 0 2px var(--accent-secondary),
+      0 0 0 12px transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hint-ring {
+    animation: none;
+  }
+}
+
 @keyframes pulse {
   50% {
     opacity: 0.55;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -14,12 +14,15 @@ import {
   ListTree,
 } from "lucide-react";
 import { useArticle } from "@/hooks/useArticle";
-import { useSavedStories, TOPIC_LABELS } from "@/lib/preferences";
+import { useOnboarding, useSavedStories, TOPIC_LABELS } from "@/lib/preferences";
+import { eligibleHint } from "@/lib/onboarding";
 import { cn, formatTimeAgo } from "@/lib/utils";
 import { isTypingTarget } from "@/components/shell/AppShell";
 import { ErrorState } from "@/components/ui/states";
 import { ContextPanel, KeyTerms } from "@/components/context/ContextPanel";
 import { OutlookSection } from "@/components/outlook/OutlookSection";
+import { TermHint } from "@/components/onboarding/TermHint";
+import { useDesktop, useIntroShowing } from "@/components/onboarding/useHintContext";
 import { uniqueEntities } from "@/lib/highlight";
 import { ArticleBody, MatchedText, type SelectedTerm } from "./ArticleText";
 import type { ArticleDetail } from "@/types";
@@ -33,12 +36,39 @@ interface Props {
 export function ReadingPane({ articleId, onBack, onOpenArticle }: Props) {
   const { data: article, isLoading, isError, refetch } = useArticle(articleId);
   const [term, setTerm] = useState<SelectedTerm | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const [progress, setProgress] = useState(0);
   // Below the wide breakpoint the margin is a drawer: it opens for a selected term, or
   // on the term list itself (the toolbar's Terms button), so the list stays reachable.
   const [listOpen, setListOpen] = useState(false);
   const drawerOpen = !!term || listOpen;
+
+  // First-run hints: at most one at a time (rules in lib/onboarding.ts).
+  const { state: onboarding, dispatch } = useOnboarding();
+  const introShowing = useIntroShowing();
+  const desktop = useDesktop();
+  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
+  const setScroller = useCallback((el: HTMLDivElement | null) => {
+    scrollRef.current = el;
+    setScrollEl(el);
+  }, []);
+  // A dismissed tip stays hidden for the rest of this story, even if it has chances left.
+  const [tipDismissedFor, setTipDismissedFor] = useState<string | null>(null);
+  const hint = eligibleHint(onboarding, {
+    articleWithTerms: !!article && uniqueEntities(article.entities).length > 0,
+    contextPanelOpen: !!term,
+    desktop,
+    introShowing,
+  });
+
+  useEffect(() => {
+    if (article) dispatch({ type: "story-opened", id: article.id });
+  }, [article, dispatch]);
+
+  // Selecting any term means they've found highlights; that tip is done for good.
+  useEffect(() => {
+    if (term) dispatch({ type: "hint-done", hint: "select-term" });
+  }, [term, dispatch]);
   const closeDrawer = () => {
     setTerm(null);
     setListOpen(false);
@@ -72,7 +102,7 @@ export function ReadingPane({ articleId, onBack, onOpenArticle }: Props) {
   return (
     <div className="flex min-w-0 flex-1">
       <div
-        ref={scrollRef}
+        ref={setScroller}
         onScroll={onScroll}
         className="scroll-thin relative min-w-0 flex-1 overflow-y-auto bg-surface"
       >
@@ -95,6 +125,17 @@ export function ReadingPane({ articleId, onBack, onOpenArticle }: Props) {
             scrolled={progress > 0}
             listOpen={listOpen}
             onOpenTerms={() => setListOpen(true)}
+          />
+        )}
+        {article && hint === "select-term" && tipDismissedFor !== article.id && (
+          <TermHint
+            key={article.id}
+            container={scrollEl}
+            storyKey={article.id}
+            onDismiss={() => {
+              setTipDismissedFor(article.id);
+              dispatch({ type: "hint-dismissed", hint: "select-term" });
+            }}
           />
         )}
       </div>
@@ -142,6 +183,15 @@ export function ReadingPane({ articleId, onBack, onOpenArticle }: Props) {
                     onSelectTerm={setTerm}
                     onOpenArticle={onOpenArticle}
                     onClose={() => setTerm(null)}
+                    followUpTip={
+                      hint === "ask-follow-up"
+                        ? {
+                            onDone: () => dispatch({ type: "hint-done", hint: "ask-follow-up" }),
+                            onDismiss: () =>
+                              dispatch({ type: "hint-dismissed", hint: "ask-follow-up" }),
+                          }
+                        : undefined
+                    }
                   />
                 ) : (
                   <KeyTerms
