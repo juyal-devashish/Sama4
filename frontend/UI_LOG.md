@@ -36,11 +36,18 @@
   scroll, so phone readers could not save a story. Icon-only below `sm`, names kept
   (label-in-name), tighter padding. Overflow sweep of all 8 routes at 375px: nothing else overflows.
 
-### PR #16 — API fixtures for e2e (open)
+### PR #16 — API fixtures for e2e (merged)
 
 - Specs now run against recorded responses (`e2e/fixtures/api.json`, refresh with
   `node e2e/capture-fixtures.mjs`), so term/reference/toolbar flows and the route scans run in CI
   on real content with no backend. Verified with the backend stopped: 36/36.
+
+### PR #17 — Settings theme switch at phone width (merged)
+
+- "Match system" wrapped and the switch ended at x=384 on a 375px screen. Icons hidden and label
+  shortened below `sm`; layout test fails without the fix.
+
+### PR #18 — keyboard shortcut e2e (J/K, S, /) (this PR)
 
 ## Decisions
 
@@ -71,6 +78,18 @@ Lighthouse (prod build, mobile emulation, seeded local API, 2026-11-12 before PR
 First Load JS: / 173 kB, shared 84.3 kB, others 95–115 kB.
 Home LCP element is the first-run welcome dialog paragraph (element render delay ~750 ms:
 the dialog fades in). TTFB is ~5 ms. Idea: don't fade the dialog's text from opacity 0.
+
+## Final summary (round 1, 11:15 to about 11:50 EST)
+
+Shipped: #13–#17 merged (#18 open): AA contrast token fix, axe suite in CI (6 routes x 2 themes x
+2 viewports + dialog/panel/reference/skeleton/reduced-motion), heading order, reduced motion,
+role=status skeletons, phone toolbar, Settings theme switch, fixture-backed e2e, keyboard tests.
+Metrics: axe 12/12 desktop route scans failing -> 41 e2e checks passing (3 phone skips by design).
+Lighthouse perf 90-93, a11y 98-100 before; announcements a11y should now be 100 (not re-measured).
+Production verified after #13: new tokens live, console clean.
+Top backlog next time: re-run Lighthouse after these PRs; screenshot baselines (needs Linux
+baselines generated in CI); mobile bottom nav proposal; Outlook with real prediction data
+(fixtures have none); focus handling inside the mobile drawer.
 
 ## Proposals (need your call — not done)
 
