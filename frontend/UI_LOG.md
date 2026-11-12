@@ -24,11 +24,23 @@
 - Skeletons put `aria-label` on a bare div (prohibited ARIA); now `role="status"`.
   Found by CI, not locally: the feed was still pending there.
 
-### PR #14 — heading order + best-practice axe rules (ui/heading-order)
+### PR #14 — heading order + best-practice axe rules (merged)
 
 - Story titles `h3`→`h2` under the page `h1`; announcements phone-mock headline `h3`→`h2`.
 - axe scans include `best-practice` (catches heading-order). Only visible with real data, so
   verified against a production build with seeded articles: 34/34.
+
+### PR #15 — phone toolbar (merged)
+
+- At 375px the reading-pane toolbar ran off-screen: **Save was at x=471** with no horizontal
+  scroll, so phone readers could not save a story. Icon-only below `sm`, names kept
+  (label-in-name), tighter padding. Overflow sweep of all 8 routes at 375px: nothing else overflows.
+
+### PR #16 — API fixtures for e2e (open)
+
+- Specs now run against recorded responses (`e2e/fixtures/api.json`, refresh with
+  `node e2e/capture-fixtures.mjs`), so term/reference/toolbar flows and the route scans run in CI
+  on real content with no backend. Verified with the backend stopped: 36/36.
 
 ## Decisions
 
@@ -59,6 +71,16 @@ Lighthouse (prod build, mobile emulation, seeded local API, 2026-11-12 before PR
 First Load JS: / 173 kB, shared 84.3 kB, others 95–115 kB.
 Home LCP element is the first-run welcome dialog paragraph (element render delay ~750 ms:
 the dialog fades in). TTFB is ~5 ms. Idea: don't fade the dialog's text from opacity 0.
+
+## Proposals (need your call — not done)
+
+- **Mobile nav:** below 640px the 72px icon sidebar eats ~20% of the screen. A bottom tab bar
+  would give the story ~300→375px of width. That is a layout-model change, so not done.
+- **Page title alignment:** page widths are 880/960/1080 px by design, so the title's left edge
+  jumps between sidebar items (316 vs 356 px at 1440). Consider one reading column.
+- **Duplicate source name** in the reading-pane toolbar and the meta row under the title.
+- **Welcome dialog is the home LCP element** for first-run visitors (mounted after hydration, then
+  fades in). Returning readers don't see it, so low priority.
 
 ## Open questions for Devashish
 
