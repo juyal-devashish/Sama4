@@ -272,3 +272,30 @@ test("search results can be narrowed by topic, source and date", async ({ page }
   await expect(page.getByLabel("Topic")).toHaveValue("all");
   await expect(page.getByLabel("Date")).toHaveValue("any");
 });
+
+test("removing a saved story can be undone, back in its place", async ({ page }) => {
+  const saved = [
+    { id: "a", title: "Newer story", source: "BBC", saved_at: "2026-11-12T10:00:00Z" },
+    { id: "b", title: "Older story", source: "NPR", saved_at: "2026-11-11T10:00:00Z" },
+  ];
+  await page.addInitScript((s) => {
+    localStorage.setItem("sama4_onboarded", "true");
+    if (!sessionStorage.getItem("seeded")) {
+      localStorage.setItem("sama4_saved", JSON.stringify(s));
+      sessionStorage.setItem("seeded", "1");
+    }
+  }, saved);
+  await page.goto("/saved");
+  const titles = page.locator("main li h2");
+  await expect(titles).toHaveText(["Newer story", "Older story"]);
+
+  await page.getByRole("button", { name: "Remove Newer story from saved" }).click();
+  await expect(titles).toHaveText(["Older story"]);
+  await expect(page.getByRole("status").getByText(/Removed .Newer story./)).toBeVisible();
+  const undo = page.getByRole("button", { name: "Undo" });
+  await expect(undo).toBeFocused();
+
+  await undo.click();
+  await expect(titles).toHaveText(["Newer story", "Older story"]);
+  await expect(undo).toHaveCount(0);
+});

@@ -16,15 +16,21 @@ export function TopicChips({
   active: string;
   onChange: (t: string) => void;
 }) {
+  // A link can open a topic the reader has hidden in Settings: still show it, selected.
+  const shown = [
+    "all",
+    ...topics,
+    ...(active !== "all" && !topics.includes(active) ? [active] : []),
+  ];
   return (
-    <div role="tablist" aria-label="Topics" className="flex flex-wrap gap-1.5">
-      {["all", ...topics].map((t) => {
+    // Toggle buttons, not tabs: tabs promise arrow-key navigation and a tab panel.
+    <div role="group" aria-label="Topics" className="flex flex-wrap gap-1.5">
+      {shown.map((t) => {
         const on = active === t;
         return (
           <button
             key={t}
-            role="tab"
-            aria-selected={on}
+            aria-pressed={on}
             type="button"
             onClick={() => onChange(t)}
             className={cn(
@@ -180,7 +186,7 @@ export function StoryList({
           <ErrorState what="stories" onRetry={onRetry} />
         ) : stories.length === 0 ? (
           <EmptyState icon={Newspaper} title="No stories here yet">
-            New stories are fetched every hour. Try another topic, or check back soon.
+            New stories arrive through the day. Try another topic, or check back soon.
           </EmptyState>
         ) : (
           <>
