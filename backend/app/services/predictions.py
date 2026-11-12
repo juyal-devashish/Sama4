@@ -29,6 +29,13 @@ from app.models.source import Source
 logger = logging.getLogger(__name__)
 
 
+CANCELLED_MESSAGE = "Cancelled by the reader."
+
+
+class RunCancelledError(Exception):
+    """The reader cancelled this run while it was in progress."""
+
+
 class PredictionService:
     """Orchestrates the full MiroFish prediction pipeline for articles."""
 
@@ -40,6 +47,31 @@ class PredictionService:
         self.mirofish = mirofish
         self.settings = settings
         self.stale_after = timedelta(minutes=settings.prediction_stale_minutes)
+
+    async def _check_not_cancelled(self, prediction: Prediction, db: AsyncSession) -> None:
+        """Re-read the status (the cancel endpoint writes it from another request)."""
+        await db.refresh(prediction, attribute_names=["status"])
+        if prediction.status == STATUS_FAILED:
+            raise RunCancelledError
+
+    async def _advance(self, prediction: Prediction, db: AsyncSession, status: str) -> None:
+        """Move the run to its next step, unless it was cancelled meanwhile."""
+        await self._check_not_cancelled(prediction, db)
+        prediction.status = status
+        await db.commit()
+
+    async def cancel(self, prediction: Prediction, db: AsyncSession) -> bool:
+        """Stop a running prediction. Returns False if it wasn't running.
+
+        The background task notices at its next step (or before saving its result)
+        and stops without overwriting this.
+        """
+        if prediction.status not in RUNNING_STATUSES:
+            return False
+        prediction.status = STATUS_FAILED
+        prediction.error_message = CANCELLED_MESSAGE
+        await db.commit()
+        return True
 
     async def expire_if_stale(self, prediction: Prediction, db: AsyncSession) -> bool:
         """Mark a run that stopped making progress as failed. Returns True if it did."""
@@ -112,14 +144,18 @@ class PredictionService:
         # Check MiroFish availability
         is_healthy = await self.mirofish.health_check()
 
-        if is_healthy:
-            await self._run_with_mirofish(prediction, article, db)
-        else:
-            # Fallback: use LLM to generate synthetic prediction
-            logger.warning(
-                "MiroFish unavailable — using LLM fallback for prediction %s", prediction_id
-            )
-            await self._run_llm_fallback(prediction, article, db)
+        try:
+            if is_healthy:
+                await self._run_with_mirofish(prediction, article, db)
+            else:
+                # Fallback: use LLM to generate synthetic prediction
+                logger.warning(
+                    "MiroFish unavailable — using LLM fallback for prediction %s", prediction_id
+                )
+                await self._run_llm_fallback(prediction, article, db)
+        except RunCancelledError:
+            await db.rollback()  # drop any half-built result; the row stays "failed"
+            logger.info("Prediction %s was cancelled; stopped", prediction_id)
 
     async def _run_with_mirofish(
         self, prediction: Prediction, article: Article, db: AsyncSession
@@ -127,8 +163,7 @@ class PredictionService:
         """Run prediction through the real MiroFish engine."""
         try:
             # Step 1: Upload seed material
-            prediction.status = STATUS_BUILDING_GRAPH
-            await db.commit()
+            await self._advance(prediction, db, STATUS_BUILDING_GRAPH)
 
             content = article.cleaned_content or article.raw_content or article.summary or ""
             metadata = {
@@ -146,8 +181,7 @@ class PredictionService:
             await self.mirofish.build_knowledge_graph(project_id)
 
             # Step 3: Setup simulation
-            prediction.status = STATUS_SIMULATING
-            await db.commit()
+            await self._advance(prediction, db, STATUS_SIMULATING)
 
             setup_result = await self.mirofish.setup_simulation(
                 project_id=project_id,
@@ -166,12 +200,13 @@ class PredictionService:
             prediction.mirofish_simulation_id = simulation_id
 
             # Step 5: Get report
-            prediction.status = STATUS_GENERATING_REPORT
-            await db.commit()
+            await self._advance(prediction, db, STATUS_GENERATING_REPORT)
 
             report = await self.mirofish.get_report(simulation_id)
             await self._process_mirofish_report(prediction, report, db)
 
+        except RunCancelledError:
+            raise
         except Exception as e:
             logger.error(
                 "MiroFish simulation failed for prediction %s: %s", prediction.id, e, exc_info=True
@@ -185,8 +220,7 @@ class PredictionService:
     ) -> None:
         """Generate a synthetic prediction using LLM when MiroFish is unavailable."""
         try:
-            prediction.status = STATUS_GENERATING_REPORT
-            await db.commit()
+            await self._advance(prediction, db, STATUS_GENERATING_REPORT)
 
             content = article.cleaned_content or article.summary or article.title
             # Truncate to fit token limits
@@ -261,6 +295,7 @@ Return ONLY valid JSON, no markdown code blocks."""  # noqa: E501 (LLM prompt te
                 )
                 db.add(perspective)
 
+            await self._check_not_cancelled(prediction, db)
             prediction.status = STATUS_COMPLETED
             prediction.completed_at = datetime.now(UTC)
             await db.commit()
@@ -272,6 +307,8 @@ Return ONLY valid JSON, no markdown code blocks."""  # noqa: E501 (LLM prompt te
                 ttl=self.settings.prediction_cache_ttl,
             )
 
+        except RunCancelledError:
+            raise
         except Exception as e:
             logger.error(
                 "LLM fallback failed for prediction %s: %s", prediction.id, e, exc_info=True
@@ -346,6 +383,7 @@ Return ONLY valid JSON."""
                 )
             )
 
+        await self._check_not_cancelled(prediction, db)
         prediction.status = STATUS_COMPLETED
         prediction.completed_at = datetime.now(UTC)
         await db.commit()
