@@ -67,7 +67,13 @@ export function ReadingPane({ articleId, onBack, onOpenArticle }: Props) {
         ) : isError || !article ? (
           <ErrorState what="this story" onRetry={() => refetch()} />
         ) : (
-          <Story article={article} term={term} onSelectTerm={setTerm} onBack={onBack} />
+          <Story
+            article={article}
+            term={term}
+            onSelectTerm={setTerm}
+            onBack={onBack}
+            scrolled={progress > 0}
+          />
         )}
       </div>
 
@@ -131,11 +137,14 @@ function Story({
   term,
   onSelectTerm,
   onBack,
+  scrolled,
 }: {
   article: ArticleDetail;
   term: SelectedTerm | null;
   onSelectTerm: (t: SelectedTerm) => void;
   onBack: () => void;
+  /** Once the story scrolls, the bar gets its rule and repeats the source name. */
+  scrolled: boolean;
 }) {
   const { isSaved, toggle } = useSavedStories();
   const saved = isSaved(article.id);
@@ -177,7 +186,12 @@ function Story({
 
   return (
     <>
-      <div className="sticky top-[2px] z-10 flex h-14 items-center gap-2 border-b bg-surface/90 px-4 backdrop-blur sm:px-6">
+      <div
+        className={cn(
+          "sticky top-[2px] z-10 flex h-14 items-center gap-2 border-b bg-surface/90 px-4 backdrop-blur transition-colors sm:px-6",
+          scrolled ? "border-border" : "border-transparent",
+        )}
+      >
         <button
           type="button"
           onClick={onBack}
@@ -185,7 +199,13 @@ function Story({
         >
           <ArrowLeft size={16} /> Stories
         </button>
-        <span className="truncate font-display text-[13px] font-semibold">
+        <span
+          aria-hidden={!scrolled}
+          className={cn(
+            "truncate font-display text-[13px] font-semibold transition-opacity duration-200",
+            scrolled ? "opacity-100" : "opacity-0",
+          )}
+        >
           {article.source.name}
         </span>
         <div className="ml-auto flex items-center gap-1">
