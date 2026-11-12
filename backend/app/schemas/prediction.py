@@ -39,6 +39,9 @@ class PredictionDetail(BaseModel):
     id: uuid.UUID
     article_id: uuid.UUID
     status: str
+    # "simulation": MiroFish simulated agent_count agents. "language_model": no
+    # simulation ran; Claude wrote the outlook and its viewpoints directly.
+    method: str = "language_model"
     agent_count: int
     simulation_rounds: int
     platforms: list[str]
@@ -117,5 +120,6 @@ class TrendingPrediction(BaseModel):
     key_findings: list[str] = []
     impact_score: int = 0
     confidence_score: float | None = None
+    method: str = "language_model"
     agent_count: int
     completed_at: datetime | None = None

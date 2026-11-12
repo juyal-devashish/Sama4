@@ -357,7 +357,15 @@ function Story({
         </section>
 
         <div className="mt-16">
-          <OutlookSection articleId={article.id} articleTitle={article.title} />
+          <OutlookSection
+            articleId={article.id}
+            articleTitle={article.title}
+            basis={{
+              publisher: article.source.name,
+              words: article.content ? article.content.trim().split(/\s+/).length : 0,
+              summaryOnly: !article.content,
+            }}
+          />
         </div>
       </article>
     </>

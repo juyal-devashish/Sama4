@@ -394,6 +394,7 @@ Return ONLY valid JSON."""
                     "impact_score": pred.impact_score,
                     "confidence_score": pred.confidence_score,
                     "agent_count": pred.agent_count,
+                    "method": pred.method,
                     "completed_at": pred.completed_at,
                 }
             )

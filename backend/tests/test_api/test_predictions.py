@@ -85,3 +85,23 @@ async def test_startup_cleanup_fails_running_runs_and_keeps_finished_ones(db_ses
             await db.execute(select(Prediction.error_message).where(Prediction.id == running.id))
         ).scalar_one()
     assert "restart" in msg
+
+
+async def test_outlook_says_whether_a_simulation_ran(client, db_session):
+    fallback = await _prediction(db_session, STATUS_COMPLETED)
+    async with db_session() as db:
+        simulated = Prediction(
+            article_id=(await make_article(db)).id,
+            status=STATUS_COMPLETED,
+            mirofish_simulation_id="sim-1",
+        )
+        db.add(simulated)
+        await db.commit()
+
+    a = (await client.get(f"/api/v1/predictions/article/{fallback.article_id}")).json()
+    b = (await client.get(f"/api/v1/predictions/article/{simulated.article_id}")).json()
+    trending = (await client.get("/api/v1/predictions/trending")).json()
+
+    assert a["method"] == "language_model"
+    assert b["method"] == "simulation"
+    assert {t["method"] for t in trending} == {"language_model", "simulation"}
