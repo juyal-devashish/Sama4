@@ -6,7 +6,7 @@
 
 **News, understood.** A news reader that explains the people, places and ideas in a story, right beside the story.
 
-[**Live app →**](https://frontend-roan-nine-nf5erh3avr.vercel.app) &nbsp;·&nbsp; [Waitlist](https://www.sama4.online) &nbsp;·&nbsp; [Architecture](#architecture) &nbsp;·&nbsp; [Engineering highlights](#engineering-highlights) &nbsp;·&nbsp; [Run it locally](#run-it-locally)
+[**Live app →**](https://www.sama4.online) &nbsp;·&nbsp; [Announcements & waitlist](https://www.sama4.online/announcements) &nbsp;·&nbsp; [Architecture](#architecture) &nbsp;·&nbsp; [Engineering highlights](#engineering-highlights) &nbsp;·&nbsp; [Run it locally](#run-it-locally)
 
 ![CI](https://github.com/juyal-devashish/Sama4/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
