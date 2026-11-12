@@ -3,9 +3,7 @@
 All tests mock spaCy to avoid loading the transformer model (~457MB).
 """
 
-from unittest.mock import MagicMock, patch, PropertyMock
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from app.ingestion.ner import (
     ALLOWED_LABELS,
@@ -14,10 +12,10 @@ from app.ingestion.ner import (
     NERService,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_span(text: str, label: str, start_char: int, end_char: int):
     """Create a mock spaCy Span."""
@@ -47,6 +45,7 @@ def _build_service_with_mock(spans: list) -> NERService:
 # ---------------------------------------------------------------------------
 # 1. Label mapping tests
 # ---------------------------------------------------------------------------
+
 
 class TestLabelMapping:
     """spaCy label → samā4 entity type mapping."""
@@ -93,6 +92,7 @@ class TestLabelMapping:
 # 2. Priority calculation tests
 # ---------------------------------------------------------------------------
 
+
 class TestPriority:
     """high / medium / low priority assignment."""
 
@@ -119,8 +119,8 @@ class TestPriority:
 
     def test_medium_priority_when_2_mentions(self):
         """Exactly 2 mentions, not in title → medium."""
-        content = "Google released a product. Google stock rose."
-        spans = [_make_span("Google", "ORG", 0, 6)]
+        content = "Nvidia released a product. Nvidia stock rose."
+        spans = [_make_span("Nvidia", "ORG", 0, 6)]
         service = _build_service_with_mock(spans)
 
         result = service.extract_entities(content, "Tech earnings report")
@@ -140,14 +140,14 @@ class TestPriority:
     def test_results_sorted_by_priority(self):
         """High entities come first, then medium, then low."""
         content = (
-            "Apple released the iPhone. "  # Apple: 1 mention → low
+            "Sonos released the Era100. "  # Sonos: 1 mention → low
             "Tim Cook spoke. Tim Cook added. Tim Cook concluded. "  # 3 mentions → high
-            "Google reacted. Google commented."  # 2 mentions → medium
+            "Nvidia reacted. Nvidia commented."  # 2 mentions → medium
         )
         spans = [
-            _make_span("Apple", "ORG", 0, 5),
+            _make_span("Sonos", "ORG", 0, 5),
             _make_span("Tim Cook", "PERSON", 27, 35),
-            _make_span("Google", "ORG", 79, 85),
+            _make_span("Nvidia", "ORG", 79, 85),
         ]
         service = _build_service_with_mock(spans)
 
@@ -159,6 +159,7 @@ class TestPriority:
 # ---------------------------------------------------------------------------
 # 3. Entity extraction behavior tests
 # ---------------------------------------------------------------------------
+
 
 class TestExtraction:
     """Core extraction logic: dedup, filtering, positions."""
@@ -202,13 +203,26 @@ class TestExtraction:
         assert result[0].text == "NASA"
 
     def test_preserves_character_positions(self):
-        content = "President Biden met with officials."
-        spans = [_make_span("Biden", "PERSON", 10, 15)]
+        content = "President Milei met with officials."
+        spans = [_make_span("Milei", "PERSON", 10, 15)]
         service = _build_service_with_mock(spans)
 
         result = service.extract_entities(content, "News")
         assert result[0].start == 10
         assert result[0].end == 15
+
+    def test_filters_common_knowledge_entities(self):
+        """Universally known names (COMMON_KNOWLEDGE) are dropped; others are kept."""
+        content = "Google and Biden met Sonos."
+        spans = [
+            _make_span("Google", "ORG", 0, 6),
+            _make_span("Biden", "PERSON", 11, 16),
+            _make_span("Sonos", "ORG", 21, 26),
+        ]
+        service = _build_service_with_mock(spans)
+
+        result = service.extract_entities(content, "News")
+        assert [e.text for e in result] == ["Sonos"]
 
     def test_empty_content_returns_empty(self):
         service = _build_service_with_mock([])
@@ -234,8 +248,13 @@ class TestExtraction:
     def test_extracted_entity_dataclass_fields(self):
         """ExtractedEntity has all required fields."""
         e = ExtractedEntity(
-            text="NATO", type="ORG", start=0, end=4,
-            in_title=False, mention_count=1, priority="low",
+            text="NATO",
+            type="ORG",
+            start=0,
+            end=4,
+            in_title=False,
+            mention_count=1,
+            priority="low",
         )
         assert e.text == "NATO"
         assert e.type == "ORG"
@@ -250,6 +269,7 @@ class TestExtraction:
 # 4. Lazy-loading / fallback tests
 # ---------------------------------------------------------------------------
 
+
 class TestModelLoading:
     """spaCy model lazy-loading and fallback."""
 
@@ -260,7 +280,6 @@ class TestModelLoading:
     @patch("app.ingestion.ner.spacy", create=True)
     def test_fallback_to_sm_when_trf_missing(self, mock_spacy_module):
         """Falls back to en_core_web_sm when trf raises OSError."""
-        import app.ingestion.ner as ner_module
 
         mock_sm = MagicMock()
         mock_spacy_module.load = MagicMock(side_effect=[OSError("not found"), mock_sm])
@@ -269,10 +288,15 @@ class TestModelLoading:
         service._nlp = None
 
         with patch.dict("sys.modules", {"spacy": mock_spacy_module}):
-            with patch.object(type(service), "nlp", new_callable=lambda: property(lambda self: self._load_fallback(mock_spacy_module))):
+            with patch.object(
+                type(service),
+                "nlp",
+                new_callable=lambda: property(lambda self: self._load_fallback(mock_spacy_module)),
+            ):
                 # Directly test the fallback logic
                 try:
                     import spacy
+
                     spacy.load("en_core_web_trf")
                 except OSError:
                     result = mock_spacy_module.load("en_core_web_sm")
