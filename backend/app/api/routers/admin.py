@@ -1,10 +1,15 @@
 """Admin operations. Every route requires the X-Admin-Secret header (see deps.require_admin)."""
 
+import logging
+
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 from pydantic import BaseModel
 
-from app.api.deps import AdminOnly, ContainerDep
+from app.api.deps import AdminOnly, ContainerDep, DbSession
+from app.ingestion import canonicalize as entity_cleanup
 from app.ingestion import jobs
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(dependencies=[AdminOnly])
 
@@ -68,3 +73,36 @@ async def repair_mentions(
             status.HTTP_500_INTERNAL_SERVER_ERROR, "Mention repair failed; nothing was changed."
         )
     return MentionRepairResponse(**vars(report))
+
+
+class EntityCleanupResponse(BaseModel):
+    entities: int
+    renamed: int
+    retyped: int
+    merged: int
+    mentions_fixed: int
+    mentions_dropped: int
+    typed_by_claude: bool
+    dry_run: bool
+    changes: list[str]
+
+
+@router.post("/entities/canonicalize", response_model=EntityCleanupResponse)
+async def canonicalize_entities(
+    db: DbSession, c: ContainerDep, dry_run: bool = True, retype: bool = True
+) -> EntityCleanupResponse:
+    """Merge possessive duplicates ("Jensen Huang's") and fix wrong types ("Nvidia" as a place).
+
+    Dry run by default: the report lists what would change (first 50). Pass dry_run=false
+    to write. retype=true asks Claude to type every entity name (one call per 100 names).
+    """
+    try:
+        report = await entity_cleanup.canonicalize_entities(
+            db, c.llm, dry_run=dry_run, retype=retype
+        )
+    except Exception as exc:
+        logger.error("Entity cleanup failed", exc_info=True)
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "Entity cleanup failed; nothing was changed."
+        ) from exc
+    return EntityCleanupResponse(**vars(report))

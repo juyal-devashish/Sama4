@@ -124,4 +124,19 @@ test("follow-up answers show the sources they used", async ({ page }) => {
   await expect(source).toHaveAttribute("href", article.source.url);
   await expect(page.getByRole("link", { name: "Source: Wikipedia" })).toBeVisible();
   await expect(page.getByText("[article]")).toHaveCount(0); // raw tags never shown
+
+test("publisher text and samā4-generated text are labelled", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  await expect(
+    page.getByRole("heading", { name: /In brief AI summary written by samā4/ }),
+  ).toBeVisible({
+    timeout: 10_000,
+  });
+  await expect(page.getByRole("heading", { name: /^From .+ The publisher's text/ })).toBeVisible();
+  await page.locator(".term").first().click();
+  await expect(
+    page.getByText("Written by samā4's AI from Wikipedia and this story."),
+  ).toBeVisible();
 });
