@@ -124,6 +124,7 @@ test("follow-up answers show the sources they used", async ({ page }) => {
   await expect(source).toHaveAttribute("href", article.source.url);
   await expect(page.getByRole("link", { name: "Source: Wikipedia" })).toBeVisible();
   await expect(page.getByText("[article]")).toHaveCount(0); // raw tags never shown
+});
 
 test("publisher text and samā4-generated text are labelled", async ({ page }) => {
   await mockApi(page);
