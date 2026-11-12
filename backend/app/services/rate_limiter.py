@@ -11,6 +11,11 @@ RATE_LIMITS = {
         "limit": settings.followup_rate_limit,
         "window_seconds": settings.rate_limit_window,
     },
+    # Early-access signups: a person needs one, retries for typos need a few.
+    "waitlist_signups": {
+        "limit": 5,
+        "window_seconds": 3600,
+    },
 }
 
 

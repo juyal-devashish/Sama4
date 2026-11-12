@@ -215,9 +215,13 @@ function Waitlist() {
           ? "You're already on the list. We'll be in touch."
           : "You're on the list. We'll be in touch."
       );
-    } catch {
+    } catch (err) {
       setState("error");
-      setMessage("That didn't go through. Check the address and try again.");
+      setMessage(
+        err instanceof Error && err.message.includes("429")
+          ? "Too many tries from this network. Try again in an hour."
+          : "That didn't go through. Check the address and try again."
+      );
     }
   }
 
