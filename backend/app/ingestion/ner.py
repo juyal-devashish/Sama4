@@ -165,6 +165,11 @@ class NERService:
 
             normalized = ent.text.strip()
             key = normalized.lower()
+            # Trim the offsets with the text, then make sure they still point at it.
+            hint = ent.start_char + (len(ent.text) - len(ent.text.lstrip()))
+            span = locate_mention(content, normalized, hint)
+            if span is None:
+                continue
 
             if key in seen:
                 continue
@@ -193,8 +198,8 @@ class NERService:
                 ExtractedEntity(
                     text=normalized,
                     type=ENTITY_TYPE_MAP[ent.label_],
-                    start=ent.start_char,
-                    end=ent.end_char,
+                    start=span[0],
+                    end=span[1],
                     in_title=in_title,
                     mention_count=mention_count,
                     priority=priority,
@@ -277,10 +282,13 @@ Return ONLY the JSON array, no markdown."""  # noqa: E501 (LLM prompt text)
                 if not text or entity_type not in {"PERSON", "ORG", "LOCATION", "EVENT", "CONCEPT"}:
                     continue
 
-                # Find position in content
-                match = re.search(re.escape(text), content)
-                start = match.start() if match else 0
-                end = match.end() if match else len(text)
+                # Offsets must come from `content` itself (the stored cleaned_content).
+                # A term Claude paraphrased or invented can't be highlighted: drop it.
+                span = locate_mention(content, text)
+                if span is None:
+                    logger.debug("LLM term not found in article text: %r", text)
+                    continue
+                start, end = span
 
                 in_title = text.lower() in title.lower()
                 mention_count = content.lower().count(text.lower())
@@ -343,7 +351,37 @@ Return ONLY the JSON array, no markdown."""  # noqa: E501 (LLM prompt text)
             else:
                 merged[key] = ent
 
-        return _sort_by_priority(list(merged.values()))
+        # Last line of defence: never return a mention whose offsets miss its text.
+        aligned = [e for e in merged.values() if is_aligned(content, e.text, e.start, e.end)]
+        return _sort_by_priority(aligned)
+
+
+def is_aligned(content: str, text: str, start: int, end: int) -> bool:
+    """True when content[start:end] is `text` (ignoring case), i.e. safe to highlight."""
+    return 0 <= start < end <= len(content) and content[start:end].lower() == text.lower()
+
+
+def locate_mention(content: str, text: str, hint: int | None = None) -> tuple[int, int] | None:
+    """Find [start, end) of `text` in `content`, or None if it isn't there.
+
+    Uses `hint` when the text really is at that offset; otherwise searches, preferring an
+    exact-case whole-word match, then case-insensitive, then a match inside a longer word.
+    """
+    if not text:
+        return None
+    if hint is not None and is_aligned(content, text, hint, hint + len(text)):
+        return hint, hint + len(text)
+    escaped = re.escape(text)
+    whole_word = rf"(?<!\w){escaped}(?!\w)"
+    for pattern, flags in (
+        (whole_word, 0),
+        (whole_word, re.IGNORECASE),
+        (escaped, re.IGNORECASE),
+    ):
+        match = re.search(pattern, content, flags)
+        if match and is_aligned(content, text, match.start(), match.end()):
+            return match.start(), match.end()
+    return None
 
 
 _PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
