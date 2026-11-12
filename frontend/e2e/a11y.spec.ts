@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { mockApi } from "./mock-api";
 
-const routes = ["/", "/search", "/saved", "/outlook", "/early-access", "/settings"];
+const routes = ["/", "/search", "/saved", "/outlook", "/early-access", "/settings", "/privacy"];
 const themes = ["light", "dark"] as const;
 
 for (const route of routes) {

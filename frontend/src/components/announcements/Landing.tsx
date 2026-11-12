@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef, type RefObject } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useJoinWaitlist } from "@/hooks/useJoinWaitlist";
@@ -179,34 +179,59 @@ export function Landing() {
     const success = $<HTMLElement>("#formSuccess");
     const error = $<HTMLElement>("#formError");
     if (form) {
+      const field = form.querySelector<HTMLInputElement>('input[type="email"]');
+      if (field)
+        on(field, "input", () => {
+          form.classList.remove("error");
+          field.removeAttribute("aria-invalid");
+          if (error) error.textContent = "";
+        });
       on(form, "submit", async (ev) => {
         ev.preventDefault();
         const input = form.querySelector<HTMLInputElement>('input[type="email"]');
         if (!input) return;
+        const showError = (message: string) => {
+          form.classList.add("error");
+          input.setAttribute("aria-invalid", "true");
+          if (error) error.textContent = message;
+          input.focus();
+        };
         form.classList.remove("error");
-        error?.classList.remove("visible");
+        input.removeAttribute("aria-invalid");
+        if (error) error.textContent = "";
+        // The form is novalidate so these messages are ours: visible, inline and
+        // announced (role=alert), instead of the browser's tooltip.
+        input.value = input.value.trim();
+        if (!input.value) return showError("Enter your email address.");
+        if (input.validity.typeMismatch)
+          return showError("That doesn't look like an email address. Try name@example.com.");
         form.classList.add("loading");
         input.disabled = true;
         try {
           const res = await joinRef.current(input.value);
           form.style.display = "none";
+          const label = el.querySelector<HTMLElement>(".waitlist-label");
+          if (label) label.style.display = "none";
           if (success) {
-            if (res.status === "exists") success.textContent = "✓ You're already on the list.";
+            // Show first, then set the text, so the role=status region announces it.
+            const message =
+              res.status === "exists"
+                ? "✓ You're already on the list."
+                : (success.textContent ?? "");
             success.style.display = "block";
+            success.textContent = "";
+            requestAnimationFrame(() => (success.textContent = message));
           }
         } catch (err) {
           form.classList.remove("loading");
-          form.classList.add("error");
           input.disabled = false;
-          if (error) {
-            error.textContent =
-              err instanceof ApiError && err.status === 429
-                ? "Too many tries from this network. Try again in an hour."
-                : err instanceof ApiError && err.status === 422
-                  ? "That doesn't look like a valid email address."
-                  : "Something went wrong. Please try again.";
-            error.classList.add("visible");
-          }
+          showError(
+            err instanceof ApiError && err.status === 429
+              ? "Too many tries from this network. Try again in an hour."
+              : err instanceof ApiError && err.status === 422
+                ? "That doesn't look like an email address. Try name@example.com."
+                : "Something went wrong and you're not on the list yet. Please try again.",
+          );
         }
       });
     }
@@ -250,8 +275,29 @@ export function Landing() {
           ))}
         </nav>
       </header>
-      {/* Static, trusted markup generated from the original page (no user input). */}
-      <div ref={root} className="s4-landing" dangerouslySetInnerHTML={{ __html: LANDING_MARKUP }} />
+      <LandingMarkup rootRef={root} />
     </div>
   );
 }
+
+/**
+ * Static, trusted markup generated from the original page (no user input).
+ *
+ * Memoized so it never re-renders: the effect above attaches listeners to these
+ * nodes, and a re-render (e.g. the waitlist request changing state) made React
+ * re-apply the HTML, replacing the nodes, so error and success messages were
+ * written to detached elements and never shown.
+ */
+const LandingMarkup = memo(function LandingMarkup({
+  rootRef,
+}: {
+  rootRef: RefObject<HTMLDivElement>;
+}) {
+  return (
+    <div
+      ref={rootRef}
+      className="s4-landing"
+      dangerouslySetInnerHTML={{ __html: LANDING_MARKUP }}
+    />
+  );
+});
