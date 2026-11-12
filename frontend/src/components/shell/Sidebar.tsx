@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bookmark, Moon, Newspaper, Search, Settings, Sun, TrendingUp } from "lucide-react";
+import {
+  Bookmark,
+  Megaphone,
+  Moon,
+  Newspaper,
+  Search,
+  Settings,
+  Sun,
+  TrendingUp,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSavedStories, useTheme } from "@/lib/preferences";
 
@@ -26,6 +35,12 @@ const NAV = [
     label: "Outlook",
     icon: TrendingUp,
     match: (p: string) => p.startsWith("/outlook"),
+  },
+  {
+    href: "/announcements",
+    label: "Announcements",
+    icon: Megaphone,
+    match: (p: string) => p.startsWith("/announcements"),
   },
 ];
 

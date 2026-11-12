@@ -150,6 +150,7 @@ Without API keys the app still runs: new summaries show a placeholder, and term 
 | `GET` | `/api/v1/context/{entity_id}` | Explanation of a term, plus related terms and articles |
 | `POST` | `/api/v1/context/explain` | Answer a follow-up question about a term |
 | `GET` | `/api/v1/predictions/*` | "What might happen next" simulations |
+| `POST` | `/api/v1/waitlist` | Early-access signup from the Announcements page (5 per IP per hour) |
 | `POST` | `/api/v1/admin/*` | Run ingestion, seed data, regenerate summaries (secret header) |
 
 Interactive OpenAPI docs are served at `/docs` on any running backend.
