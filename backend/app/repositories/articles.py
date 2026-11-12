@@ -3,6 +3,7 @@
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,7 +13,13 @@ from app.models.article import Article
 from app.models.entity import ArticleEntity, Entity
 from app.models.source import Source
 
+# Lifecycle: an article row is stored "completed" once every pipeline step succeeds.
+# If a step fails, its savepoint rolls the article back and the pipeline stores a
+# content-free "failed" row instead, so the URL isn't re-processed every run; it is
+# retried once that row is FAILED_RETRY_AFTER old. Only "completed" rows are shown.
 STATUS_COMPLETED = "completed"
+STATUS_FAILED = "failed"
+FAILED_RETRY_AFTER = timedelta(hours=6)
 
 
 @dataclass
@@ -72,10 +79,47 @@ async def get(db: AsyncSession, article_id: uuid.UUID) -> Article | None:
     return await db.get(Article, article_id)
 
 
-async def exists_by_url(db: AsyncSession, url: str) -> bool:
-    return (
-        await db.execute(select(Article.id).where(Article.url == url).limit(1))
-    ).first() is not None
+async def get_by_url(db: AsyncSession, url: str) -> Article | None:
+    return (await db.execute(select(Article).where(Article.url == url).limit(1))).scalars().first()
+
+
+def due_for_retry(article: Article, now: datetime | None = None) -> bool:
+    """True for a "failed" row old enough to try the URL again."""
+    if article.processing_status != STATUS_FAILED:
+        return False
+    last = article.updated_at or article.created_at
+    if last is None:
+        return True
+    if last.tzinfo is None:  # SQLite returns naive datetimes; they are UTC
+        last = last.replace(tzinfo=UTC)
+    return (now or datetime.now(UTC)) - last >= FAILED_RETRY_AFTER
+
+
+async def record_failure(
+    db: AsyncSession,
+    *,
+    url: str,
+    title: str,
+    source_id: uuid.UUID,
+    category: str,
+    published_at: datetime | None,
+    error: str,
+) -> None:
+    """Store (or refresh) the content-free "failed" row for a URL that didn't process."""
+    row = await get_by_url(db, url)
+    if row is None:
+        row = Article(
+            url=url,
+            title=title,
+            source_id=source_id,
+            categories=[category],
+            published_at=published_at,
+        )
+        db.add(row)
+    row.processing_status = STATUS_FAILED
+    row.processing_error = error[:1000]
+    row.updated_at = datetime.now(UTC)
+    await db.flush()
 
 
 async def list_all(db: AsyncSession) -> Sequence[Article]:

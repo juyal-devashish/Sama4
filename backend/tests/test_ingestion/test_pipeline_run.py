@@ -1,6 +1,6 @@
 """End-to-end pipeline run with a fake feed, fake NER output and fake clients."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock
 
 from sqlalchemy import select
@@ -11,6 +11,7 @@ from app.ingestion.ner import ExtractedEntity
 from app.ingestion.pipeline import IngestionPipeline
 from app.models.article import Article
 from app.models.entity import ArticleEntity, Entity
+from app.repositories.articles import FAILED_RETRY_AFTER
 
 SOURCE = {"name": "Test Feed", "url": "https://feeds.test/rss", "category": "tech"}
 
@@ -93,8 +94,50 @@ async def test_failing_article_does_not_discard_earlier_ones(container):
     assert await pipeline.run() == 1
 
     async with async_session() as db:
-        titles = (await db.execute(select(Article.title))).scalars().all()
-    assert titles == [TITLES[0]]
+        rows = (await db.execute(select(Article).order_by(Article.title))).scalars().all()
+    by_title = {a.title: a for a in rows}
+    assert by_title[TITLES[0]].processing_status == "completed"
+    failed = by_title[TITLES[1]]
+    assert failed.processing_status == "failed"
+    assert failed.processing_error == "RuntimeError: boom"
+    assert failed.cleaned_content is None  # content-free: nothing to show or re-summarize
+
+
+def _fail_second(pipeline: IngestionPipeline) -> AsyncMock:
+    calls = AsyncMock(side_effect=RuntimeError("boom"))
+    pipeline.summarizer.summarize = calls
+    return calls
+
+
+async def test_recently_failed_url_is_not_reprocessed_next_run(container):
+    # A fresh pipeline per run, as in jobs.run_ingestion (dedup state is per run).
+    first = _pipeline(container, [_fetched(1)])
+    _fail_second(first)
+    assert await first.run() == 0
+
+    second = _pipeline(container, [_fetched(1)])
+    calls = _fail_second(second)
+    assert await second.run() == 0
+
+    assert calls.await_count == 0  # skipped: it failed less than FAILED_RETRY_AFTER ago
+
+
+async def test_failed_url_is_retried_after_the_wait_and_replaced_on_success(container):
+    first = _pipeline(container, [_fetched(1)])
+    _fail_second(first)
+    assert await first.run() == 0
+
+    async with async_session() as db:
+        failed = (await db.execute(select(Article))).scalar_one()
+        failed.updated_at = datetime.now(UTC) - FAILED_RETRY_AFTER - timedelta(minutes=1)
+        await db.commit()
+
+    container.llm.default = "Claude summary."
+    assert await _pipeline(container, [_fetched(1)]).run() == 1
+
+    async with async_session() as db:
+        rows = (await db.execute(select(Article))).scalars().all()
+    assert [(a.processing_status, a.summary) for a in rows] == [("completed", "Claude summary.")]
 
 
 async def test_pipeline_skips_mentions_whose_offsets_miss_the_text(container):
