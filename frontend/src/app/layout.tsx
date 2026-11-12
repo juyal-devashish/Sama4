@@ -13,7 +13,6 @@ const poppins = Poppins({
 const roboto = Roboto({
   subsets: ["latin"],
   weight: ["400", "500"],
-  style: ["normal", "italic"],
   variable: "--font-roboto",
 });
 
