@@ -1139,7 +1139,7 @@
   color: var(--text-tertiary);
 }
 .dark .s4-landing .demo-source-date {
-  color: rgba(250, 250, 248, 0.3);
+  color: var(--text-muted);
 }
 .dark .s4-landing .demo-headline {
   color: var(--foreground);
@@ -1281,4 +1281,19 @@
 .dark .s4-landing .value-section {
   --accent: var(--accent-primary);
   --accent-hover: var(--accent-secondary);
+}
+
+/* Respect the reader's motion preference: land every animation on its final
+   frame instead of playing it. */
+@media (prefers-reduced-motion: reduce) {
+  .s4-landing *,
+  .s4-landing *::before,
+  .s4-landing *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
 }

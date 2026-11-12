@@ -92,3 +92,7 @@ yarn-error.log*
 
 # Local preview database (backend-preview in .claude/launch.json)
 backend/preview.db
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/

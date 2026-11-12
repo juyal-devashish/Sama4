@@ -108,7 +108,7 @@ export const StoryRow = forwardRef<
 
 export function StoryListSkeleton({ rows = 6 }: { rows?: number }) {
   return (
-    <div className="space-y-2 px-3" aria-busy="true" aria-label="Loading stories">
+    <div className="space-y-2 px-3" role="status" aria-busy="true" aria-label="Loading stories">
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="flex gap-4 px-4 py-4">
           <div className="flex-1 space-y-2">
