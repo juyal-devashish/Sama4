@@ -75,14 +75,14 @@ export const StoryRow = forwardRef<
             {formatTimeAgo(story.published_at)}
           </span>
         </div>
-        <h3
+        <h2
           className={cn(
             "font-display text-[15px] font-semibold leading-snug tracking-[-0.005em]",
             dense ? "line-clamp-2" : "line-clamp-3",
           )}
         >
           {story.title}
-        </h3>
+        </h2>
         {!dense && story.summary && (
           <p className="mt-1.5 line-clamp-2 text-[13.5px] leading-[1.5] text-text-secondary">
             {story.summary}

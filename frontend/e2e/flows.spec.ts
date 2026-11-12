@@ -1,12 +1,12 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-// These flows need seeded articles (`make seed`); skip cleanly if the feed is empty.
+// The term flow needs seeded articles (`make seed`); it is skipped in CI, which has no backend.
 const ARTICLE = "/?article=89021bed-ec73-4cdc-a2f3-ecb61da7d7f4";
 
 async function axeViolations(page: import("@playwright/test").Page) {
   const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"])
     .analyze();
   return results.violations.map(
     (v) => `${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes[0]?.target.join(" ")}`,
@@ -16,13 +16,11 @@ async function axeViolations(page: import("@playwright/test").Page) {
 test("selecting a highlighted term opens its explanation and stays accessible", async ({
   page,
 }) => {
+  test.skip(!!process.env.CI, "needs a seeded backend (run `make seed` locally)");
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
   await page.goto(ARTICLE);
   const term = page.locator(".term").first();
-  test.skip(
-    !(await term.isVisible({ timeout: 8000 }).catch(() => false)),
-    "no seeded article with terms",
-  );
+  await expect(term).toBeVisible({ timeout: 10_000 });
   await term.click();
   await expect(term).toHaveAttribute("aria-pressed", "true");
   await page.waitForTimeout(1200); // context margin slide-in
