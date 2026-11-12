@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSavedStories, useTheme } from "@/lib/preferences";
+import { Logo } from "@/components/ui/logo";
 
 const NAV = [
   {
@@ -59,12 +60,7 @@ export function Sidebar() {
         className="mb-8 flex items-center gap-2.5 px-1.5"
         aria-label="samā4, go to Today"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/sama4-logo.jpg"
-          alt=""
-          className="h-8 w-8 flex-shrink-0 rounded-lg object-contain dark:brightness-110"
-        />
+        <Logo className="h-8 flex-shrink-0" />
         <span className="hidden font-display text-[19px] font-bold tracking-[-0.01em] xwide:inline">
           samā4
         </span>

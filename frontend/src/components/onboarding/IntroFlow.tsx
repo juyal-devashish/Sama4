@@ -7,6 +7,7 @@ import { INTRO_STEPS, nextIntroStep, type IntroStep } from "@/lib/onboarding";
 import { ALL_TOPICS, TOPIC_LABELS, useTopics } from "@/lib/preferences";
 import { cn } from "@/lib/utils";
 import { TermDemo } from "./TermDemo";
+import { Logo } from "@/components/ui/logo";
 
 const ghost =
   "h-10 rounded-lg px-4 text-[14px] font-medium text-text-secondary transition-colors hover:bg-background-secondary hover:text-foreground";
@@ -64,12 +65,9 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
       transition={{ duration: 0.25 }}
     >
       <div className="mx-auto flex w-full max-w-[560px] flex-1 flex-col px-4 pb-8 pt-10 sm:px-6 sm:pt-[12vh]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/sama4-logo.jpg"
-          alt=""
-          className="mb-8 h-10 w-10 rounded-xl dark:brightness-110"
-        />
+        <div className="mb-8">
+          <Logo className="h-11" />
+        </div>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={step}
