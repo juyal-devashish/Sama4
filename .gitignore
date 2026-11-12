@@ -89,3 +89,6 @@ yarn-error.log*
 # Local SQLite databases (dev data; never commit)
 *.db
 *.db-journal
+
+# Local preview database (backend-preview in .claude/launch.json)
+backend/preview.db
