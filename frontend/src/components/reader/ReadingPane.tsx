@@ -177,7 +177,7 @@ function Story({
 
   return (
     <>
-      <div className="sticky top-[2px] z-10 flex h-14 items-center gap-2 border-b bg-surface/90 px-6 backdrop-blur">
+      <div className="sticky top-[2px] z-10 flex h-14 items-center gap-2 border-b bg-surface/90 px-4 backdrop-blur sm:px-6">
         <button
           type="button"
           onClick={onBack}
@@ -191,22 +191,25 @@ function Story({
         <div className="ml-auto flex items-center gap-1">
           <Link
             href={`/article/${article.id}/reference`}
+            aria-label="References"
             className="flex h-9 items-center gap-2 rounded-lg px-3 text-[13px] font-medium text-text-secondary transition-colors hover:bg-background-secondary hover:text-foreground"
           >
-            <Library size={16} /> References
+            <Library size={16} /> <span className="hidden sm:inline">References</span>
           </Link>
           <button
             type="button"
             onClick={copyLink}
+            aria-label={copied ? "Link copied" : "Copy link"}
             className="flex h-9 items-center gap-2 rounded-lg px-3 text-[13px] font-medium text-text-secondary transition-colors hover:bg-background-secondary hover:text-foreground"
           >
             {copied ? <Check size={16} className="text-success" /> : <Link2 size={16} />}
-            {copied ? "Link copied" : "Copy link"}
+            <span className="hidden sm:inline">{copied ? "Link copied" : "Copy link"}</span>
           </button>
           <button
             type="button"
             onClick={save}
             aria-pressed={saved}
+            aria-label={saved ? "Saved" : "Save"}
             title={saved ? "Remove from saved (S)" : "Save for later (S)"}
             className={cn(
               "flex h-9 items-center gap-2 rounded-lg px-3 text-[13px] font-medium transition-colors hover:bg-background-secondary",
@@ -214,7 +217,7 @@ function Story({
             )}
           >
             {saved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
-            {saved ? "Saved" : "Save"}
+            <span className="hidden sm:inline">{saved ? "Saved" : "Save"}</span>
           </button>
         </div>
       </div>
