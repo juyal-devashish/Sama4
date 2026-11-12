@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { mockApi } from "./mock-api";
 
 const routes = ["/", "/search", "/saved", "/outlook", "/announcements", "/settings"];
 const themes = ["light", "dark"] as const;
@@ -7,6 +8,7 @@ const themes = ["light", "dark"] as const;
 for (const route of routes) {
   for (const theme of themes) {
     test(`axe: ${route} (${theme})`, async ({ page }) => {
+      await mockApi(page);
       await page.addInitScript((t) => {
         try {
           localStorage.setItem("sama4_theme", JSON.stringify(t));
@@ -30,6 +32,7 @@ for (const route of routes) {
 }
 
 test("first-run welcome dialog is accessible", async ({ page }) => {
+  await mockApi(page);
   await page.goto("/");
   await expect(page.getByRole("dialog", { name: /news, understood/i })).toBeVisible();
   await page.waitForTimeout(1200); // entrance animation
@@ -43,6 +46,7 @@ test("first-run welcome dialog is accessible", async ({ page }) => {
 });
 
 test("loading skeletons are accessible (feed request held open)", async ({ page }) => {
+  await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
   await page.route("**/api/v1/feed**", () => {
     /* never fulfil: keep the skeleton on screen */

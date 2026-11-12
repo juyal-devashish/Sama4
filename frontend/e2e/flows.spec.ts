@@ -1,8 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { ARTICLE_ID, mockApi } from "./mock-api";
 
-// The term flow needs seeded articles (`make seed`); it is skipped in CI, which has no backend.
-const ARTICLE = "/?article=89021bed-ec73-4cdc-a2f3-ecb61da7d7f4";
+// The API is served from recorded fixtures (see mock-api.ts), so these run anywhere.
+const ARTICLE = `/?article=${ARTICLE_ID}`;
 
 async function axeViolations(page: import("@playwright/test").Page) {
   const results = await new AxeBuilder({ page })
@@ -16,7 +17,7 @@ async function axeViolations(page: import("@playwright/test").Page) {
 test("selecting a highlighted term opens its explanation and stays accessible", async ({
   page,
 }) => {
-  test.skip(!!process.env.CI, "needs a seeded backend (run `make seed` locally)");
+  await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
   await page.goto(ARTICLE);
   const term = page.locator(".term").first();
@@ -31,15 +32,16 @@ test("selecting a highlighted term opens its explanation and stays accessible", 
 });
 
 test("reference page is accessible", async ({ page }) => {
+  await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
-  await page.goto("/article/89021bed-ec73-4cdc-a2f3-ecb61da7d7f4/reference");
+  await page.goto(`/article/${ARTICLE_ID}/reference`);
   await page.waitForLoadState("networkidle");
   const summary = await axeViolations(page);
   expect(summary, summary.join("\n")).toEqual([]);
 });
 
 test("reader toolbar controls stay inside the viewport", async ({ page }) => {
-  test.skip(!!process.env.CI, "needs a seeded backend (run `make seed` locally)");
+  await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
   await page.goto(ARTICLE);
   const save = page.getByRole("button", { name: /^save/i });
