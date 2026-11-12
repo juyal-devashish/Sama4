@@ -219,9 +219,7 @@ Return 5-15 terms, prioritizing the most important knowledge gaps.
 Return ONLY the JSON array, no markdown."""
 
         try:
-            raw = await self.llm.generate(
-                prompt, model="gpt-4o-mini", max_tokens=800, temperature=0.2
-            )
+            raw = await self.llm.generate(prompt, effort="low")
 
             # Parse response
             cleaned = raw.strip()

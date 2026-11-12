@@ -89,7 +89,7 @@ class ContextService:
                 related_articles_summaries=mirofish_context,
             )
 
-            context_text = await self.llm.generate(prompt, model="gpt-4o-mini", max_tokens=300)
+            context_text = await self.llm.generate(prompt, effort="low")
 
         # 5. Cache result
         now = datetime.now(UTC)
@@ -170,9 +170,7 @@ class ContextService:
             retrieved_knowledge=(wikipedia_extract or "") + prediction_context,
         )
 
-        answer = await self.llm.generate(
-            prompt, model="gpt-4o-mini", max_tokens=500, temperature=0.4
-        )
+        answer = await self.llm.generate(prompt, effort="medium")
 
         return ExplainResponse(
             entity=EntityInfo(

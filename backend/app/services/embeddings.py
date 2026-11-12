@@ -1,7 +1,7 @@
-"""Batch embedding service — efficient article embedding via OpenAI + Pinecone.
+"""Batch embedding service — efficient article embedding via Pinecone Inference + Pinecone.
 
 Processes articles in batches to minimize API calls:
- - OpenAI embeddings: up to EMBED_BATCH_SIZE texts per call
+ - Pinecone Inference embeddings: up to EMBED_BATCH_SIZE texts per call
  - Pinecone upserts: up to UPSERT_BATCH_SIZE vectors per call
 """
 
@@ -13,8 +13,8 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-# OpenAI allows up to 2048 inputs per embedding call; we use a safe default.
-EMBED_BATCH_SIZE = 100
+# Pinecone Inference accepts up to 96 inputs per embed call.
+EMBED_BATCH_SIZE = 96
 # Pinecone recommends upsert batches of 100 vectors.
 UPSERT_BATCH_SIZE = 100
 
@@ -41,41 +41,54 @@ class EmbedResult:
     error: str | None = None
 
 
+class PineconeEmbedder:
+    """Embeds a batch of texts with Pinecone Inference. Raises on failure."""
+
+    async def embed(self, texts: list[str], input_type: str) -> list[list[float]]:
+        import asyncio
+
+        from app.services.vectors import _client
+
+        def _call() -> list[list[float]]:
+            res = _client().inference.embed(
+                model=settings.pinecone_embed_model,
+                inputs=texts,
+                parameters={"input_type": input_type, "truncate": "END"},
+            )
+            return [list(item.values) for item in res.data]
+
+        return await asyncio.to_thread(_call)
+
+
 class BatchEmbeddingService:
     """Embeds articles in batches and upserts to Pinecone."""
 
     def __init__(
         self,
-        openai_client=None,
+        embedder=None,
         pinecone_index=None,
         embed_batch_size: int = EMBED_BATCH_SIZE,
         upsert_batch_size: int = UPSERT_BATCH_SIZE,
     ) -> None:
-        self._client = openai_client
+        self._client = embedder
         self._index = pinecone_index
         self._embed_batch_size = embed_batch_size
         self._upsert_batch_size = upsert_batch_size
         self._init_clients()
 
     def _init_clients(self) -> None:
-        """Lazy-init OpenAI and Pinecone if not injected."""
-        if self._client is None and settings.openai_api_key:
-            from openai import AsyncOpenAI
+        """Lazy-init the embedder and Pinecone index if not injected."""
+        if self._client is None and settings.pinecone_api_key:
+            self._client = PineconeEmbedder()
 
-            self._client = AsyncOpenAI(api_key=settings.openai_api_key)
+        if self._index is None:
+            from app.services.vectors import get_index
 
-        if self._index is None and settings.pinecone_api_key:
-            try:
-                from pinecone import Pinecone
-
-                pc = Pinecone(api_key=settings.pinecone_api_key)
-                self._index = pc.Index(settings.pinecone_index)
-            except Exception:
-                logger.warning("Pinecone init failed, upserts will be skipped")
+            self._index = get_index()
 
     @property
     def available(self) -> bool:
-        """True if both OpenAI and Pinecone are configured."""
+        """True if both the embedder and Pinecone index are configured."""
         return self._client is not None and self._index is not None
 
     # ------------------------------------------------------------------
@@ -97,15 +110,15 @@ class BatchEmbeddingService:
 
         if not self._client:
             return [
-                EmbedResult(a.article_id, f"article_{a.article_id}", False, "OpenAI not configured")
+                EmbedResult(a.article_id, f"article_{a.article_id}", False, "embeddings not configured")
                 for a in articles
             ]
 
         # 1. Build texts to embed
         texts = [self._build_text(a) for a in articles]
 
-        # 2. Batch embed via OpenAI
-        embeddings = await self._batch_embed(texts)
+        # 2. Batch embed via Pinecone Inference
+        embeddings = await self._batch_embed(texts, input_type="passage")
 
         # 3. Build vectors with metadata
         vectors = []
@@ -160,7 +173,7 @@ class BatchEmbeddingService:
         if not self._client or not self._index:
             return []
 
-        embeddings = await self._batch_embed([query])
+        embeddings = await self._batch_embed([query], input_type="query")
         if not embeddings or embeddings[0] is None:
             return []
 
@@ -181,8 +194,10 @@ class BatchEmbeddingService:
         """Combine title + summary into embeddable text."""
         return f"{article.title}. {article.summary}"
 
-    async def _batch_embed(self, texts: list[str]) -> list[list[float] | None]:
-        """Generate embeddings in batches via OpenAI API.
+    async def _batch_embed(
+        self, texts: list[str], input_type: str = "passage"
+    ) -> list[list[float] | None]:
+        """Generate embeddings in batches via the embedder.
 
         Returns one embedding per input text (or None on error).
         """
@@ -191,15 +206,12 @@ class BatchEmbeddingService:
         for start in range(0, len(texts), self._embed_batch_size):
             chunk = texts[start : start + self._embed_batch_size]
             try:
-                response = await self._client.embeddings.create(
-                    model="text-embedding-3-small",
-                    input=chunk,
-                )
-                for item in response.data:
-                    all_embeddings[start + item.index] = item.embedding
+                vectors = await self._client.embed(chunk, input_type)
+                for i, vec in enumerate(vectors):
+                    all_embeddings[start + i] = vec
             except Exception:
                 logger.error(
-                    "OpenAI embedding batch failed (offset %d, size %d)",
+                    "Embedding batch failed (offset %d, size %d)",
                     start, len(chunk), exc_info=True,
                 )
                 # Leave these as None — they'll be marked as failed

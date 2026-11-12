@@ -17,7 +17,7 @@ async def search_articles(
 ) -> FeedResponse:
     """Semantic search across articles."""
     # TODO: Implement Pinecone vector search
-    # 1. Generate embedding for query using OpenAI
+    # 1. Generate embedding for query (Pinecone Inference, see services/vectors.py)
     # 2. Search Pinecone for similar article embeddings
     # 3. Fetch matching articles from PostgreSQL
     return FeedResponse(

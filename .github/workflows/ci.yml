@@ -64,7 +64,7 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://sama4:sama4_test@localhost:5432/sama4_test
           REDIS_URL: redis://localhost:6379
           ENVIRONMENT: test
-          OPENAI_API_KEY: sk-test-key
+          ANTHROPIC_API_KEY: sk-ant-test-key
           PINECONE_API_KEY: test-key
           PINECONE_INDEX: test-index
         run: |

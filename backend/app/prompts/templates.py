@@ -2,7 +2,7 @@ PROMPTS = {
     "entity_context": {
         "v1": {
             "active": True,
-            "model": "gpt-4o-mini",
+            "model": "claude-opus-5-5",
             "template": """You are samā4, an AI that helps news readers understand unfamiliar terms.
 
 ENTITY TO EXPLAIN: {entity_name}
@@ -36,7 +36,7 @@ EXPLANATION:""",
     "followup_question": {
         "v1": {
             "active": True,
-            "model": "gpt-4o",
+            "model": "claude-opus-5-5",
             "template": """You are samā4, an AI assistant helping a news reader understand an article.
 
 ARTICLE TITLE: {article_title}

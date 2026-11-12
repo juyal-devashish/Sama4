@@ -44,13 +44,19 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str = "redis://localhost:6379"
 
-    # Pinecone
+    # Pinecone (vector store + hosted embeddings via Pinecone Inference)
     pinecone_api_key: str = ""
-    pinecone_environment: str = "us-east-1"
-    pinecone_index: str = "sama4-articles"
+    pinecone_environment: str = "us-east-1"  # serverless region for auto-created index
+    # New name: the old OpenAI-era index was 1536-d and is incompatible
+    pinecone_index: str = "sama4-articles-v2"
+    pinecone_embed_model: str = "llama-text-embed-v2"
+    pinecone_embed_dim: int = 1024
 
-    # OpenAI
-    openai_api_key: str = ""
+    # Claude (Anthropic)
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-opus-5-5"
+    # Default effort for short, high-volume calls (summaries, entity context, NER)
+    anthropic_effort: str = "low"
 
     # Admin
     admin_secret: str = "change-me-in-production"

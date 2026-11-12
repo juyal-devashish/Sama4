@@ -191,9 +191,7 @@ Provide your analysis in the following JSON format:
 Generate exactly 5 diverse agent perspectives covering different stakeholder viewpoints.
 Return ONLY valid JSON, no markdown code blocks."""
 
-            raw_response = await self.llm.generate(
-                prompt, model="gpt-4o-mini", max_tokens=2000, temperature=0.7
-            )
+            raw_response = await self.llm.generate(prompt, effort="medium")
 
             # Parse the JSON response
             # Strip markdown code blocks if present
@@ -281,7 +279,7 @@ Return JSON with:
 
 Return ONLY valid JSON."""
 
-        raw = await self.llm.generate(prompt, model="gpt-4o-mini", max_tokens=2000, temperature=0.3)
+        raw = await self.llm.generate(prompt, effort="medium")
         cleaned = raw.strip()
         if cleaned.startswith("```"):
             cleaned = cleaned.split("\n", 1)[1]
@@ -401,7 +399,7 @@ USER QUESTION: {message}
 
 Answer concisely based on the prediction data. If speculating beyond the data, say so."""
 
-        return await self.llm.generate(prompt, model="gpt-4o-mini", max_tokens=500, temperature=0.5)
+        return await self.llm.generate(prompt, effort="low")
 
     async def interview_agent(
         self, prediction: Prediction, perspective: AgentPerspective, question: str
@@ -438,4 +436,4 @@ A journalist asks you: "{question}"
 
 Respond in character, staying true to your established viewpoint and role. Keep your response under 150 words."""
 
-        return await self.llm.generate(prompt, model="gpt-4o-mini", max_tokens=300, temperature=0.6)
+        return await self.llm.generate(prompt, effort="low")

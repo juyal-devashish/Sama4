@@ -14,7 +14,7 @@ SUMMARY:"""
 
 
 class SummarizerService:
-    """Generates article summaries using GPT-4o-mini."""
+    """Generates article summaries using Claude."""
 
     def __init__(self) -> None:
         self.llm = LLMService()
@@ -34,9 +34,4 @@ class SummarizerService:
 
         prompt = SUMMARY_PROMPT.format(article_text=truncated)
 
-        return await self.llm.generate(
-            prompt,
-            model="gpt-4o-mini",
-            max_tokens=200,
-            temperature=0.3,
-        )
+        return await self.llm.generate(prompt, effort="low")

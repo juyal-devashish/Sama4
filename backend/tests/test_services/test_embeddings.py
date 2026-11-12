@@ -1,6 +1,6 @@
-"""Tests for BatchEmbeddingService — batch OpenAI + Pinecone pipeline.
+"""Tests for BatchEmbeddingService — batch Pinecone Inference + Pinecone pipeline.
 
-All external calls (OpenAI, Pinecone) are mocked.
+All external calls (embedder, Pinecone) are mocked.
 """
 
 import uuid
@@ -37,27 +37,19 @@ def _article(
 
 
 def _mock_embedding_response(embeddings: list[list[float]]):
-    """Build a mock OpenAI embeddings.create response."""
-    resp = MagicMock()
-    data = []
-    for i, emb in enumerate(embeddings):
-        item = MagicMock()
-        item.index = i
-        item.embedding = emb
-        data.append(item)
-    resp.data = data
-    return resp
+    """Build a mock embedder.embed return value (one vector per input)."""
+    return embeddings
 
 
 def _make_service(
-    openai_client=None,
+    embedder=None,
     pinecone_index=None,
     embed_batch_size: int = 100,
     upsert_batch_size: int = 100,
 ) -> BatchEmbeddingService:
     """Create service with injected mocks, bypassing _init_clients."""
     svc = object.__new__(BatchEmbeddingService)
-    svc._client = openai_client
+    svc._client = embedder
     svc._index = pinecone_index
     svc._embed_batch_size = embed_batch_size
     svc._upsert_batch_size = upsert_batch_size
@@ -65,10 +57,9 @@ def _make_service(
 
 
 @pytest.fixture
-def mock_openai():
+def mock_embedder():
     client = MagicMock()
-    client.embeddings = MagicMock()
-    client.embeddings.create = AsyncMock()
+    client.embed = AsyncMock()
     return client
 
 
@@ -81,8 +72,8 @@ def mock_pinecone():
 
 
 @pytest.fixture
-def service(mock_openai, mock_pinecone):
-    return _make_service(mock_openai, mock_pinecone)
+def service(mock_embedder, mock_pinecone):
+    return _make_service(mock_embedder, mock_pinecone)
 
 
 # ---------------------------------------------------------------------------
@@ -92,8 +83,8 @@ def service(mock_openai, mock_pinecone):
 class TestSingleEmbed:
 
     @pytest.mark.asyncio
-    async def test_embed_single_article(self, service, mock_openai, mock_pinecone):
-        mock_openai.embeddings.create.return_value = _mock_embedding_response([[0.1, 0.2, 0.3]])
+    async def test_embed_single_article(self, service, mock_embedder, mock_pinecone):
+        mock_embedder.embed.return_value = _mock_embedding_response([[0.1, 0.2, 0.3]])
 
         article = _article()
         result = await service.embed_single(article)
@@ -104,18 +95,18 @@ class TestSingleEmbed:
         mock_pinecone.upsert.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_embed_builds_correct_text(self, service, mock_openai):
-        mock_openai.embeddings.create.return_value = _mock_embedding_response([[0.1]])
+    async def test_embed_builds_correct_text(self, service, mock_embedder):
+        mock_embedder.embed.return_value = _mock_embedding_response([[0.1]])
 
         article = _article(title="Breaking News", summary="Something happened")
         await service.embed_single(article)
 
-        call_args = mock_openai.embeddings.create.call_args
-        assert call_args.kwargs["input"] == ["Breaking News. Something happened"]
+        call_args = mock_embedder.embed.call_args
+        assert call_args.args[0] == ["Breaking News. Something happened"]
 
     @pytest.mark.asyncio
-    async def test_embed_stores_metadata(self, service, mock_openai, mock_pinecone):
-        mock_openai.embeddings.create.return_value = _mock_embedding_response([[0.1]])
+    async def test_embed_stores_metadata(self, service, mock_embedder, mock_pinecone):
+        mock_embedder.embed.return_value = _mock_embedding_response([[0.1]])
 
         article = _article(
             title="Title", summary="Summary", source="BBC",
@@ -134,8 +125,8 @@ class TestSingleEmbed:
         assert metadata["published_at"] == "2026-02-01"
 
     @pytest.mark.asyncio
-    async def test_published_at_none_becomes_empty_string(self, service, mock_openai, mock_pinecone):
-        mock_openai.embeddings.create.return_value = _mock_embedding_response([[0.1]])
+    async def test_published_at_none_becomes_empty_string(self, service, mock_embedder, mock_pinecone):
+        mock_embedder.embed.return_value = _mock_embedding_response([[0.1]])
 
         article = _article(published_at=None)
         await service.embed_single(article)
@@ -156,9 +147,9 @@ class TestBatchEmbed:
         assert result == []
 
     @pytest.mark.asyncio
-    async def test_batch_of_three(self, service, mock_openai, mock_pinecone):
+    async def test_batch_of_three(self, service, mock_embedder, mock_pinecone):
         articles = [_article(f"Article {i}") for i in range(3)]
-        mock_openai.embeddings.create.return_value = _mock_embedding_response(
+        mock_embedder.embed.return_value = _mock_embedding_response(
             [[0.1] * 3, [0.2] * 3, [0.3] * 3]
         )
 
@@ -166,16 +157,16 @@ class TestBatchEmbed:
 
         assert len(results) == 3
         assert all(r.success for r in results)
-        mock_openai.embeddings.create.assert_awaited_once()  # single batch call
+        mock_embedder.embed.assert_awaited_once()  # single batch call
         mock_pinecone.upsert.assert_called_once()  # single upsert batch
 
     @pytest.mark.asyncio
-    async def test_chunked_embedding_calls(self, mock_openai, mock_pinecone):
-        """With embed_batch_size=2, 5 articles should produce 3 OpenAI calls."""
-        service = _make_service(mock_openai, mock_pinecone, embed_batch_size=2)
+    async def test_chunked_embedding_calls(self, mock_embedder, mock_pinecone):
+        """With embed_batch_size=2, 5 articles should produce 3 embed calls."""
+        service = _make_service(mock_embedder, mock_pinecone, embed_batch_size=2)
         articles = [_article(f"A{i}") for i in range(5)]
 
-        mock_openai.embeddings.create.side_effect = [
+        mock_embedder.embed.side_effect = [
             _mock_embedding_response([[0.1], [0.2]]),
             _mock_embedding_response([[0.3], [0.4]]),
             _mock_embedding_response([[0.5]]),
@@ -185,15 +176,15 @@ class TestBatchEmbed:
 
         assert len(results) == 5
         assert all(r.success for r in results)
-        assert mock_openai.embeddings.create.await_count == 3
+        assert mock_embedder.embed.await_count == 3
 
     @pytest.mark.asyncio
-    async def test_chunked_upsert_calls(self, mock_openai, mock_pinecone):
+    async def test_chunked_upsert_calls(self, mock_embedder, mock_pinecone):
         """With upsert_batch_size=2, 5 vectors should produce 3 Pinecone calls."""
-        service = _make_service(mock_openai, mock_pinecone, upsert_batch_size=2)
+        service = _make_service(mock_embedder, mock_pinecone, upsert_batch_size=2)
         articles = [_article(f"A{i}") for i in range(5)]
 
-        mock_openai.embeddings.create.return_value = _mock_embedding_response(
+        mock_embedder.embed.return_value = _mock_embedding_response(
             [[float(i)] for i in range(5)]
         )
 
@@ -210,20 +201,20 @@ class TestBatchEmbed:
 class TestErrorHandling:
 
     @pytest.mark.asyncio
-    async def test_no_openai_client(self, mock_pinecone):
-        service = _make_service(openai_client=None, pinecone_index=mock_pinecone)
+    async def test_no_embedder(self, mock_pinecone):
+        service = _make_service(embedder=None, pinecone_index=mock_pinecone)
         articles = [_article()]
 
         results = await service.embed_articles(articles)
 
         assert len(results) == 1
         assert results[0].success is False
-        assert "OpenAI not configured" in results[0].error
+        assert "embeddings not configured" in results[0].error
 
     @pytest.mark.asyncio
-    async def test_openai_batch_failure(self, service, mock_openai, mock_pinecone):
-        """If an OpenAI batch fails, those articles get error results."""
-        mock_openai.embeddings.create.side_effect = Exception("rate limited")
+    async def test_embed_batch_failure(self, service, mock_embedder, mock_pinecone):
+        """If an embedding batch fails, those articles get error results."""
+        mock_embedder.embed.side_effect = Exception("rate limited")
 
         articles = [_article()]
         results = await service.embed_articles(articles)
@@ -234,9 +225,9 @@ class TestErrorHandling:
         mock_pinecone.upsert.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_pinecone_upsert_failure(self, service, mock_openai, mock_pinecone):
+    async def test_pinecone_upsert_failure(self, service, mock_embedder, mock_pinecone):
         """If Pinecone upsert fails, results are marked as failed."""
-        mock_openai.embeddings.create.return_value = _mock_embedding_response([[0.1]])
+        mock_embedder.embed.return_value = _mock_embedding_response([[0.1]])
         mock_pinecone.upsert.side_effect = Exception("connection refused")
 
         articles = [_article()]
@@ -247,12 +238,12 @@ class TestErrorHandling:
         assert results[0].error == "Pinecone upsert failed"
 
     @pytest.mark.asyncio
-    async def test_partial_openai_failure(self, mock_openai, mock_pinecone):
+    async def test_partial_embed_failure(self, mock_embedder, mock_pinecone):
         """First batch succeeds, second fails — partial results."""
-        service = _make_service(mock_openai, mock_pinecone, embed_batch_size=2)
+        service = _make_service(mock_embedder, mock_pinecone, embed_batch_size=2)
         articles = [_article(f"A{i}") for i in range(4)]
 
-        mock_openai.embeddings.create.side_effect = [
+        mock_embedder.embed.side_effect = [
             _mock_embedding_response([[0.1], [0.2]]),
             Exception("quota exceeded"),
         ]
@@ -266,10 +257,10 @@ class TestErrorHandling:
         assert len(failed) == 2
 
     @pytest.mark.asyncio
-    async def test_no_pinecone_index_skips_upsert(self, mock_openai):
+    async def test_no_pinecone_index_skips_upsert(self, mock_embedder):
         """If no Pinecone index, embedding still succeeds (no upsert)."""
-        service = _make_service(openai_client=mock_openai, pinecone_index=None)
-        mock_openai.embeddings.create.return_value = _mock_embedding_response([[0.1]])
+        service = _make_service(embedder=mock_embedder, pinecone_index=None)
+        mock_embedder.embed.return_value = _mock_embedding_response([[0.1]])
 
         articles = [_article()]
         results = await service.embed_articles(articles)
@@ -285,8 +276,8 @@ class TestErrorHandling:
 class TestSearch:
 
     @pytest.mark.asyncio
-    async def test_search_returns_matches(self, service, mock_openai, mock_pinecone):
-        mock_openai.embeddings.create.return_value = _mock_embedding_response([[0.1, 0.2]])
+    async def test_search_returns_matches(self, service, mock_embedder, mock_pinecone):
+        mock_embedder.embed.return_value = _mock_embedding_response([[0.1, 0.2]])
 
         match1 = MagicMock()
         match1.id = "article_abc"
@@ -305,13 +296,13 @@ class TestSearch:
 
     @pytest.mark.asyncio
     async def test_search_no_client(self):
-        service = _make_service(openai_client=None, pinecone_index=None)
+        service = _make_service(embedder=None, pinecone_index=None)
         results = await service.search("query")
         assert results == []
 
     @pytest.mark.asyncio
-    async def test_search_embedding_fails(self, service, mock_openai):
-        mock_openai.embeddings.create.side_effect = Exception("error")
+    async def test_search_embedding_fails(self, service, mock_embedder):
+        mock_embedder.embed.side_effect = Exception("error")
         results = await service.search("query")
         assert results == []
 
@@ -322,16 +313,16 @@ class TestSearch:
 
 class TestAvailable:
 
-    def test_available_when_both_configured(self, mock_openai, mock_pinecone):
-        service = _make_service(mock_openai, mock_pinecone)
+    def test_available_when_both_configured(self, mock_embedder, mock_pinecone):
+        service = _make_service(mock_embedder, mock_pinecone)
         assert service.available is True
 
-    def test_not_available_no_openai(self, mock_pinecone):
-        service = _make_service(openai_client=None, pinecone_index=mock_pinecone)
+    def test_not_available_no_embedder(self, mock_pinecone):
+        service = _make_service(embedder=None, pinecone_index=mock_pinecone)
         assert service.available is False
 
-    def test_not_available_no_pinecone(self, mock_openai):
-        service = _make_service(openai_client=mock_openai, pinecone_index=None)
+    def test_not_available_no_pinecone(self, mock_embedder):
+        service = _make_service(embedder=mock_embedder, pinecone_index=None)
         assert service.available is False
 
 
