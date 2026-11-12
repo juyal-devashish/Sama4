@@ -6,7 +6,8 @@ from app.api.deps import DEFAULT_ADMIN_SECRET
 from app.config import Settings
 from app.ingestion import jobs
 from app.models.article import Article
-from tests.factories import make_article
+from app.models.entity import ArticleEntity
+from tests.factories import make_article, make_entity
 from tests.fakes import make_container
 
 ADMIN = {"X-Admin-Secret": "test-secret"}
@@ -61,3 +62,81 @@ async def test_regenerate_summaries_rewrites_and_keeps_old_on_empty(container, d
         rows = {a.id: a.summary for a in (await db.execute(select(Article))).scalars()}
     assert rows[ok.id] == "new summary"
     assert rows[empty.id] == "old 2"
+
+
+POSNER = "He was the most-cited legal scholar. Richard Posner served on the Seventh Circuit."
+
+
+async def _broken_mentions(db_session) -> dict[str, object]:
+    """One aligned, one misplaced (the live Posner bug) and one unlocatable mention."""
+    async with db_session() as db:
+        article = await make_article(db, title="Posner has died", content=POSNER)
+        await make_entity(db, name="Seventh Circuit", article=article, start=66)
+        await make_entity(db, name="most-cited legal scholar", article=article, start=0)
+        await make_entity(db, name="Chicago school", article=article, start=0)
+        await db.commit()
+        return {"article": article}
+
+
+async def _offsets(db_session) -> dict[str, tuple[int, int]]:
+    async with db_session() as db:
+        rows = (await db.execute(select(ArticleEntity))).scalars().all()
+    return {m.mention_text: (m.start_position, m.end_position) for m in rows}
+
+
+async def test_repair_mentions_dry_run_reports_without_writing(client, db_session):
+    await _broken_mentions(db_session)
+    before = await _offsets(db_session)
+
+    response = await client.post("/api/v1/admin/mentions/repair", headers=ADMIN)
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "total": 3,
+        "aligned": 1,
+        "relocated": 1,
+        "unlocatable": 1,
+        "deleted": 0,
+        "dry_run": True,
+    }
+    assert await _offsets(db_session) == before
+
+
+async def test_repair_mentions_relocates_and_keeps_unlocatable_by_default(client, db_session):
+    await _broken_mentions(db_session)
+
+    response = await client.post("/api/v1/admin/mentions/repair?dry_run=false", headers=ADMIN)
+
+    assert response.json()["relocated"] == 1
+    offsets = await _offsets(db_session)
+    assert offsets["most-cited legal scholar"] == (11, 35)
+    assert offsets["Seventh Circuit"] == (66, 81)
+    assert "Chicago school" in offsets  # not deleted without delete_unlocatable
+
+
+async def test_repair_mentions_deletes_unlocatable_only_when_asked(client, db_session):
+    await _broken_mentions(db_session)
+
+    response = await client.post(
+        "/api/v1/admin/mentions/repair?dry_run=false&delete_unlocatable=true", headers=ADMIN
+    )
+
+    assert response.json()["deleted"] == 1
+    offsets = await _offsets(db_session)
+    assert set(offsets) == {"Seventh Circuit", "most-cited legal scholar"}
+    for text, (start, end) in offsets.items():
+        assert POSNER[start:end] == text
+
+
+async def test_repair_mentions_failure_returns_500_not_an_empty_report(client):
+    with patch.object(jobs, "repair_mention_offsets", new=AsyncMock(return_value=None)):
+        response = await client.post("/api/v1/admin/mentions/repair", headers=ADMIN)
+    assert response.status_code == 500
+    assert "nothing was changed" in response.json()["detail"]
+
+
+async def test_repair_mentions_requires_admin_secret(client):
+    response = await client.post(
+        "/api/v1/admin/mentions/repair", headers={"X-Admin-Secret": "nope"}
+    )
+    assert response.status_code == 403
