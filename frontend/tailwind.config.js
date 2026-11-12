@@ -3,18 +3,19 @@ module.exports = {
   darkMode: ["class"],
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
     extend: {
+      screens: {
+        // Context margin sits beside the article instead of over it.
+        wide: "1400px",
+        // Sidebar shows labels.
+        xwide: "1720px",
+      },
+      fontFamily: {
+        display: ["var(--font-poppins)", "system-ui", "sans-serif"],
+        body: ["var(--font-roboto)", "system-ui", "sans-serif"],
+      },
       colors: {
         border: "var(--border)",
-        input: "var(--input)",
-        ring: "var(--ring)",
         background: "var(--background)",
         "background-secondary": "var(--background-secondary)",
         surface: "var(--surface)",
@@ -24,6 +25,7 @@ module.exports = {
         divider: "var(--divider)",
         "accent-primary": "var(--accent-primary)",
         "accent-secondary": "var(--accent-secondary)",
+        "on-accent": "var(--on-accent)",
         "entity-highlight": "var(--entity-highlight)",
         "entity-highlight-active": "var(--entity-highlight-active)",
         "entity-person": "var(--entity-person)",
@@ -31,35 +33,11 @@ module.exports = {
         "entity-event": "var(--entity-event)",
         "entity-concept": "var(--entity-concept)",
         "entity-location": "var(--entity-location)",
-        primary: {
-          DEFAULT: "var(--primary)",
-          foreground: "var(--primary-foreground)",
-        },
-        secondary: {
-          DEFAULT: "var(--secondary)",
-          foreground: "var(--secondary-foreground)",
-        },
-        destructive: {
-          DEFAULT: "var(--destructive)",
-          foreground: "var(--destructive-foreground)",
-        },
-        muted: {
-          DEFAULT: "var(--muted)",
-          foreground: "var(--muted-foreground)",
-        },
-        accent: {
-          DEFAULT: "var(--accent)",
-          foreground: "var(--accent-foreground)",
-        },
-        card: {
-          DEFAULT: "var(--card)",
-          foreground: "var(--card-foreground)",
-        },
+        success: "var(--success)",
+        error: "var(--error)",
       },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+      maxWidth: {
+        measure: "68ch",
       },
     },
   },

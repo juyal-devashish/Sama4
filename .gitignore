@@ -28,8 +28,7 @@ pip-delete-this-directory.txt
 venv/
 ENV/
 
-# Poetry
-poetry.lock
+# Poetry: poetry.lock IS committed (reproducible CI + deploys)
 
 # pytest
 .pytest_cache/
@@ -45,7 +44,7 @@ coverage.xml
 .ruff_cache/
 
 # spaCy models
-backend/models/
+/backend/models/
 
 # Node
 node_modules/
@@ -86,3 +85,7 @@ yarn-error.log*
 
 # Sentry
 .sentryclirc
+
+# Local SQLite databases (dev data; never commit)
+*.db
+*.db-journal

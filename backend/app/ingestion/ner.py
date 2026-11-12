@@ -15,6 +15,10 @@ import json
 import logging
 import re
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.clients.llm import LLMClient
 
 logger = logging.getLogger(__name__)
 
@@ -37,20 +41,56 @@ ALLOWED_LABELS = set(ENTITY_TYPE_MAP.keys())
 # Keep the list tight — when in doubt, leave it OUT (i.e. let the entity through).
 COMMON_KNOWLEDGE: set[str] = {
     # Major countries & geopolitical blocs
-    "united states", "us", "usa", "u.s.", "u.s.a.", "america",
-    "china", "india", "russia", "uk", "united kingdom", "britain",
-    "france", "germany", "japan", "canada", "australia",
-    "european union", "eu", "nato",
+    "united states",
+    "us",
+    "usa",
+    "u.s.",
+    "u.s.a.",
+    "america",
+    "china",
+    "india",
+    "russia",
+    "uk",
+    "united kingdom",
+    "britain",
+    "france",
+    "germany",
+    "japan",
+    "canada",
+    "australia",
+    "european union",
+    "eu",
+    "nato",
     # Universally known orgs
-    "google", "apple", "microsoft", "amazon", "meta", "facebook",
-    "twitter", "x", "instagram", "youtube", "tiktok", "netflix",
-    "tesla", "spacex",
+    "google",
+    "apple",
+    "microsoft",
+    "amazon",
+    "meta",
+    "facebook",
+    "twitter",
+    "x",
+    "instagram",
+    "youtube",
+    "tiktok",
+    "netflix",
+    "tesla",
+    "spacex",
     # Universally known people (sitting heads of major states)
-    "donald trump", "trump", "joe biden", "biden",
-    "xi jinping", "narendra modi", "modi",
+    "donald trump",
+    "trump",
+    "joe biden",
+    "biden",
+    "xi jinping",
+    "narendra modi",
+    "modi",
     # Generic terms spaCy sometimes picks up
-    "the government", "the white house", "congress",
-    "the pentagon", "the fed", "wall street",
+    "the government",
+    "the white house",
+    "congress",
+    "the pentagon",
+    "the fed",
+    "wall street",
 }
 
 
@@ -71,15 +111,17 @@ class ExtractedEntity:
 class NERService:
     """Hybrid NER: spaCy structural entities + LLM knowledge-gap detection."""
 
-    def __init__(self) -> None:
+    def __init__(self, llm: "LLMClient | None" = None) -> None:
+        """llm=None (or an LLM without a key) runs spaCy-only extraction."""
         self._nlp = None
-        self._llm = None
+        self.llm = llm
 
     @property
     def nlp(self):
         """Lazy-load spaCy model."""
         if self._nlp is None:
             import spacy
+
             try:
                 self._nlp = spacy.load("en_core_web_trf")
             except OSError:
@@ -87,17 +129,12 @@ class NERService:
                 self._nlp = spacy.load("en_core_web_sm")
         return self._nlp
 
-    @property
-    def llm(self):
-        """Lazy-load LLM service."""
-        if self._llm is None:
-            from app.services.llm_service import LLMService
-            self._llm = LLMService()
-        return self._llm
-
     def extract_entities(self, content: str, title: str) -> list[ExtractedEntity]:
-        """Extract entities using spaCy only (sync, for backward compat)."""
-        return self._extract_spacy(content, title)
+        """Extract entities using spaCy only (sync, for backward compat).
+
+        Results are ordered high > medium > low priority, like the hybrid path.
+        """
+        return _sort_by_priority(self._extract_spacy(content, title))
 
     async def extract_entities_hybrid(
         self, content: str, title: str, categories: list[str] | None = None
@@ -179,7 +216,7 @@ class NERService:
         people, historical references, domain-specific concepts — everything
         spaCy misses because they aren't standard named entities.
         """
-        if not self.llm.client:
+        if self.llm is None or not self.llm.available:
             return []
 
         # Truncate content to fit token budget
@@ -216,12 +253,10 @@ Return a JSON array of objects. Each object must have:
 - "reason": 5-10 word explanation of why this needs context
 
 Return 5-15 terms, prioritizing the most important knowledge gaps.
-Return ONLY the JSON array, no markdown."""
+Return ONLY the JSON array, no markdown."""  # noqa: E501 (LLM prompt text)
 
         try:
-            raw = await self.llm.generate(
-                prompt, model="gpt-4o-mini", max_tokens=800, temperature=0.2
-            )
+            raw = await self.llm.generate(prompt, effort="low")
 
             # Parse response
             cleaned = raw.strip()
@@ -308,13 +343,16 @@ Return ONLY the JSON array, no markdown."""
             else:
                 merged[key] = ent
 
-        entities = list(merged.values())
+        return _sort_by_priority(list(merged.values()))
 
-        # Sort: high > medium > low, then LLM-sourced first within same priority
-        source_order = {"llm": 0, "both": 0, "spacy": 1}
-        priority_order = {"high": 0, "medium": 1, "low": 2}
-        entities.sort(
-            key=lambda e: (priority_order.get(e.priority, 2), source_order.get(e.source, 1))
-        )
 
-        return entities
+_PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
+_SOURCE_ORDER = {"llm": 0, "both": 0, "spacy": 1}
+
+
+def _sort_by_priority(entities: list[ExtractedEntity]) -> list[ExtractedEntity]:
+    """Order high > medium > low, then LLM-sourced first within the same priority."""
+    return sorted(
+        entities,
+        key=lambda e: (_PRIORITY_ORDER.get(e.priority, 2), _SOURCE_ORDER.get(e.source, 1)),
+    )

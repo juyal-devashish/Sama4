@@ -1,8 +1,8 @@
 import logging
 from dataclasses import dataclass
 
+from app.clients.wikimedia import WikimediaClient
 from app.ingestion.ner import ExtractedEntity
-from app.services.entity_service import EntityService
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +25,8 @@ class LinkedEntity:
 class EntityLinker:
     """Links extracted entities to Wikidata and Wikipedia."""
 
-    def __init__(self) -> None:
-        self.service = EntityService()
+    def __init__(self, wikimedia: WikimediaClient) -> None:
+        self.service = wikimedia
 
     async def link_entity(self, entity: ExtractedEntity) -> LinkedEntity:
         """Link an extracted entity to external knowledge bases.

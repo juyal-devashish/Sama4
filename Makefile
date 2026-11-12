@@ -1,94 +1,68 @@
-.PHONY: dev dev-backend dev-frontend infra-up infra-down test test-backend test-frontend lint format migrate migrate-create seed build clean install
+# samā4 developer commands. Run `make help` for the list.
+# Backend: Python 3.11+ via Poetry. Frontend: Node 20+ via npm.
 
-# ============ Development ============
+.DEFAULT_GOAL := help
+.PHONY: help install infra-up infra-down dev-backend dev-frontend seed ingest \
+        test test-backend test-frontend lint format check build-backend build-frontend \
+        deploy-backend clean
 
-dev: infra-up dev-backend dev-frontend
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
 
-dev-backend:
+# ---- Setup ----------------------------------------------------------------
+install: ## Install backend + frontend dependencies
+	cd backend && poetry install
+	cd backend && poetry run python -m spacy download en_core_web_sm
+	cd frontend && npm ci
+
+infra-up: ## Start local Postgres + Redis (docker compose)
+	docker compose up -d
+
+infra-down: ## Stop local Postgres + Redis
+	docker compose down
+
+# ---- Run (use two terminals) ------------------------------------------------
+dev-backend: ## API on :8000 with reload (needs `make infra-up`, or DATABASE_URL=sqlite+aiosqlite:///./dev.db)
 	cd backend && poetry run uvicorn app.main:app --reload --port 8000
 
-dev-frontend:
+dev-frontend: ## Next.js on :3000
 	cd frontend && npm run dev
 
-# ============ Infrastructure ============
-
-infra-up:
-	docker-compose up -d
-
-infra-down:
-	docker-compose down
-
-infra-logs:
-	docker-compose logs -f
-
-# ============ Install ============
-
-install: install-backend install-frontend
-
-install-backend:
-	cd backend && poetry install
-
-install-frontend:
-	cd frontend && npm install
-
-# ============ Database ============
-
-migrate:
-	cd backend && poetry run alembic upgrade head
-
-migrate-create:
-	@read -p "Migration message: " msg; \
-	cd backend && poetry run alembic revision --autogenerate -m "$$msg"
-
-seed:
+seed: ## Insert sample articles into the local DB
 	cd backend && poetry run python -m app.seed
 
-# ============ Testing ============
+ingest: ## Run the news ingestion pipeline once against the local DB
+	cd backend && poetry run python -c "import asyncio; from app.container import get_container; from app.ingestion.jobs import run_ingestion; print(asyncio.run(run_ingestion(get_container())), 'articles')"
 
-test: test-backend test-frontend
+# ---- Quality gates (CI runs exactly these) ----------------------------------
+test: test-backend test-frontend ## All tests
 
-test-backend:
-	cd backend && poetry run pytest -v
+test-backend: ## pytest (no network; external clients are faked)
+	cd backend && poetry run pytest
 
-test-frontend:
+test-frontend: ## vitest
 	cd frontend && npm test
 
-test-coverage:
-	cd backend && poetry run pytest --cov=app --cov-report=html
+lint: ## ruff + eslint + format checks
+	cd backend && poetry run ruff check . && poetry run ruff format --check .
+	cd frontend && npm run lint && npm run typecheck && npm run format:check
 
-# ============ Code Quality ============
+format: ## Auto-format backend + frontend
+	cd backend && poetry run ruff check --fix . && poetry run ruff format .
+	cd frontend && npm run format
 
-lint:
-	cd backend && poetry run ruff check .
-	cd frontend && npm run lint
+check: lint test ## Everything CI checks. Run before every commit.
 
-format:
-	cd backend && poetry run ruff format .
+# ---- Build / deploy ---------------------------------------------------------
+build-backend: ## Build the production Docker image
+	cd backend && docker build -t sama4-api .
 
-typecheck:
-	cd backend && poetry run mypy app
-	cd frontend && npm run typecheck
-
-# ============ Build ============
-
-build: build-backend build-frontend
-
-build-backend:
-	cd backend && docker build -t sama4-backend .
-
-build-frontend:
+build-frontend: ## Production Next.js build
 	cd frontend && npm run build
 
-# ============ Utilities ============
+deploy-backend: ## Deploy backend/ to Railway (service sama4-api)
+	cd backend && railway up --no-gitignore --service sama4-api --ci
 
-clean:
-	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name .pytest_cache -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name .ruff_cache -exec rm -rf {} + 2>/dev/null || true
-	rm -rf backend/htmlcov frontend/.next frontend/out
-
-logs:
-	docker-compose logs -f
-
-shell-db:
-	docker-compose exec postgres psql -U sama4 -d sama4
+clean: ## Remove caches and build output
+	find . -type d \( -name __pycache__ -o -name .pytest_cache -o -name .ruff_cache \) -prune -exec rm -rf {} + 2>/dev/null || true
+	rm -rf backend/htmlcov frontend/.next

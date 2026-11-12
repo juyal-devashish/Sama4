@@ -1,3 +1,7 @@
+/**
+ * Typed client for the samā4 backend. All network calls go through here.
+ * Request/response types live in src/types/index.ts and mirror backend/app/schemas/.
+ */
 import type {
   FeedResponse,
   ArticleDetail,
@@ -15,99 +19,119 @@ import type {
   TrendingPrediction,
 } from "@/types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-async function fetchAPI<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
-
-  if (!res.ok) {
-    throw new Error(`API error: ${res.status} ${res.statusText}`);
+/** Thrown for any non-2xx response. `status` is the HTTP status (0 = network failure). */
+export class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly path: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
   }
 
-  return res.json();
+  get isNotFound(): boolean {
+    return this.status === 404;
+  }
+}
+
+/** Build "/api/v1/..." with query params; undefined/empty values are dropped. */
+export function apiPath(
+  path: string,
+  params?: Record<string, string | number | undefined>,
+): string {
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(params ?? {})) {
+    if (value !== undefined && value !== "") qs.set(key, String(value));
+  }
+  const query = qs.toString();
+  return `/api/v1${path}${query ? `?${query}` : ""}`;
+}
+
+async function fetchAPI<T>(
+  path: string,
+  init?: { method?: "GET" | "POST"; body?: unknown },
+): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method: init?.method ?? "GET",
+      headers: init?.body !== undefined ? { "Content-Type": "application/json" } : undefined,
+      body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
+    });
+  } catch (err) {
+    throw new ApiError(0, path, `Network error: ${(err as Error).message}`);
+  }
+  if (!res.ok) {
+    throw new ApiError(res.status, path, `API error: ${res.status} ${res.statusText}`);
+  }
+  return res.json() as Promise<T>;
 }
 
 export const api = {
   getFeed(params?: { page?: number; limit?: number; category?: string }) {
-    const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.set("page", String(params.page));
-    if (params?.limit) searchParams.set("limit", String(params.limit));
-    if (params?.category && params.category !== "all") {
-      searchParams.set("category", params.category);
-    }
-    const qs = searchParams.toString();
-    return fetchAPI<FeedResponse>(`/api/v1/feed${qs ? `?${qs}` : ""}`);
+    const category = params?.category === "all" ? undefined : params?.category;
+    return fetchAPI<FeedResponse>(
+      apiPath("/feed", { page: params?.page, limit: params?.limit, category }),
+    );
   },
 
   getArticle(articleId: string) {
-    return fetchAPI<ArticleDetail>(`/api/v1/articles/${articleId}`);
-  },
-
-  getEntityContext(entityId: string) {
-    return fetchAPI<ContextResponse>(`/api/v1/context/${entityId}`);
+    return fetchAPI<ArticleDetail>(apiPath(`/articles/${articleId}`));
   },
 
   getReferencePage(articleId: string) {
-    return fetchAPI<ReferenceResponse>(
-      `/api/v1/articles/${articleId}/reference`
-    );
+    return fetchAPI<ReferenceResponse>(apiPath(`/articles/${articleId}/reference`));
+  },
+
+  getEntityContext(entityId: string) {
+    return fetchAPI<ContextResponse>(apiPath(`/context/${entityId}`));
   },
 
   explainEntity(request: ExplainRequest) {
-    return fetchAPI<ExplainResponse>(`/api/v1/context/explain`, {
+    return fetchAPI<ExplainResponse>(apiPath("/context/explain"), {
       method: "POST",
-      body: JSON.stringify(request),
+      body: request,
     });
   },
 
-  // ============ Predictions (MiroFish) ============
+  // ---- Predictions (MiroFish; backend falls back to Claude when MiroFish is off) ----
 
   getArticlePrediction(articleId: string) {
-    return fetchAPI<PredictionDetail | null>(
-      `/api/v1/predictions/article/${articleId}`
-    );
+    return fetchAPI<PredictionDetail | null>(apiPath(`/predictions/article/${articleId}`));
   },
 
-  triggerSimulation(articleId: string, options?: {
-    agent_count?: number;
-    simulation_rounds?: number;
-    prediction_focus?: string;
-  }) {
-    return fetchAPI<PredictionSummary>(`/api/v1/predictions/simulate`, {
+  triggerSimulation(
+    articleId: string,
+    options?: { agent_count?: number; simulation_rounds?: number; prediction_focus?: string },
+  ) {
+    return fetchAPI<PredictionSummary>(apiPath("/predictions/simulate"), {
       method: "POST",
-      body: JSON.stringify({
-        article_id: articleId,
-        ...options,
-      }),
+      body: { article_id: articleId, ...options },
     });
   },
 
   getPredictionStatus(predictionId: string) {
-    return fetchAPI<PredictionStatus>(
-      `/api/v1/predictions/${predictionId}/status`
-    );
+    return fetchAPI<PredictionStatus>(apiPath(`/predictions/${predictionId}/status`));
   },
 
   chatWithPrediction(request: PredictionChatRequest) {
-    return fetchAPI<PredictionChatResponse>(`/api/v1/predictions/chat`, {
+    return fetchAPI<PredictionChatResponse>(apiPath("/predictions/chat"), {
       method: "POST",
-      body: JSON.stringify(request),
+      body: request,
     });
   },
 
   interviewAgent(request: AgentInterviewRequest) {
-    return fetchAPI<AgentInterviewResponse>(`/api/v1/predictions/interview`, {
+    return fetchAPI<AgentInterviewResponse>(apiPath("/predictions/interview"), {
       method: "POST",
-      body: JSON.stringify(request),
+      body: request,
     });
   },
 
-  getTrendingPredictions(limit: number = 20) {
-    return fetchAPI<TrendingPrediction[]>(
-      `/api/v1/predictions/trending?limit=${limit}`
-    );
+  getTrendingPredictions(limit = 20) {
+    return fetchAPI<TrendingPrediction[]>(apiPath("/predictions/trending", { limit }));
   },
 };
