@@ -1,0 +1,350 @@
+<title>samā4 Product Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,650&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single reading column (max 980px) under a sticky section nav; tables scroll in their own boxes. */
+:root {
+  --bg: #f7f8fa; --surface: #ffffff; --fg: #1a1f2b; --muted: #5b6475; --line: #dde1e8;
+  --accent: #2a4fd6; --accent-soft: #e7ecfd;
+  --high: #b42318; --high-bg: #fde9e7; --med: #9a5b00; --med-bg: #fdf1dc; --low: #2f6b3b; --low-bg: #e4f3e7;
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12151c; --surface: #1a1e27; --fg: #e6e9f0; --muted: #9aa3b5; --line: #2c323f;
+  --accent: #8ea6ff; --accent-soft: #222b4a;
+  --high: #ff8a7d; --high-bg: #3a1d1b; --med: #f0b65a; --med-bg: #362915; --low: #84cf93; --low-bg: #1a3020;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #12151c; --surface: #1a1e27; --fg: #e6e9f0; --muted: #9aa3b5; --line: #2c323f;
+  --accent: #8ea6ff; --accent-soft: #222b4a;
+  --high: #ff8a7d; --high-bg: #3a1d1b; --med: #f0b65a; --med-bg: #362915; --low: #84cf93; --low-bg: #1a3020;
+  color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15.5px; line-height: 1.6; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+a { color: var(--accent); }
+.wrap { max-width: 980px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+header.top { padding-block: 40px 28px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 650; text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(32px, 6vw, 46px); margin-top: 6px; }
+h2 { font-size: 28px; }
+h3 { font-size: 19px; font-weight: 500; }
+.lede { max-width: 66ch; color: var(--muted); margin: 12px 0 0; }
+
+nav.sections { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); border-top: 1px solid var(--line); }
+nav.sections .wrap { display: flex; gap: 4px; overflow-x: auto; padding-block: 8px; scrollbar-width: none; }
+nav.sections a { white-space: nowrap; text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 500; padding: 6px 10px; border-radius: 6px; }
+nav.sections a:hover, nav.sections a:focus-visible { color: var(--fg); background: var(--accent-soft); outline: none; }
+
+section { padding-block: 40px 8px; scroll-margin-top: 64px; }
+section > .head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.part { font-family: var(--font-mono); font-size: 12px; color: var(--accent); letter-spacing: .06em; text-transform: uppercase; }
+p { max-width: 70ch; }
+
+.notice { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--med); border-radius: 8px; padding: 16px 18px; }
+.notice p { margin: 0; }
+.notice p + p { margin-top: 8px; }
+
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+table.wide { min-width: 860px; }
+td.step { font-weight: 600; width: 26%; }
+td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted); }
+
+.pill { display: inline-block; font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.High, .pill.L { color: var(--high); background: var(--high-bg); }
+.pill.Medium, .pill.M { color: var(--med); background: var(--med-bg); }
+.pill.Low, .pill.S { color: var(--low); background: var(--low-bg); }
+.pill.done { color: var(--low); background: var(--low-bg); }
+.pill.no { color: var(--muted); background: var(--bg); border: 1px solid var(--line); }
+
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.filters button { font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.filters button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.reaction { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.reaction div { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; min-width: 0; }
+.reaction b { display: block; font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+
+ul.keep { columns: 2 280px; column-gap: 28px; padding-left: 18px; margin: 8px 0 0; }
+ul.keep li { break-inside: avoid; margin-bottom: 6px; }
+
+.competitors { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.competitors div { border-top: 2px solid var(--line); padding-top: 8px; min-width: 0; }
+.competitors b { font-family: var(--font-display); font-size: 17px; font-weight: 650; }
+.competitors p { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+.callout { font-family: var(--font-display); font-size: 21px; margin: 0 0 14px; }
+
+ol.moves { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; counter-reset: m; }
+ol.moves li { counter-increment: m; display: grid; grid-template-columns: 40px 1fr; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+ol.moves li::before { content: counter(m); font-family: var(--font-display); font-size: 28px; font-weight: 650; color: var(--accent); line-height: 1; }
+ol.moves b { display: block; }
+ol.moves span { color: var(--muted); font-size: 14px; }
+
+.progress { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+.bar { width: 160px; height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+.task-group { margin-top: 22px; }
+.task-group h3 { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-bottom: 4px; }
+.task-group h3 small { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-weight: 400; }
+.task { display: grid; grid-template-columns: 22px 34px 1fr; gap: 8px; align-items: start; padding: 7px 4px; border-radius: 6px; cursor: pointer; }
+.task:hover { background: var(--surface); }
+.task input { margin: 4px 0 0; accent-color: var(--accent); }
+.task .n { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); padding-top: 2px; font-variant-numeric: tabular-nums; }
+.task.checked .t { color: var(--muted); text-decoration: line-through; }
+.verify { font-family: var(--font-mono); font-size: 11px; color: var(--med); background: var(--med-bg); padding: 1px 6px; border-radius: 4px; margin-left: 6px; white-space: nowrap; }
+.task-tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-top: 8px; }
+.task-tools label { font-size: 14px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+
+footer { padding-block: 48px; color: var(--muted); font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+</style>
+
+<header class="top"><div class="wrap">
+  <div class="eyebrow">External review · www.sama4.online · received 12 Nov 2026</div>
+  <h1>samā4 Product Review</h1>
+  <p class="lede">A log of an outside review of the live site, a critique ranked by severity, a market scan, five next moves and 100 tasks for the coding agent. Assumed context: solo, pre-revenue, aiming for 1,000 daily readers.</p>
+</div></header>
+
+<nav class="sections" aria-label="Sections"><div class="wrap">
+  <a href="#caveat">Read first</a><a href="#log">1 · Log</a><a href="#reaction">2 · Reaction</a><a href="#critique">3 · Critique</a><a href="#market">4 · Market gaps</a><a href="#moves">Next moves</a><a href="#tasks">100 tasks</a>
+</div></nav>
+
+<main class="wrap">
+
+<section id="caveat">
+  <div class="notice">
+    <p><b>The reviewer never saw a story.</b> Their fetcher gets server HTML only. It does not run JavaScript, click, type or resize. Today, Search and Outlook came back as an empty shell, so no stories were read and no explanations were opened.</p>
+    <p>Everything below comes from seven pages of HTML plus market research. Reading experience, context quality, typography, dark theme, contrast, speed and mobile layout were not assessed.</p>
+  </div>
+</section>
+
+<section id="log">
+  <div class="head"><div><div class="part">Part 1</div><h2>Log</h2></div></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Step</th><th>Status</th><th>What happened</th></tr></thead>
+    <tbody id="logBody"></tbody>
+  </table></div>
+</section>
+
+<section id="reaction">
+  <div class="head"><div><div class="part">Part 2</div><h2>Reaction as a user</h2></div></div>
+  <p>No honest reader reaction is possible for stories that were never shown. This is the reaction to what was visible.</p>
+  <div class="reaction">
+    <div><b>Would I come back tomorrow?</b>Nothing seen gives a reason to. No digest, no email, no feed and no named sources.</div>
+    <div><b>Best moment</b>The privacy page and the Outlook disclaimer. Both say plainly what the product does and does not know.</div>
+    <div><b>Most frustrating moment</b>Early access says samā4 is a Chrome extension that works on any article, while the site is a web reader with its own feed. The reviewer left unsure what the product is.</div>
+  </div>
+</section>
+
+<section id="critique">
+  <div class="head">
+    <div><div class="part">Part 3</div><h2>Critique</h2></div>
+    <div class="filters" id="sevFilter" role="group" aria-label="Filter by severity">
+      <button type="button" data-sev="all" aria-pressed="true">All <span id="c-all"></span></button>
+      <button type="button" data-sev="High" aria-pressed="false">High <span id="c-High"></span></button>
+      <button type="button" data-sev="Medium" aria-pressed="false">Medium <span id="c-Medium"></span></button>
+      <button type="button" data-sev="Low" aria-pressed="false">Low <span id="c-Low"></span></button>
+    </div>
+  </div>
+  <div class="tbl"><table class="wide">
+    <thead><tr><th>Issue</th><th>Where</th><th>Why it matters</th><th>Severity</th><th>Specific fix</th></tr></thead>
+    <tbody id="critBody"></tbody>
+  </table></div>
+
+  <h3 style="margin-top:28px">Keep these</h3>
+  <ul class="keep">
+    <li>The privacy page: plain, dated, specific about what goes to Anthropic.</li>
+    <li>No analytics or ad scripts, and local-first storage.</li>
+    <li>The honest Outlook and Settings disclaimers.</li>
+    <li>Keyboard shortcuts, including "/" for search.</li>
+    <li>Terms that work by click or Tab plus Enter (verify it holds).</li>
+    <li>The Saved empty state and the Light/Dark/System choice.</li>
+    <li>Labelling the demo as a sample.</li>
+  </ul>
+</section>
+
+<section id="market">
+  <div class="head"><div><div class="part">Part 4</div><h2>Market gaps</h2></div></div>
+  <p class="callout">The core feature, tap a term to get context, already ships in funded products.</p>
+  <div class="competitors">
+    <div><b>Particle</b><p>Tapping an entity opens a page with a definition, stories, related entities and topics. Paid tier $2.99/mo or $29.99/yr.</p></div>
+    <div><b>Readwise Reader</b><p>Select any word or phrase for a lookup panel without leaving the page. $9.99/mo on the annual plan.</p></div>
+    <div><b>Google</b><p>AI summaries rolling out in Discover; testing AI article overviews on participating publishers' Google News pages.</p></div>
+    <div><b>Ground News</b><p>A different job: comparing coverage by bias. Annual plans $9.99, $29.99 and $99.99.</p></div>
+    <div><b>Perplexity</b><p>Facing suits from the New York Times, Dow Jones and CNN.</p></div>
+    <div><b>Semafor and Axios</b><p>Publishers, not readers. Semafor expects a second profitable year with live events about half of revenue. Axios Local relies mainly on niche professional advertising.</p></div>
+    <div><b>SmartNews</b><p>Launched NewsArc as an antidote to outrage content.</p></div>
+    <div><b>Apple</b><p>Reports say the new Siri will give daily news summaries from Apple News content. Nothing firmer found.</p></div>
+  </div>
+  <h3 style="margin-bottom:10px">Ranked gaps, best first</h3>
+  <div class="tbl"><table class="wide">
+    <thead><tr><th>#</th><th>Gap</th><th>Who has this problem</th><th>Evidence</th><th>How samā4 could fill it</th><th>Effort</th><th>Impact</th></tr></thead>
+    <tbody id="gapBody"></tbody>
+  </table></div>
+</section>
+
+<section id="moves">
+  <div class="head"><div><h2>Top 5 next moves</h2></div></div>
+  <ol class="moves">
+    <li><div><b>Decide whether samā4 is a reader or an extension, and rewrite the pitch to match what exists.</b><span>Every other message depends on this.</span></div></li>
+    <li><div><b>Put sources and dates on every explanation and measure accuracy on 200 samples.</b><span>Verifiability is the one thing competitors do badly and samā4 can do alone.</span></div></li>
+    <li><div><b>Server-render Today and story pages.</b><span>Without this nobody can find, share or preview the work.</span></div></li>
+    <li><div><b>Demote Outlook and strip its numbers until it can be scored.</b><span>It adds risk without serving the core promise.</span></div></li>
+    <li><div><b>Recruit 20 real readers and count explanations opened per story and day-7 return.</b><span>This answers whether the context feature is useful before building voice or graphs.</span></div></li>
+  </ol>
+</section>
+
+<section id="tasks">
+  <div class="head">
+    <div><h2>100 tasks for the coding agent</h2></div>
+    <div class="progress"><div class="bar" aria-hidden="true"><i id="barFill"></i></div><span id="progText">0 of 100 done</span></div>
+  </div>
+  <p>Tick tasks off as they ship. Ticks are saved in this browser only. Tasks marked <span class="verify">verify</span> cover things the reviewer could not see.</p>
+  <div class="task-tools">
+    <div class="filters" id="groupFilter" role="group" aria-label="Filter by area"></div>
+    <label for="hideDone"><input type="checkbox" id="hideDone"> Hide done</label>
+  </div>
+  <div id="taskList"></div>
+</section>
+
+<footer>Source: external review of www.sama4.online, pasted into the repo session on 12 Nov 2026. The reviewer offered to review the reading experience and context quality if sent screenshots or a pasted story with two or three explanations.</footer>
+</main>
+
+<script>
+const LOG = [
+  ["First 10 seconds on Home","partial","Nav, logo and the tagline \"News, understood.\" but no stories. First impression: an AI news reader for general readers."],
+  ["Read 3 stories","no","No story content or story URLs reached the reviewer."],
+  ["Select 5 highlighted terms","no","Accuracy, depth and speed of context are untested."],
+  ["Search and \"/\"","partial","The page loads with a prompt to find stories by headline, summary or source. Could not type a query."],
+  ["Save a story","partial","Not done. Saved shows a clear empty state that explains the Save button and the S key."],
+  ["Outlook","partial","Only the explainer loaded: AI projections ranked by a 0–100 impact estimate, with a confidence rating that is not a measured probability and has not been checked against outcomes. No projections reached the reviewer."],
+  ["Early access","done","Fully readable. Most findings come from here."],
+  ["Settings","done","Light/Dark/System theme, five topics (General, Tech, Business, Science, World), shortcuts J, K, S, Esc and /, and a note that explanations are AI-generated from Wikipedia and recent reporting."],
+  ["Dark theme toggle","no","Not done. The control exists in the header."],
+  ["Mobile width","no","Not done. A viewport meta tag is present."],
+  ["Privacy","done","Fully readable, dated today."],
+  ["Web search for the site","done","One search for the name and domain returned nothing related. Inference: not indexed, or the name is unsearchable."],
+  ["Direct browser from sandbox","no","Blocked. The domain does not resolve from the reviewer's sandbox."]
+];
+const STATUS = {done:["Read","done"], partial:["Partly","Medium"], no:["Not done","no"]};
+
+const CRIT = [
+  ["The pitch describes a different product (Chrome extension, any publication) from the web reader","Early access, \"How it works\"","A visitor cannot tell what they are signing up for","High","Pick one product for the page. If the extension is the future, say \"coming\" and show the reader as \"available now\"."],
+  ["Unverifiable numbers","Early access","12+ sources, under 200ms latency, 50K+ articles, 99.7% uptime, and a \"trusted by\" line read as invented for a solo early project, and the product sells trust","High","Delete them, or link each to a live source such as a status page or the source list."],
+  ["Promised features with no trace in nav or Settings: voice briefings, knowledge graph, depth control, multi-language","Early access","Present-tense claims for unbuilt features cost credibility on first use","High","Label them \"planned\" or cut them."],
+  ["Pages deliver no content without JavaScript","Today, Search, Outlook","No search indexing, no link previews, blank page for crawlers; likely why the site can't be found","High","Server-render Today and give each story its own URL."],
+  ["No source list, no About, no contact","Whole site","\"12+ trusted sources\" with none named is a trust gap","High","Add a Sources page and an About page with a real name and email."],
+  ["Could not confirm explanations cite sources","Story view, Settings","Settings tells readers to check anything important against the source, which only works if the source is one click away","High","Show source links and an \"as of\" date on every explanation."],
+  ["Outlook shows numbers admitted to be uncalibrated, to all readers","Outlook","A 0–100 score looks precise; speculation about real events is the biggest reputational risk","High","Remove the numbers or log every projection and score it against outcomes. Until then, move Outlook out of main nav."],
+  ["Stories are AI summaries of publisher feeds","Today, Privacy","Publishers are suing products that summarize their work (see Part 4). The reviewer is not a lawyer.","High","Keep summaries short, make the original link the primary action, and read each feed's terms."],
+  ["No daily return hook","Whole site","The goal is daily readers; a site with no reminder depends on memory","High","Add a morning email digest or an installable app with one daily notification."],
+  ["A waitlist for an app that is already open","Early access","Unclear what \"early access\" unlocks","Medium","State what the waitlist gets (extension, accounts, sync)."],
+  ["Sample story carries Reuters' name on invented text","Early access demo","Labelled as a sample, but attributing made-up copy to a real publisher is avoidable risk","Medium","Use a fictional outlet name or a real, linked story."],
+  ["Too many taglines and one garbled headline","Early access","Five different slogans; the Capabilities headline has a stray word (\"noise signal\")","Medium","Keep one line. Fix the headline."],
+  ["Same title and description on most pages","Search, Saved, Outlook, Settings","Tabs and screen readers cannot tell pages apart","Medium","Unique title and description per page."],
+  ["Single-key shortcuts with no off switch","Settings","J, K and S fire for speech-input and some screen-reader users; fails WCAG 2.1.4","Medium","Add a toggle to disable them."],
+  ["Open AI endpoints with no login","Explanations, questions, Outlook","Inference: anyone can script calls and run up the bill; privacy page only mentions rate limiting on the waitlist form","Medium","Rate-limit per IP and cache explanations per term and story."],
+  ["Name is hard to type, say and search","Brand","The macron and digit block word of mouth","Medium","Accept \"sama4\" everywhere, add a pronunciation line, and test whether people can find it by ear."],
+  ["No hint of a business model","Early access","Readers and partners cannot judge whether it will last","Medium","One honest line: free now, what may cost money later."],
+  ["Saved is device-only","Saved","Saved stories live in browser storage, so clearing data loses them","Low","Say so on the Saved page and add export."],
+  ["Privacy claim is stronger on the pitch than in the policy","Early access","The policy says story text goes to the server and Anthropic, and errors to Sentry","Low","Match the pitch to the policy wording."],
+  ["Marketing link sits in the app's main nav","Header","Takes a slot from reading features","Low","Move it to the footer or a small banner."]
+];
+
+const GAPS = [
+  ["Explanations a reader can verify","Anyone who distrusts AI on news","Only 20% trust AI-derived answers, against 37% for news overall. An EBU/BBC study found 45% of AI answers had a significant issue and 31% had serious sourcing problems.","Every explanation shows its sources, an \"as of\" date, and a public accuracy score from its own test set","M","L"],
+  ["Context on the page you are already reading","Readers loyal to their own publications","Aggregators hold you in their feed; publishers allege Perplexity paraphrases without adequate referral traffic. Readwise requires saving first. Inference: an extension avoids both.","Ship the extension the pitch already describes; the publisher keeps the visit","L","L"],
+  ["\"Catch me up\" on running stories","People who drop in mid-story","Chatbot users mainly want interpretation, summaries and easier-to-understand stories.","A short \"story so far\" timeline on each ongoing story, with dated links","M","M"],
+  ["Plain-language and other-language context","Non-native readers, students","In German data, 28% of AI news users ask it to make a topic easier to understand. Thin evidence for a paying segment.","A reading-level switch and explanations in the reader's language","M","M"],
+  ["A context layer sold to publishers","Small publishers without AI teams","Google is piloting AI summaries with major publishers such as The Guardian and Der Spiegel; inference: smaller ones are left out.","License the highlight-and-explain widget for their own sites","L","L, slow sales"],
+  ["A personal glossary","Learners who look up the same term twice","No direct evidence; inference from Readwise's highlight review model","Remember terms a reader opened and offer a weekly recap","M","S"],
+  ["Forecasts with a track record","Analysts","No demand evidence found","Score Outlook against outcomes and publish the results","L","S"]
+];
+
+const TASKS = [
+  ["Rendering and SEO",["Server-render the Today feed.","Give each story a stable, shareable URL.","Server-render story pages with headline, summary and source.","Unique title on every route.","Unique meta description on every route.","Add Open Graph and Twitter card tags per story.","Generate sitemap.xml.","Add robots.txt.","Add canonical URLs; pick www or apex and redirect.","Add NewsArticle structured data with the original publisher as source.","Add a no-JavaScript fallback message.","Add an RSS feed of Today."]],
+  ["Landing page",["Rewrite the hero around one tagline.","Remove or source the four stat tiles.","Remove the \"trusted by\" line until you have named users.","Fix the garbled Capabilities headline.","Split features into \"available now\" and \"planned\".","Rewrite \"How it works\" to describe the web reader.","Move the extension to a clearly labelled \"coming\" section.","Replace the Reuters-branded sample with a fictional outlet or a real linked story.","State what the waitlist unlocks.","Move the tech-stack line to an About or \"How it's built\" page.","Align the privacy card with the privacy policy wording.","Add a one-line note on pricing intent.","Collapse the triple in-page nav into one, hidden correctly from assistive tech.","Add a real screenshot or short clip of the actual reader."]],
+  ["Trust and sourcing",["Build a Sources page listing every feed.","Build an About page with maker name and contact email.","Show publisher name and publish time on every story card.","Make \"Read original\" the primary button on each story.","Label every AI summary as AI-written, at the top (verify).","Add source links to every explanation.","Add an \"as of\" date to every explanation.","Add a \"Report an error\" button on explanations.","Add a corrections log page.","Write a short \"How explanations are made\" page.","Store which Wikipedia revision or article each explanation used.","Review each feed's terms of use and record the result.","Cap summary length relative to the feed excerpt.","Honor publisher opt-out requests with a blocklist."]],
+  ["Context feature",["Build a 200-item evaluation set of term-plus-story pairs.","Script an accuracy check against it and track the score per release.","Test entity disambiguation on same-name cases (people, places).","Cache explanations per term and story.","Show a loading state within 100ms of selection.","Measure and log time to first explanation token.","Stream explanation text.","Cap explanation length; add \"more\" for depth.","Tune highlight density with a per-paragraph limit.","Add a setting for highlight density (fewer, default, more).","Let readers select any un-highlighted text to explain it.","Handle \"no reliable information\" with an honest fallback.","Keep the panel from covering the selected text on mobile.","Persist the last opened explanation when navigating back.","Guard follow-up questions against prompt injection from story text."]],
+  ["Outlook",["Remove Outlook from primary nav.","Hide the impact and confidence numbers.","Log every projection with a timestamp and resolution date.","Add a resolution workflow to mark projections right or wrong.","Publish a track-record page once 50 are resolved.","Block projections about named private individuals.","Add a visible \"AI speculation\" label on each projection (verify)."]],
+  ["Retention",["Add an opt-in morning email digest.","Add a web app manifest and service worker for install.","Add offline reading of saved stories.","Add a \"new since your last visit\" marker.","Add a \"story so far\" timeline on ongoing stories.","Add a personal glossary of terms opened, stored locally.","Add share buttons that link to the story URL.","Add export of saved stories as JSON or Markdown.","Note on the Saved page that data stays on this device."]],
+  ["Search",["Make search match entity names, not only headline, summary and source.","Add an empty-results state with suggestions (verify).","Add date and topic filters.","Make \"/\" ignore keypresses inside text inputs (verify).","Put the query in the URL so searches are shareable."]],
+  ["Accessibility",["Add a setting to disable single-key shortcuts.","Add a skip-to-content link.","Ensure every page has exactly one h1.","Make highlighted terms real buttons with accessible names (verify).","Trap focus in the explanation panel and return it on close.","Announce explanation loading and completion with a live region.","Check highlight contrast in both themes against WCAG AA.","Do not rely on color alone to mark highlights.","Respect prefers-reduced-motion.","Label the waitlist email input properly.","Run axe and Lighthouse in CI and fail on regressions.","Test with VoiceOver and NVDA; file what breaks."]],
+  ["Performance and mobile",["Set a Lighthouse performance budget and enforce it in CI.","Lazy-load below-the-fold stories.","Serve the logo as SVG or sized WebP, one per theme.","Test layouts at 320, 375 and 768 pixels wide.","Ensure tap targets are at least 44 pixels.","Prevent theme flash on first load."]],
+  ["Security, cost, measurement",["Rate-limit explanation, question and outlook endpoints per IP.","Set a daily spend cap with an alert on the model API.","Scrub IP addresses from Sentry reports, or update the policy.","Add cookieless, aggregate server-side counters for stories opened and explanations opened.","Update the privacy page to describe those counters before shipping them.","Add end-to-end tests for read, explain, save and search."]]
+];
+
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const $ = id => document.getElementById(id);
+
+$("logBody").innerHTML = LOG.map(([s,st,t]) => `<tr><td class="step">${esc(s)}</td><td><span class="pill ${STATUS[st][1]}">${STATUS[st][0]}</span></td><td>${esc(t)}</td></tr>`).join("");
+
+$("critBody").innerHTML = CRIT.map(r => `<tr data-sev="${r[3]}"><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td><span class="pill ${r[3]}">${r[3]}</span></td><td>${esc(r[4])}</td></tr>`).join("");
+["all","High","Medium","Low"].forEach(k => $("c-"+k).textContent = k==="all" ? CRIT.length : CRIT.filter(r=>r[3]===k).length);
+$("sevFilter").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  $("sevFilter").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x===b));
+  document.querySelectorAll("#critBody tr").forEach(tr => tr.hidden = b.dataset.sev!=="all" && tr.dataset.sev!==b.dataset.sev);
+});
+
+const size = v => `<span class="pill ${v.split(",")[0]}">${esc(v)}</span>`;
+$("gapBody").innerHTML = GAPS.map((g,i) => `<tr><td class="num">${i+1}</td><td><b>${esc(g[0])}</b></td><td>${esc(g[1])}</td><td>${esc(g[2])}</td><td>${esc(g[3])}</td><td>${size(g[4])}</td><td>${size(g[5])}</td></tr>`).join("");
+
+const KEY = "sama4-review-done";
+let done = new Set();
+try { done = new Set(JSON.parse(localStorage.getItem(KEY) || "[]")); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify([...done])); } catch (e) {} };
+
+let n = 0, html = "";
+TASKS.forEach(([g, items], gi) => {
+  html += `<div class="task-group" data-g="${gi}"><h3>${esc(g)} <small>${n+1}–${n+items.length}</small></h3>`;
+  items.forEach(t => {
+    n++;
+    const v = t.includes("(verify)");
+    const txt = esc(t.replace(" (verify)", "").replace(", at the top (verify)", ", at the top"));
+    html += `<label class="task" for="t${n}" data-n="${n}"><input type="checkbox" id="t${n}"><span class="n">${n}</span><span class="t">${txt}${v ? '<span class="verify">verify</span>' : ""}</span></label>`;
+  });
+  html += `</div>`;
+});
+$("taskList").innerHTML = html;
+
+$("groupFilter").innerHTML = `<button type="button" data-g="all" aria-pressed="true">All</button>` + TASKS.map(([g],i) => `<button type="button" data-g="${i}" aria-pressed="false">${esc(g)}</button>`).join("");
+let gFilter = "all";
+function render() {
+  const hide = $("hideDone").checked;
+  document.querySelectorAll(".task").forEach(el => {
+    const on = done.has(el.dataset.n);
+    el.querySelector("input").checked = on;
+    el.classList.toggle("checked", on);
+    el.hidden = hide && on;
+  });
+  document.querySelectorAll(".task-group").forEach(g => g.hidden = gFilter!=="all" && g.dataset.g!==gFilter);
+  $("progText").textContent = `${done.size} of 100 done`;
+  $("barFill").style.width = done.size + "%";
+}
+$("taskList").addEventListener("change", e => {
+  const el = e.target.closest(".task"); if (!el) return;
+  e.target.checked ? done.add(el.dataset.n) : done.delete(el.dataset.n);
+  save(); render();
+});
+$("groupFilter").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  gFilter = b.dataset.g;
+  $("groupFilter").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x===b));
+  render();
+});
+$("hideDone").addEventListener("change", render);
+render();
+</script>
