@@ -56,6 +56,16 @@ async def get_or_create(
     return entity
 
 
+async def list_mentions_with_content(db: AsyncSession) -> Sequence[tuple[ArticleEntity, str]]:
+    """Every stored mention with its article's cleaned_content (the text it highlights)."""
+    rows = await db.execute(
+        select(ArticleEntity, Article.cleaned_content).join(
+            Article, Article.id == ArticleEntity.article_id
+        )
+    )
+    return [(mention, content or "") for mention, content in rows.all()]
+
+
 async def latest_mention(db: AsyncSession, entity: Entity) -> tuple[Article, ArticleEntity] | None:
     """The newest article mentioning `entity`, with the mention (for story context)."""
     row = (

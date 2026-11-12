@@ -39,3 +39,27 @@ async def regenerate_summaries(background_tasks: BackgroundTasks, c: ContainerDe
     return AdminResponse(
         message="Summary regeneration started in the background.", status="accepted"
     )
+
+
+class MentionRepairResponse(BaseModel):
+    total: int
+    aligned: int
+    relocated: int
+    unlocatable: int
+    deleted: int
+    dry_run: bool
+
+
+@router.post("/mentions/repair", response_model=MentionRepairResponse)
+async def repair_mentions(
+    dry_run: bool = True, delete_unlocatable: bool = False
+) -> MentionRepairResponse:
+    """Fix stored highlight offsets that don't point at their mention text.
+
+    Dry run by default. Pass dry_run=false to write; add delete_unlocatable=true to
+    also remove mentions whose text isn't in the article (irreversible).
+    """
+    report = await jobs.repair_mention_offsets(
+        dry_run=dry_run, delete_unlocatable=delete_unlocatable
+    )
+    return MentionRepairResponse(**vars(report))

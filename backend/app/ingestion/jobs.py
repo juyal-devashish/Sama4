@@ -6,17 +6,20 @@ broken job can't take down the scheduler or an admin request.
 
 import asyncio
 import logging
+from dataclasses import dataclass
 
 from sqlalchemy import func, select
 
 from app.container import Container
 from app.database import async_session
+from app.ingestion.ner import is_aligned, locate_mention
 from app.ingestion.pipeline import IngestionPipeline
 from app.ingestion.summarizer import SummarizerService
 from app.models.article import Article
 from app.models.entity import ArticleEntity
 from app.models.prediction import Prediction
 from app.repositories import articles as article_repo
+from app.repositories import entities as entity_repo
 from app.services.predictions import PredictionService
 
 logger = logging.getLogger(__name__)
@@ -73,6 +76,54 @@ async def regenerate_summaries(container: Container) -> tuple[int, int]:
         "Summary regeneration done: %d/%d updated, %d errors", updated, len(articles), failed
     )
     return updated, len(articles)
+
+
+@dataclass
+class MentionRepairReport:
+    total: int = 0
+    aligned: int = 0  # already correct, untouched
+    relocated: int = 0  # offsets rewritten to where the text really is
+    unlocatable: int = 0  # text not in the article at all
+    deleted: int = 0  # unlocatable rows removed (only with delete_unlocatable)
+    dry_run: bool = True
+
+
+async def repair_mention_offsets(
+    *, dry_run: bool = True, delete_unlocatable: bool = False
+) -> MentionRepairReport:
+    """Re-point stored ArticleEntity offsets at their text in Article.cleaned_content.
+
+    Fixes rows written before offsets were checked. Aligned rows are left alone;
+    misaligned ones are moved to the first match of mention_text. Rows whose text
+    isn't in the article are only counted, unless delete_unlocatable is set.
+    With dry_run (the default) nothing is written; the report says what would change.
+    """
+    report = MentionRepairReport(dry_run=dry_run)
+    try:
+        async with async_session() as db:
+            for mention, content in await entity_repo.list_mentions_with_content(db):
+                report.total += 1
+                text = mention.mention_text
+                if is_aligned(content, text, mention.start_position, mention.end_position):
+                    report.aligned += 1
+                    continue
+                span = locate_mention(content, text)
+                if span is None:
+                    report.unlocatable += 1
+                    if delete_unlocatable and not dry_run:
+                        await db.delete(mention)
+                        report.deleted += 1
+                    continue
+                report.relocated += 1
+                if not dry_run:
+                    mention.start_position, mention.end_position = span
+            if not dry_run:
+                await db.commit()
+    except Exception:
+        logger.error("Mention offset repair failed", exc_info=True)
+        return MentionRepairReport(dry_run=dry_run)
+    logger.info("Mention offset repair: %s", report)
+    return report
 
 
 async def auto_simulate_high_impact(container: Container) -> None:
