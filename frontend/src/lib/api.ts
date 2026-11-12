@@ -110,4 +110,11 @@ export const api = {
       `/api/v1/predictions/trending?limit=${limit}`
     );
   },
+
+  joinWaitlist(email: string) {
+    return fetchAPI<{ status: "joined" | "exists" }>(`/api/v1/waitlist`, {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
 };

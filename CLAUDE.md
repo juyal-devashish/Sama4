@@ -110,6 +110,7 @@ sama4/
 │   │   │   ├── search/page.tsx      # Search (client-side over latest 100 stories; server search is a stub)
 │   │   │   ├── saved/page.tsx       # Saved stories (localStorage)
 │   │   │   ├── outlook/page.tsx     # Trending predictions ranked by impact
+│   │   │   ├── announcements/page.tsx  # Product intro, updates, waitlist (replaces old landing page)
 │   │   │   └── settings/page.tsx    # Theme, topics, keyboard shortcuts, about
 │   │   ├── components/
 │   │   │   ├── shell/               # AppShell (global keys), Sidebar, WelcomeDialog, Page
@@ -195,6 +196,7 @@ cd backend && poetry run pytest --cov=app    # Coverage report
 | GET | `/api/v1/context/{entity_id}` | Entity context via RAG pipeline |
 | POST | `/api/v1/context/explain` | Follow-up question about an entity |
 | GET | `/api/v1/search` | Semantic search via Pinecone |
+| POST | `/api/v1/waitlist` | Early-access waitlist signup |
 
 ---
 
@@ -305,7 +307,7 @@ make seed            # seed sample data
 
 ## Deployment
 
-- **Frontend**: Deployed on Vercel at `frontend-roan-nine-nf5erh3avr.vercel.app`
+- **Frontend**: Deployed on Vercel (project `frontend`) at `www.sama4.online` (also `frontend-roan-nine-nf5erh3avr.vercel.app`)
 - **Backend**: Run locally or via Docker. Set `NEXT_PUBLIC_API_URL` on Vercel to connect.
 
 ```bash
