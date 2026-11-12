@@ -56,7 +56,7 @@ export function useTopics() {
   return [topics.length ? topics : [...ALL_TOPICS], setTopics] as const;
 }
 
-/** @deprecated Read by the old WelcomeDialog only; replaced by `useOnboarding()`. */
+/** The old first-run flag. Only read now, by `useOnboarding()`, to recognise existing readers. */
 export function useOnboarded() {
   return useStoredValue<boolean>("sama4_onboarded", false);
 }

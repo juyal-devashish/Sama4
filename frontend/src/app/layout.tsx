@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "@/styles/globals.css";
 import { Providers } from "./providers";
 import { AppShell } from "@/components/shell/AppShell";
+import { FIRST_VISIT_SCRIPT } from "@/lib/onboarding";
 
 // Self-hosted (src/fonts, from Google Fonts) so builds never fetch fonts over the network:
 // next/font/google's build-time fetch kept failing in CI and on Vercel.
@@ -100,6 +101,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {/* Shows the first-visit splash from the first frame (lib/onboarding.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: FIRST_VISIT_SCRIPT }} />
       </head>
       <body style={fontVariables}>
         <Providers>

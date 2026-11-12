@@ -178,3 +178,21 @@ export function eligibleHint(state: OnboardingState, ctx: HintContext): HintId |
   };
   return HINTS.find((h) => !seen(h) && rules[h]) ?? null;
 }
+
+/**
+ * Inline <head> script (see app/layout.tsx). Runs before first paint and adds
+ * `intro intro-splash` to <html> when this visit should open on the splash, so the
+ * splash shows at once and the app never flashes underneath it. It mirrors
+ * `startScreen(normalizeOnboarding(...), { deepLink })`; the tests keep the two in step.
+ *
+ * Only a plain visit to "/" counts. Every other route, and `/?article=…`, is a deep link.
+ *
+ * Failsafe: if the app's JavaScript never starts (a failed chunk load, a very old
+ * browser), nothing would ever clear those classes and the reader would stay hidden
+ * behind the splash. So unless OnboardingGate has mounted and marked <html> with
+ * GATE_ATTR within SPLASH_FAILSAFE_MS, the script reveals the app by itself.
+ */
+export const GATE_ATTR = "data-intro-gate";
+export const SPLASH_FAILSAFE_MS = 5000;
+
+export const FIRST_VISIT_SCRIPT = `(function(){try{if(location.pathname!=='/'||/[?&]article=/.test(location.search))return;var s=null;try{s=JSON.parse(localStorage.getItem('sama4_onboarding'))}catch(e){}var done;if(s&&typeof s==='object'){done=s.introDone===true&&typeof s.version==='number'&&s.version>=${ONBOARDING_VERSION}}else{var l=null;try{l=JSON.parse(localStorage.getItem('sama4_onboarded'))}catch(e){}done=l===true}if(done)return;var d=document.documentElement;d.classList.add('intro','intro-splash');setTimeout(function(){if(!d.hasAttribute('${GATE_ATTR}'))d.classList.remove('intro','intro-splash')},${SPLASH_FAILSAFE_MS})}catch(e){}})();`;
