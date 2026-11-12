@@ -142,6 +142,23 @@ test("publisher text and samā4-generated text are labelled", async ({ page }) =
   ).toBeVisible();
 });
 
+test("the old Announcements link lands on Early access, with a way back to reading", async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto("/announcements");
+  await expect(page).toHaveURL(/\/early-access$/);
+  await expect(page.getByRole("link", { name: "Early access", exact: true })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(page.getByRole("link", { name: "Back to today's stories" })).toBeVisible();
+  // One navigation: the page's own top nav is hidden inside the app.
+  await expect(page.locator(".s4-landing > nav")).toBeHidden();
+  await expect(page.getByText(/Samā4/)).toHaveCount(0);
+});
+
 test("a term with no explanation says so and offers a next step", async ({ page }) => {
   await mockApi(page);
   const ref = JSON.parse(
@@ -203,19 +220,21 @@ test("waitlist email has a real label and accessible inline errors", async ({ pa
   const submit = page.getByRole("button", { name: "Get early access" });
 
   await submit.click();
-  await expect(page.getByRole("alert")).toHaveText("Enter your email address.");
+  await expect(page.locator("#formError[role=alert]")).toHaveText("Enter your email address.");
   await expect(email).toHaveAttribute("aria-invalid", "true");
   await expect(email).toBeFocused();
 
   await email.fill("not-an-email");
   await expect(email).not.toHaveAttribute("aria-invalid", "true"); // cleared while typing
   await email.press("Enter");
-  await expect(page.getByRole("alert")).toHaveText(/doesn't look like an email address/);
+  await expect(page.locator("#formError[role=alert]")).toHaveText(
+    /doesn't look like an email address/,
+  );
   expect(posted).toBe(0); // invalid input never reaches the server
 
   await email.fill("reader@example.com");
   await email.press("Enter");
-  await expect(page.getByRole("alert")).toHaveText(/not on the list yet/);
+  await expect(page.locator("#formError[role=alert]")).toHaveText(/not on the list yet/);
   expect(posted).toBe(1);
 
   await expect(page.getByRole("link", { name: "How samā4 handles your data" })).toHaveAttribute(

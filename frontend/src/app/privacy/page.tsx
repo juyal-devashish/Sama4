@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Page } from "@/components/shell/Page";
 
 export const metadata = { title: "Privacy · samā4" };
@@ -8,9 +9,12 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <>
         <p>
-          If you join the waitlist we store your email address, when you signed up and which page
-          you used. We use it only to tell you when early access opens. We never sell it or share it
-          for marketing.
+          If you join the{" "}
+          <Link href="/early-access#waitlist" className="text-accent-secondary underline underline-offset-2">
+            early-access waitlist
+          </Link>{" "}
+          we store your email address, when you signed up and which page you used. We use it only to
+          tell you when early access opens. We never sell it or share it for marketing.
         </p>
         <p>
           To stop abuse of the form, your IP address is used as a sign-up counter for up to an hour
@@ -23,9 +27,12 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
     title: "What stays on your device",
     body: (
       <p>
-        Saved stories, your theme, your topics and whether you&apos;ve seen the welcome screen are
-        kept in your browser&apos;s local storage. They aren&apos;t sent to samā4. Clearing this
-        site&apos;s data in your browser removes them.
+        <Link href="/saved" className="text-accent-secondary underline underline-offset-2">
+          Saved stories
+        </Link>
+        , your theme, your topics and whether you&apos;ve seen the welcome screen are kept in your
+        browser&apos;s local storage. They aren&apos;t sent to samā4. Clearing this site&apos;s data
+        in your browser removes them.
       </p>
     ),
   },
@@ -91,6 +98,11 @@ export default function PrivacyPage() {
             </div>
           </section>
         ))}
+        <p>
+          <Link href="/" className="text-[14px] font-medium text-accent-secondary hover:underline">
+            Back to today&apos;s stories
+          </Link>
+        </p>
       </div>
     </Page>
   );
