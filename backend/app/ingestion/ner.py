@@ -278,8 +278,8 @@ Return ONLY the JSON array, no markdown."""  # noqa: E501 (LLM prompt text)
             entities = []
             for item in items:
                 text = item.get("text", "").strip()
-                entity_type = item.get("type", "CONCEPT").upper()
-                if not text or entity_type not in {"PERSON", "ORG", "LOCATION", "EVENT", "CONCEPT"}:
+                entity_type = normalize_llm_type(item.get("type"))
+                if not text:
                     continue
 
                 # Offsets must come from `content` itself (the stored cleaned_content).
@@ -347,6 +347,9 @@ Return ONLY the JSON array, no markdown."""  # noqa: E501 (LLM prompt text)
                 # Keep the LLM source tag and boost priority
                 existing = merged[key]
                 existing.source = "both"
+                # spaCy's labels are noisy (e.g. "Nvidia" tagged GPE -> LOCATION);
+                # Claude typed the term with the whole article in view, so its type wins.
+                existing.type = ent.type
                 existing.priority = "high"  # confirmed by both → definitely important
             else:
                 merged[key] = ent
@@ -354,6 +357,31 @@ Return ONLY the JSON array, no markdown."""  # noqa: E501 (LLM prompt text)
         # Last line of defence: never return a mention whose offsets miss its text.
         aligned = [e for e in merged.values() if is_aligned(content, e.text, e.start, e.end)]
         return _sort_by_priority(aligned)
+
+
+ENTITY_TYPES = {"PERSON", "ORG", "LOCATION", "EVENT", "CONCEPT"}
+
+# Names Claude sometimes uses instead of ours (plus spaCy labels).
+_LLM_TYPE_ALIASES = {
+    **ENTITY_TYPE_MAP,
+    "ORGANIZATION": "ORG",
+    "ORGANISATION": "ORG",
+    "COMPANY": "ORG",
+    "INSTITUTION": "ORG",
+    "AGENCY": "ORG",
+    "PLACE": "LOCATION",
+    "COUNTRY": "LOCATION",
+    "CITY": "LOCATION",
+    "PEOPLE": "PERSON",
+}
+
+
+def normalize_llm_type(raw: object) -> str:
+    """Map Claude's type string onto PERSON/ORG/LOCATION/EVENT/CONCEPT (default CONCEPT)."""
+    value = str(raw or "").strip().upper()
+    if value in ENTITY_TYPES:
+        return value
+    return _LLM_TYPE_ALIASES.get(value, "CONCEPT")
 
 
 def is_aligned(content: str, text: str, start: int, end: int) -> bool:

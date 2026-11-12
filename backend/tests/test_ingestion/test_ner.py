@@ -12,6 +12,7 @@ from app.ingestion.ner import (
     ExtractedEntity,
     NERService,
     locate_mention,
+    normalize_llm_type,
 )
 from tests.fakes import FakeLLM
 
@@ -404,3 +405,42 @@ class TestLocateMention:
     def test_missing_or_empty_text_returns_none(self):
         assert locate_mention("abc", "xyz") is None
         assert locate_mention("abc", "") is None
+
+
+class TestHybridTypes:
+    async def test_llm_type_overrides_spacy_label_for_shared_term(self):
+        # spaCy tagged Nvidia as GPE (-> LOCATION); Claude knows it's a company.
+        content = "Nvidia shares fell after the earnings call."
+        service = _hybrid_service(
+            [_make_span("Nvidia", "GPE", 0, 6)], [{"text": "Nvidia", "type": "ORG"}]
+        )
+
+        result = await service.extract_entities_hybrid(content, "Chip stocks slide")
+
+        assert [(e.text, e.type, e.source) for e in result] == [("Nvidia", "ORG", "both")]
+
+    async def test_llm_only_terms_keep_their_normalized_type(self):
+        content = "Nvidia and the FOMC both mattered in Basel."
+        service = _hybrid_service(
+            [],
+            [
+                {"text": "Nvidia", "type": "Organization"},
+                {"text": "FOMC", "type": "weird"},
+                {"text": "Basel", "type": "city"},
+            ],
+        )
+
+        result = await service.extract_entities_hybrid(content, "Markets")
+
+        assert {e.text: e.type for e in result} == {
+            "Nvidia": "ORG",
+            "FOMC": "CONCEPT",
+            "Basel": "LOCATION",
+        }
+
+    def test_normalize_llm_type(self):
+        assert normalize_llm_type("person") == "PERSON"
+        assert normalize_llm_type("GPE") == "LOCATION"
+        assert normalize_llm_type("company") == "ORG"
+        assert normalize_llm_type(None) == "CONCEPT"
+        assert normalize_llm_type("") == "CONCEPT"
