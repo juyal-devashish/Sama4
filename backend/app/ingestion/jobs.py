@@ -90,13 +90,14 @@ class MentionRepairReport:
 
 async def repair_mention_offsets(
     *, dry_run: bool = True, delete_unlocatable: bool = False
-) -> MentionRepairReport:
+) -> MentionRepairReport | None:
     """Re-point stored ArticleEntity offsets at their text in Article.cleaned_content.
 
     Fixes rows written before offsets were checked. Aligned rows are left alone;
     misaligned ones are moved to the first match of mention_text. Rows whose text
     isn't in the article are only counted, unless delete_unlocatable is set.
     With dry_run (the default) nothing is written; the report says what would change.
+    Returns None if the job failed (nothing is committed in that case).
     """
     report = MentionRepairReport(dry_run=dry_run)
     try:
@@ -121,7 +122,7 @@ async def repair_mention_offsets(
                 await db.commit()
     except Exception:
         logger.error("Mention offset repair failed", exc_info=True)
-        return MentionRepairReport(dry_run=dry_run)
+        return None
     logger.info("Mention offset repair: %s", report)
     return report
 

@@ -1,6 +1,6 @@
 """Admin operations. Every route requires the X-Admin-Secret header (see deps.require_admin)."""
 
-from fastapi import APIRouter, BackgroundTasks, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 from pydantic import BaseModel
 
 from app.api.deps import AdminOnly, ContainerDep
@@ -62,4 +62,9 @@ async def repair_mentions(
     report = await jobs.repair_mention_offsets(
         dry_run=dry_run, delete_unlocatable=delete_unlocatable
     )
+    if report is None:
+        # Never let a failure look like "nothing to repair".
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "Mention repair failed; nothing was changed."
+        )
     return MentionRepairResponse(**vars(report))

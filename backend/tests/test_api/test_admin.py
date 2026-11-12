@@ -126,3 +126,17 @@ async def test_repair_mentions_deletes_unlocatable_only_when_asked(client, db_se
     assert set(offsets) == {"Seventh Circuit", "most-cited legal scholar"}
     for text, (start, end) in offsets.items():
         assert POSNER[start:end] == text
+
+
+async def test_repair_mentions_failure_returns_500_not_an_empty_report(client):
+    with patch.object(jobs, "repair_mention_offsets", new=AsyncMock(return_value=None)):
+        response = await client.post("/api/v1/admin/mentions/repair", headers=ADMIN)
+    assert response.status_code == 500
+    assert "nothing was changed" in response.json()["detail"]
+
+
+async def test_repair_mentions_requires_admin_secret(client):
+    response = await client.post(
+        "/api/v1/admin/mentions/repair", headers={"X-Admin-Secret": "nope"}
+    )
+    assert response.status_code == 403
