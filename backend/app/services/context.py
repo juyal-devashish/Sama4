@@ -55,6 +55,7 @@ def related_article_briefs(matches: list[dict]) -> list[RelatedArticleBrief]:
 
 
 EXCERPT_RADIUS = 300  # characters of article text kept on each side of a mention
+FOLLOWUP_ARTICLE_CHARS = 6000  # article text given to follow-up answers
 
 
 def mention_excerpt(text: str, mention: ArticleEntity, radius: int = EXCERPT_RADIUS) -> str | None:
@@ -160,35 +161,56 @@ class ContextService:
     async def answer_followup(
         self, entity: Entity, article: Article, question: str, db: AsyncSession
     ) -> ExplainResponse:
-        """Answer a reader's question about an entity, in the context of an article."""
+        """Answer a reader's question, grounded in what they can see.
+
+        The prompt gets the article text and the explanation shown in the margin (the
+        cached one, i.e. exactly what the reader read), plus Wikipedia and the outlook.
+        The answer tags each fact with its source; `sources` lists the ones provided.
+        """
+        cached = await self.cache.get(self.cache_key(entity))
+        explanation = (cached or {}).get("text") or entity.short_context or ""
+        article_text = (article.cleaned_content or article.raw_content or article.summary or "")[
+            :FOLLOWUP_ARTICLE_CHARS
+        ]
         wikipedia_extract = await self.wikimedia.get_wikipedia_extract(entity.wikipedia_url or "")
 
-        prediction_context = ""
+        outlook_block = ""
         prediction = await prediction_repo.latest_completed_for_article(db, article.id)
         if prediction and prediction.prediction_summary:
-            prediction_context = (
-                "\n\nPREDICTION ANALYSIS (from multi-agent simulation):\n"
+            outlook_block = (
+                "\n[outlook] samā4's AI-GENERATED OUTLOOK (a projection, not fact):\n"
                 f"{prediction.prediction_summary}\n"
-                f"Key findings: {', '.join(prediction.key_findings or [])}"
             )
 
-        prompt = PROMPTS["followup_question"]["v1"]["template"].format(
+        prompt = PROMPTS["followup_question"]["v2"]["template"].format(
             article_title=article.title,
-            article_summary=article.summary or "",
+            article_text=article_text or "(no text)",
             entity_name=entity.canonical_name,
-            entity_context=entity.short_context or "",
+            explanation=explanation or "(none)",
+            wikipedia=wikipedia_extract or "(none)",
+            outlook_block=outlook_block,
             user_question=question,
-            retrieved_knowledge=(wikipedia_extract or "") + prediction_context,
         )
         answer = await self.llm.generate(prompt, effort="medium")
+
+        sources = [ContextSource(type="article", title=article.title, url=article.url)]
+        if explanation:
+            sources.append(
+                ContextSource(
+                    type="explanation", title=f"samā4's explanation of {entity.canonical_name}"
+                )
+            )
+        if wikipedia_extract:
+            sources.append(
+                ContextSource(type="wikipedia", title="Wikipedia", url=entity.wikipedia_url)
+            )
+        if outlook_block:
+            sources.append(ContextSource(type="outlook", title="samā4's AI outlook"))
 
         return ExplainResponse(
             entity=entity_info(entity),
             explanation=answer,
-            sources=[
-                ContextSource(type="article", title=article.title),
-                ContextSource(type="wikipedia", url=entity.wikipedia_url),
-            ],
+            sources=sources,
             confidence=0.85,
         )
 

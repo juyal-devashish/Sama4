@@ -127,6 +127,40 @@ async def test_explain_answers_followup(client, container, db_session):
     assert '"Why?"' in container.llm.calls[0]["prompt"]
 
 
+async def test_followup_is_grounded_in_the_article_and_the_shown_explanation(
+    client, container, db_session
+):
+    async with db_session() as db:
+        article = await make_article(
+            db, title="Nvidia earnings", content="Jensen Huang said Nvidia's chips sold out."
+        )
+        huang = await make_entity(db, name="Jensen Huang", article=article)
+        await db.commit()
+    container.llm.default = "Jensen Huang leads Nvidia, which makes graphics chips."
+    # The reader opens the term first: this is the explanation they see.
+    shown = (await client.get(f"/api/v1/context/{huang.id}")).json()["context"]["text"]
+    container.llm.default = "It makes graphics chips [explanation]."
+
+    body = (
+        await client.post(
+            "/api/v1/context/explain",
+            json={
+                "entity_id": str(huang.id),
+                "article_id": str(article.id),
+                "question": "What does Nvidia make?",
+            },
+        )
+    ).json()
+
+    prompt = container.llm.calls[-1]["prompt"]
+    assert shown in prompt  # the margin's explanation, verbatim
+    assert "Jensen Huang said Nvidia's chips sold out." in prompt  # the article text
+    assert "[explanation]" in prompt and "[article]" in prompt
+    assert body["explanation"] == "It makes graphics chips [explanation]."
+    assert [s["type"] for s in body["sources"]] == ["article", "explanation", "wikipedia"]
+    assert body["sources"][0]["url"] == article.url
+
+
 async def test_explain_unknown_article_404(client, db_session):
     async with db_session() as db:
         ada = await make_entity(db, name="Ada")
