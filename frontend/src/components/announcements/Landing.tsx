@@ -138,34 +138,8 @@ export function Landing() {
       }),
     );
 
-    // ── Stats count-up ──
-    const stats = Array.from(el.querySelectorAll<HTMLElement>(".stat-number[data-target]"));
-    const countUp = (s: HTMLElement) => {
-      const target = parseFloat(s.dataset.target ?? "0");
-      const { suffix = "", prefix = "" } = s.dataset;
-      const isFloat = target % 1 !== 0;
-      const start = performance.now();
-      const tick = (now: number) => {
-        const p = Math.min((now - start) / 1600, 1);
-        const eased = 1 - Math.pow(1 - p, 3);
-        s.textContent =
-          prefix + (isFloat ? (target * eased).toFixed(1) : Math.round(target * eased)) + suffix;
-        if (p < 1) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    };
-    const statsRow = $(".stats-row");
-    if (statsRow && stats.length)
-      observe(
-        [statsRow],
-        (e, obs) => {
-          if (e.isIntersecting) {
-            stats.forEach((s, i) => later(() => countUp(s), i * 150));
-            obs.disconnect();
-          }
-        },
-        0.3,
-      );
+    // Stats render their final values in the markup: no count-up from a misleading
+    // zero (and nothing to animate for readers who prefer reduced motion).
 
     // ── Scroll reveal ──
     observe(
@@ -262,7 +236,7 @@ export function Landing() {
           {[
             ["#how", "How it works"],
             ["#features", "Features"],
-            ["#waitlist", "Join the waitlist"],
+            ["#waitlist", "Get early access"],
           ].map(([href, label]) => (
             <a
               key={href}
