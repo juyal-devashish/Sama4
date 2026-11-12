@@ -17,6 +17,8 @@ export function usePredictionStatus(predictionId: string, enabled: boolean) {
     queryFn: () => api.getPredictionStatus(predictionId),
     enabled: enabled && !!predictionId,
     refetchInterval: (query) => {
+      // Stop on a terminal status, and on an error (e.g. 404): keep polling only a live run.
+      if (query.state.status === "error") return false;
       const status = query.state.data?.status;
       if (status === "completed" || status === "failed") return false;
       return 3000; // poll every 3s while running

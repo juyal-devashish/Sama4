@@ -1,11 +1,27 @@
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 from app.dbtypes import GUID, StringArray
+
+# Lifecycle: queued -> building_graph -> simulating -> generating_report -> completed | failed.
+# (The LLM fallback jumps straight to generating_report.) Runs execute in the API process,
+# so a run whose row stops changing has died with it; see Prediction.is_stale.
+STATUS_QUEUED = "queued"
+STATUS_BUILDING_GRAPH = "building_graph"
+STATUS_SIMULATING = "simulating"
+STATUS_GENERATING_REPORT = "generating_report"
+STATUS_COMPLETED = "completed"
+STATUS_FAILED = "failed"
+RUNNING_STATUSES = (
+    STATUS_QUEUED,
+    STATUS_BUILDING_GRAPH,
+    STATUS_SIMULATING,
+    STATUS_GENERATING_REPORT,
+)
 
 
 class Prediction(Base):
@@ -27,8 +43,8 @@ class Prediction(Base):
     simulation_rounds: Mapped[int] = mapped_column(Integer, default=30)
     platforms: Mapped[list[str]] = mapped_column(StringArray, default=lambda: ["twitter", "reddit"])
 
-    # Status: queued, building_graph, simulating, generating_report, completed, failed
-    status: Mapped[str] = mapped_column(String(50), default="queued")
+    # One of RUNNING_STATUSES, STATUS_COMPLETED or STATUS_FAILED (see top of module).
+    status: Mapped[str] = mapped_column(String(50), default=STATUS_QUEUED)
     error_message: Mapped[str | None] = mapped_column(Text)
 
     # Results
@@ -42,9 +58,7 @@ class Prediction(Base):
     impact_score: Mapped[int] = mapped_column(Integer, default=0)
 
     # Timestamps
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -55,6 +69,17 @@ class Prediction(Base):
     agent_perspectives: Mapped[list["AgentPerspective"]] = relationship(
         back_populates="prediction", cascade="all, delete-orphan"
     )
+
+    def is_stale(self, stale_after: timedelta, now: datetime | None = None) -> bool:
+        """True if this run is still "running" but hasn't changed for ``stale_after``."""
+        if self.status not in RUNNING_STATUSES:
+            return False
+        last = self.updated_at or self.created_at
+        if last is None:
+            return False
+        if last.tzinfo is None:  # SQLite returns naive datetimes; they are UTC
+            last = last.replace(tzinfo=UTC)
+        return (now or datetime.now(UTC)) - last > stale_after
 
     __table_args__ = (
         Index("idx_predictions_article", "article_id"),
@@ -76,7 +101,9 @@ class AgentPerspective(Base):
 
     # Agent identity
     agent_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    agent_role: Mapped[str] = mapped_column(String(255), nullable=False)  # e.g. "economist", "policy analyst"
+    agent_role: Mapped[str] = mapped_column(
+        String(255), nullable=False
+    )  # e.g. "economist", "policy analyst"
     agent_persona: Mapped[str | None] = mapped_column(Text)  # full persona description
 
     # Perspective content
@@ -89,9 +116,7 @@ class AgentPerspective(Base):
     sentiment_score: Mapped[float | None] = mapped_column(default=None)  # -1.0 to 1.0
 
     # Timestamps
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
     prediction: Mapped["Prediction"] = relationship(back_populates="agent_perspectives")

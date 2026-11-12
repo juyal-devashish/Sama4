@@ -79,6 +79,9 @@ class Settings(BaseSettings):
     mirofish_auto_simulate: bool = False  # auto-simulate high-impact articles
     mirofish_impact_threshold: int = 5  # min entity count to auto-simulate
     prediction_cache_ttl: int = 43200  # 12 hours
+    # A running prediction whose row hasn't changed for this long is treated as dead
+    # (its background task died with a deploy or crash) and marked failed.
+    prediction_stale_minutes: int = 60
 
     # Sentry
     sentry_dsn: str = ""

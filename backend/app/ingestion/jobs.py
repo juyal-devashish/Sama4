@@ -17,7 +17,7 @@ from app.ingestion.pipeline import IngestionPipeline
 from app.ingestion.summarizer import SummarizerService
 from app.models.article import Article
 from app.models.entity import ArticleEntity
-from app.models.prediction import Prediction
+from app.models.prediction import RUNNING_STATUSES, STATUS_FAILED, STATUS_QUEUED, Prediction
 from app.repositories import articles as article_repo
 from app.repositories import entities as entity_repo
 from app.services.predictions import PredictionService
@@ -161,7 +161,7 @@ async def auto_simulate_high_impact(container: Container) -> None:
                 try:
                     prediction = await service.trigger_simulation(article, db)
                     await db.commit()
-                    if prediction.status == "queued":
+                    if prediction.status == STATUS_QUEUED:
                         await service.run_simulation_pipeline(str(prediction.id), db)
                 except Exception:
                     logger.error("Auto-simulation failed for article %s", article.id, exc_info=True)
@@ -184,3 +184,33 @@ async def run_simulation(container: Container, prediction_id: str) -> None:
             await service.run_simulation_pipeline(prediction_id, db)
     except Exception:
         logger.error("Simulation %s failed", prediction_id, exc_info=True)
+
+
+async def fail_interrupted_predictions() -> int:
+    """At startup, fail every prediction left "running" by the previous process.
+
+    Simulations run as in-process background tasks, so none can still be running
+    when the API starts. Without this they stay "running" forever: the reader sees
+    a spinner and "Run outlook" can't start a new one. Never raises.
+    """
+    try:
+        async with async_session() as db:
+            stuck = (
+                (
+                    await db.execute(
+                        select(Prediction).where(Prediction.status.in_(RUNNING_STATUSES))
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            for prediction in stuck:
+                prediction.status = STATUS_FAILED
+                prediction.error_message = "Interrupted by a server restart."
+            await db.commit()
+        if stuck:
+            logger.warning("Marked %d interrupted prediction(s) as failed", len(stuck))
+        return len(stuck)
+    except Exception:
+        logger.error("Could not clean up interrupted predictions", exc_info=True)
+        return 0

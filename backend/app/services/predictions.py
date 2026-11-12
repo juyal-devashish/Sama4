@@ -2,7 +2,7 @@
 
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +13,17 @@ from app.clients.llm import LLMClient
 from app.clients.mirofish import MirofishClient
 from app.config import Settings
 from app.models.article import Article
-from app.models.prediction import AgentPerspective, Prediction
+from app.models.prediction import (
+    RUNNING_STATUSES,
+    STATUS_BUILDING_GRAPH,
+    STATUS_COMPLETED,
+    STATUS_FAILED,
+    STATUS_GENERATING_REPORT,
+    STATUS_QUEUED,
+    STATUS_SIMULATING,
+    AgentPerspective,
+    Prediction,
+)
 from app.models.source import Source
 
 logger = logging.getLogger(__name__)
@@ -29,6 +39,19 @@ class PredictionService:
         self.cache = cache
         self.mirofish = mirofish
         self.settings = settings
+        self.stale_after = timedelta(minutes=settings.prediction_stale_minutes)
+
+    async def expire_if_stale(self, prediction: Prediction, db: AsyncSession) -> bool:
+        """Mark a run that stopped making progress as failed. Returns True if it did."""
+        if not prediction.is_stale(self.stale_after):
+            return False
+        logger.warning(
+            "Prediction %s stalled in %s; marking failed", prediction.id, prediction.status
+        )
+        prediction.status = STATUS_FAILED
+        prediction.error_message = "The run stopped making progress (server restart or crash)."
+        await db.commit()
+        return True
 
     async def trigger_simulation(
         self,
@@ -45,14 +68,15 @@ class PredictionService:
         """
         # Check if prediction already exists for this article
         existing = await db.execute(
-            select(Prediction).where(
+            select(Prediction)
+            .where(
                 Prediction.article_id == article.id,
-                Prediction.status.in_(
-                    ["queued", "building_graph", "simulating", "generating_report", "completed"]
-                ),
+                Prediction.status.in_([*RUNNING_STATUSES, STATUS_COMPLETED]),
             )
+            .order_by(Prediction.created_at.desc())
         )
-        if pred := existing.scalar_one_or_none():
+        pred = existing.scalars().first()
+        if pred is not None and not await self.expire_if_stale(pred, db):
             return pred
 
         prediction = Prediction(
@@ -60,7 +84,7 @@ class PredictionService:
             agent_count=agent_count or self.settings.mirofish_default_agents,
             simulation_rounds=simulation_rounds or self.settings.mirofish_default_rounds,
             platforms=platforms or ["twitter", "reddit"],
-            status="queued",
+            status=STATUS_QUEUED,
         )
         db.add(prediction)
         await db.flush()
@@ -80,7 +104,7 @@ class PredictionService:
 
         article = await db.get(Article, prediction.article_id)
         if not article:
-            prediction.status = "failed"
+            prediction.status = STATUS_FAILED
             prediction.error_message = "Article not found"
             await db.commit()
             return
@@ -103,7 +127,7 @@ class PredictionService:
         """Run prediction through the real MiroFish engine."""
         try:
             # Step 1: Upload seed material
-            prediction.status = "building_graph"
+            prediction.status = STATUS_BUILDING_GRAPH
             await db.commit()
 
             content = article.cleaned_content or article.raw_content or article.summary or ""
@@ -122,7 +146,7 @@ class PredictionService:
             await self.mirofish.build_knowledge_graph(project_id)
 
             # Step 3: Setup simulation
-            prediction.status = "simulating"
+            prediction.status = STATUS_SIMULATING
             await db.commit()
 
             setup_result = await self.mirofish.setup_simulation(
@@ -142,7 +166,7 @@ class PredictionService:
             prediction.mirofish_simulation_id = simulation_id
 
             # Step 5: Get report
-            prediction.status = "generating_report"
+            prediction.status = STATUS_GENERATING_REPORT
             await db.commit()
 
             report = await self.mirofish.get_report(simulation_id)
@@ -161,7 +185,7 @@ class PredictionService:
     ) -> None:
         """Generate a synthetic prediction using LLM when MiroFish is unavailable."""
         try:
-            prediction.status = "generating_report"
+            prediction.status = STATUS_GENERATING_REPORT
             await db.commit()
 
             content = article.cleaned_content or article.summary or article.title
@@ -237,14 +261,14 @@ Return ONLY valid JSON, no markdown code blocks."""  # noqa: E501 (LLM prompt te
                 )
                 db.add(perspective)
 
-            prediction.status = "completed"
+            prediction.status = STATUS_COMPLETED
             prediction.completed_at = datetime.now(UTC)
             await db.commit()
 
             # Cache the result
             await self.cache.set(
                 f"prediction:article:{prediction.article_id}",
-                {"prediction_id": str(prediction.id), "status": "completed"},
+                {"prediction_id": str(prediction.id), "status": STATUS_COMPLETED},
                 ttl=self.settings.prediction_cache_ttl,
             )
 
@@ -252,7 +276,7 @@ Return ONLY valid JSON, no markdown code blocks."""  # noqa: E501 (LLM prompt te
             logger.error(
                 "LLM fallback failed for prediction %s: %s", prediction.id, e, exc_info=True
             )
-            prediction.status = "failed"
+            prediction.status = STATUS_FAILED
             prediction.error_message = str(e)
             await db.commit()
 
@@ -322,13 +346,13 @@ Return ONLY valid JSON."""
                 )
             )
 
-        prediction.status = "completed"
+        prediction.status = STATUS_COMPLETED
         prediction.completed_at = datetime.now(UTC)
         await db.commit()
 
         await self.cache.set(
             f"prediction:article:{prediction.article_id}",
-            {"prediction_id": str(prediction.id), "status": "completed"},
+            {"prediction_id": str(prediction.id), "status": STATUS_COMPLETED},
             ttl=self.settings.prediction_cache_ttl,
         )
 
@@ -351,7 +375,7 @@ Return ONLY valid JSON."""
             select(Prediction, Article, Source)
             .join(Article, Prediction.article_id == Article.id)
             .outerjoin(Source, Article.source_id == Source.id)
-            .where(Prediction.status == "completed")
+            .where(Prediction.status == STATUS_COMPLETED)
             .order_by(Prediction.impact_score.desc(), Prediction.completed_at.desc())
             .limit(limit)
         )
