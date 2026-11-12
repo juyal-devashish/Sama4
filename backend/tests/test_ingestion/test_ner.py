@@ -3,6 +3,7 @@
 All tests mock spaCy to avoid loading the transformer model (~457MB).
 """
 
+import json
 from unittest.mock import MagicMock, patch
 
 from app.ingestion.ner import (
@@ -10,7 +11,10 @@ from app.ingestion.ner import (
     ENTITY_TYPE_MAP,
     ExtractedEntity,
     NERService,
+    locate_mention,
+    normalize_llm_type,
 )
+from tests.fakes import FakeLLM
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -301,3 +305,142 @@ class TestModelLoading:
                 except OSError:
                     result = mock_spacy_module.load("en_core_web_sm")
                     assert result == mock_sm
+
+
+# ---------------------------------------------------------------------------
+# 5. Hybrid (spaCy + Claude) offsets: every mention must point at its own text
+# ---------------------------------------------------------------------------
+
+POSNER = (
+    "He was the most-cited legal scholar of the 20th century. "
+    "Richard A. Posner served on the Seventh Circuit for 36 years. "
+    "Posner pioneered law and economics."
+)
+
+
+def _hybrid_service(spans: list, llm_terms: list[dict]) -> NERService:
+    service = NERService(llm=FakeLLM(default=json.dumps(llm_terms)))
+    service._nlp = MagicMock(return_value=_make_doc(spans))
+    return service
+
+
+def _assert_aligned(content: str, entities: list[ExtractedEntity]) -> None:
+    for e in entities:
+        assert content[e.start : e.end].lower() == e.text.lower(), e
+
+
+class TestHybridOffsets:
+    async def test_llm_term_with_different_case_is_located(self):
+        # Claude capitalised the term; the old case-sensitive search fell back to
+        # offsets 0..len(text) and highlighted "He was the most-cited le…".
+        service = _hybrid_service([], [{"text": "Most-cited legal scholar", "type": "CONCEPT"}])
+
+        result = await service.extract_entities_hybrid(POSNER, "Judge Richard A. Posner has died")
+
+        assert len(result) == 1
+        assert (result[0].start, result[0].end) == (11, 35)
+        _assert_aligned(POSNER, result)
+
+    async def test_llm_term_not_in_text_is_dropped(self):
+        service = _hybrid_service(
+            [],
+            [
+                {"text": "He was the most-c", "type": "CONCEPT"},  # real prefix: kept, at 0
+                {"text": "Chicago school of economics", "type": "CONCEPT"},  # absent
+                {"text": "Seventh Circuit", "type": "ORG"},
+            ],
+        )
+
+        result = await service.extract_entities_hybrid(POSNER, "Posner obituary")
+
+        assert {e.text for e in result} == {"He was the most-c", "Seventh Circuit"}
+        _assert_aligned(POSNER, result)
+
+    async def test_llm_offsets_are_found_in_full_content_not_prompt_excerpt(self):
+        # The prompt only shows the first 3000 chars; offsets must still be in `content`.
+        content = "x" * 3500 + " The Seventh Circuit ruled."
+        service = _hybrid_service([], [{"text": "Seventh Circuit", "type": "ORG"}])
+
+        result = await service.extract_entities_hybrid(content, "Ruling")
+
+        assert result[0].start == content.index("Seventh Circuit")
+        _assert_aligned(content, result)
+
+    async def test_spacy_span_with_surrounding_whitespace_is_trimmed(self):
+        content = "Judge  Posner wrote."
+        spans = [_make_span(" Posner", "PERSON", 6, 13)]
+        service = _hybrid_service(spans, [])
+
+        result = await service.extract_entities_hybrid(content, "Obit")
+
+        assert result[0].text == "Posner"
+        _assert_aligned(content, result)
+
+    async def test_spacy_span_with_wrong_offsets_is_relocated(self):
+        spans = [_make_span("Posner", "PERSON", 0, 6)]  # content[0:6] == "He was"
+        service = _hybrid_service(spans, [])
+
+        result = await service.extract_entities_hybrid(POSNER, "Obit")
+
+        assert result[0].start == POSNER.index("Posner")
+        _assert_aligned(POSNER, result)
+
+    async def test_spacy_span_whose_text_is_absent_is_dropped(self):
+        spans = [_make_span("Easterbrook", "PERSON", 0, 11)]
+        service = _hybrid_service(spans, [])
+
+        assert await service.extract_entities_hybrid(POSNER, "Obit") == []
+
+
+class TestLocateMention:
+    def test_prefers_whole_word_over_substring(self):
+        content = "The ECBs and the ECB disagreed."
+        assert locate_mention(content, "ECB") == (17, 20)
+
+    def test_uses_hint_only_when_it_matches(self):
+        content = "Posner and Posner"
+        assert locate_mention(content, "Posner", hint=11) == (11, 17)
+        assert locate_mention(content, "Posner", hint=3) == (0, 6)
+
+    def test_missing_or_empty_text_returns_none(self):
+        assert locate_mention("abc", "xyz") is None
+        assert locate_mention("abc", "") is None
+
+
+class TestHybridTypes:
+    async def test_llm_type_overrides_spacy_label_for_shared_term(self):
+        # spaCy tagged Nvidia as GPE (-> LOCATION); Claude knows it's a company.
+        content = "Nvidia shares fell after the earnings call."
+        service = _hybrid_service(
+            [_make_span("Nvidia", "GPE", 0, 6)], [{"text": "Nvidia", "type": "ORG"}]
+        )
+
+        result = await service.extract_entities_hybrid(content, "Chip stocks slide")
+
+        assert [(e.text, e.type, e.source) for e in result] == [("Nvidia", "ORG", "both")]
+
+    async def test_llm_only_terms_keep_their_normalized_type(self):
+        content = "Nvidia and the FOMC both mattered in Basel."
+        service = _hybrid_service(
+            [],
+            [
+                {"text": "Nvidia", "type": "Organization"},
+                {"text": "FOMC", "type": "weird"},
+                {"text": "Basel", "type": "city"},
+            ],
+        )
+
+        result = await service.extract_entities_hybrid(content, "Markets")
+
+        assert {e.text: e.type for e in result} == {
+            "Nvidia": "ORG",
+            "FOMC": "CONCEPT",
+            "Basel": "LOCATION",
+        }
+
+    def test_normalize_llm_type(self):
+        assert normalize_llm_type("person") == "PERSON"
+        assert normalize_llm_type("GPE") == "LOCATION"
+        assert normalize_llm_type("company") == "ORG"
+        assert normalize_llm_type(None) == "CONCEPT"
+        assert normalize_llm_type("") == "CONCEPT"
