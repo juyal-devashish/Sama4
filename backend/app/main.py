@@ -17,6 +17,17 @@ logger = logging.getLogger(__name__)
 API_PREFIX = "/api/v1"
 
 
+def _configure_logging(s: Settings) -> None:
+    """Send app loggers (pipeline, scheduler, clients) to stderr at LOG_LEVEL.
+
+    Uvicorn configures only its own loggers; without this, app INFO logs are dropped.
+    """
+    logging.basicConfig(
+        level=s.log_level.upper(),
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
+
+
 def _init_sentry(s: Settings) -> None:
     if not s.sentry_dsn:
         return
@@ -51,6 +62,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 def create_app(s: Settings = settings) -> FastAPI:
+    _configure_logging(s)
     _init_sentry(s)
     app = FastAPI(
         title="samā4 API",
