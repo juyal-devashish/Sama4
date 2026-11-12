@@ -1,0 +1,1143 @@
+{
+  "feed": {
+    "articles": [
+      {
+        "id": "89021bed-ec73-4cdc-a2f3-ecb61da7d7f4",
+        "title": "Philip Glass Withdraws From Kennedy Center Performance Amid Controversy",
+        "summary": "Composer Philip Glass pulls out of a Kennedy Center performance to protest federal arts funding cuts, drawing support from fellow artists.",
+        "image_url": null,
+        "source": {
+          "name": "The New York Times",
+          "logo_url": null
+        },
+        "published_at": "2026-11-12T14:16:12.746678",
+        "reading_time_minutes": 3,
+        "categories": ["general", "world"],
+        "entity_count": 4
+      },
+      {
+        "id": "1176f0e0-7d79-4fa5-9673-93ef9501052a",
+        "title": "OpenAI Announces GPT-5 With Breakthrough Reasoning Capabilities",
+        "summary": "OpenAI launches GPT-5 with major reasoning improvements, outscoring GPT-4 on science benchmarks. Available to subscribers next month.",
+        "image_url": null,
+        "source": {
+          "name": "TechCrunch",
+          "logo_url": null
+        },
+        "published_at": "2026-11-12T11:16:12.746678",
+        "reading_time_minutes": 4,
+        "categories": ["tech"],
+        "entity_count": 4
+      },
+      {
+        "id": "1a38116b-4533-4a3b-aab7-7dda0ef96272",
+        "title": "Federal Reserve Holds Interest Rates Steady, Signals Cuts Later This Year",
+        "summary": "The Fed keeps rates at 4.25-4.50% as expected. Chair Powell hints at possible cuts later in 2026, boosting stocks.",
+        "image_url": null,
+        "source": {
+          "name": "Reuters",
+          "logo_url": null
+        },
+        "published_at": "2026-11-12T08:16:12.746678",
+        "reading_time_minutes": 3,
+        "categories": ["business"],
+        "entity_count": 4
+      },
+      {
+        "id": "1c278552-1987-4b59-9fb4-1bb84ec9ed65",
+        "title": "NASA's Artemis III Moon Landing Pushed to Late 2027",
+        "summary": "NASA pushes the Artemis III Moon landing to late 2027 due to SpaceX Starship development delays. China's lunar program adds competitive pressure.",
+        "image_url": null,
+        "source": {
+          "name": "Reuters",
+          "logo_url": null
+        },
+        "published_at": "2026-11-12T04:16:12.746678",
+        "reading_time_minutes": 4,
+        "categories": ["science", "tech"],
+        "entity_count": 4
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 100,
+      "total": 4,
+      "has_next": false
+    }
+  },
+  "articles": {
+    "89021bed-ec73-4cdc-a2f3-ecb61da7d7f4": {
+      "id": "89021bed-ec73-4cdc-a2f3-ecb61da7d7f4",
+      "title": "Philip Glass Withdraws From Kennedy Center Performance Amid Controversy",
+      "content": "Philip Glass, the acclaimed minimalist composer, has announced his withdrawal from an upcoming performance at the Kennedy Center. The decision comes amid growing controversy over federal arts funding cuts proposed by the current administration.\n\nGlass, 89, whose works include 'Einstein on the Beach' and the film scores for 'The Hours' and 'Koyaanisqatsi', released a statement saying he could not in good conscience perform at a venue receiving federal funding while artists across the country face unprecedented budget reductions.\n\nThe Kennedy Center, located in Washington D.C., is one of the nation's premier performing arts venues. The National Symphony Orchestra, which was set to accompany Glass, expressed disappointment but respect for his decision.\n\nSeveral other prominent artists, including Yo-Yo Ma and Renee Fleming, have voiced support for Glass's position, though they have not announced similar withdrawals.",
+      "summary": "Composer Philip Glass pulls out of a Kennedy Center performance to protest federal arts funding cuts, drawing support from fellow artists.",
+      "image_url": null,
+      "source": {
+        "name": "The New York Times",
+        "url": "https://example.com/articles/philip-glass-kennedy-center",
+        "credibility_score": 0.92
+      },
+      "published_at": "2026-11-12T14:16:12.746678",
+      "reading_time_minutes": 3,
+      "categories": ["general", "world"],
+      "entities": [
+        {
+          "id": "399100b5-e078-46f2-bb2b-65d310ca0599",
+          "text": "Philip Glass",
+          "type": "PERSON",
+          "start": 0,
+          "end": 12,
+          "priority": "high"
+        },
+        {
+          "id": "1bee56a4-8da0-451b-a0c5-1e0e501bd6c1",
+          "text": "Kennedy Center",
+          "type": "ORG",
+          "start": 92,
+          "end": 106,
+          "priority": "high"
+        },
+        {
+          "id": "af8badc6-2743-4a2e-b2ea-6193adeb3831",
+          "text": "National Symphony Orchestra",
+          "type": "ORG",
+          "start": 597,
+          "end": 624,
+          "priority": "medium"
+        },
+        {
+          "id": "1678ead0-f085-41ab-aaa7-d3825416cbb5",
+          "text": "Yo-Yo Ma",
+          "type": "PERSON",
+          "start": 730,
+          "end": 738,
+          "priority": "medium"
+        }
+      ]
+    },
+    "1176f0e0-7d79-4fa5-9673-93ef9501052a": {
+      "id": "1176f0e0-7d79-4fa5-9673-93ef9501052a",
+      "title": "OpenAI Announces GPT-5 With Breakthrough Reasoning Capabilities",
+      "content": "OpenAI has officially unveiled GPT-5, its most advanced large language model to date, claiming significant breakthroughs in multi-step reasoning and factual accuracy. CEO Sam Altman presented the model at a press event in San Francisco.\n\nThe new model reportedly scores 92% on graduate-level science benchmarks, up from GPT-4's 78%. Altman described it as 'the first model that can genuinely reason through complex problems rather than pattern-matching.'\n\nCompetitors including Google DeepMind and Anthropic have been racing to develop similar capabilities. Google's Gemini Ultra 2 and Anthropic's Claude have both shown improvements in reasoning, but OpenAI claims GPT-5 sets a new bar.\n\nThe model will be available to ChatGPT Plus subscribers starting next month, with API access following shortly after. Pricing has not yet been announced.",
+      "summary": "OpenAI launches GPT-5 with major reasoning improvements, outscoring GPT-4 on science benchmarks. Available to subscribers next month.",
+      "image_url": null,
+      "source": {
+        "name": "TechCrunch",
+        "url": "https://example.com/articles/openai-gpt5-announcement",
+        "credibility_score": 0.85
+      },
+      "published_at": "2026-11-12T11:16:12.746678",
+      "reading_time_minutes": 4,
+      "categories": ["tech"],
+      "entities": [
+        {
+          "id": "4a64db3d-a4ab-4331-a6c0-ed5d27f27c66",
+          "text": "OpenAI",
+          "type": "ORG",
+          "start": 0,
+          "end": 6,
+          "priority": "high"
+        },
+        {
+          "id": "447f3cdf-c1b7-4470-93d4-a02eda0f221c",
+          "text": "Sam Altman",
+          "type": "PERSON",
+          "start": 152,
+          "end": 162,
+          "priority": "high"
+        },
+        {
+          "id": "ad23c806-8521-424f-9ee2-dce9c30c2d9f",
+          "text": "Google DeepMind",
+          "type": "ORG",
+          "start": 419,
+          "end": 434,
+          "priority": "medium"
+        },
+        {
+          "id": "f1ebbec3-3dac-4c4e-9a9b-e105af48bbbb",
+          "text": "Anthropic",
+          "type": "ORG",
+          "start": 439,
+          "end": 448,
+          "priority": "medium"
+        }
+      ]
+    },
+    "1a38116b-4533-4a3b-aab7-7dda0ef96272": {
+      "id": "1a38116b-4533-4a3b-aab7-7dda0ef96272",
+      "title": "Federal Reserve Holds Interest Rates Steady, Signals Cuts Later This Year",
+      "content": "The Federal Reserve voted unanimously to hold its benchmark interest rate steady at 4.25-4.50%, in line with market expectations. Fed Chair Jerome Powell indicated that rate cuts remain on the table for later in 2026.\n\nIn his press conference, Powell cited ongoing inflation concerns but acknowledged that the labor market has shown signs of cooling. The unemployment rate ticked up to 4.1% last month.\n\nWall Street reacted positively to the announcement, with the S&P 500 rising 1.2% and the Nasdaq gaining 1.5%. Treasury yields fell slightly on expectations of future rate cuts.\n\nThe European Central Bank faces a similar decision next week, with economists split on whether ECB President Christine Lagarde will signal a more dovish stance.",
+      "summary": "The Fed keeps rates at 4.25-4.50% as expected. Chair Powell hints at possible cuts later in 2026, boosting stocks.",
+      "image_url": null,
+      "source": {
+        "name": "Reuters",
+        "url": "https://example.com/articles/fed-interest-rates-hold",
+        "credibility_score": 0.95
+      },
+      "published_at": "2026-11-12T08:16:12.746678",
+      "reading_time_minutes": 3,
+      "categories": ["business"],
+      "entities": [
+        {
+          "id": "9be46223-2d95-4657-888c-2a3c92fabadb",
+          "text": "Federal Reserve",
+          "type": "ORG",
+          "start": 4,
+          "end": 19,
+          "priority": "high"
+        },
+        {
+          "id": "7bf5bcc8-ee50-4236-a61f-69e9add2945f",
+          "text": "Jerome Powell",
+          "type": "PERSON",
+          "start": 133,
+          "end": 146,
+          "priority": "high"
+        },
+        {
+          "id": "8d7bb829-8925-4290-ad52-3fe5602b2ab0",
+          "text": "S&P 500",
+          "type": "MISC",
+          "start": 440,
+          "end": 447,
+          "priority": "medium"
+        },
+        {
+          "id": "0c965aab-f7b1-4b4a-95b6-27717897278c",
+          "text": "Christine Lagarde",
+          "type": "PERSON",
+          "start": 617,
+          "end": 634,
+          "priority": "medium"
+        }
+      ]
+    },
+    "1c278552-1987-4b59-9fb4-1bb84ec9ed65": {
+      "id": "1c278552-1987-4b59-9fb4-1bb84ec9ed65",
+      "title": "NASA's Artemis III Moon Landing Pushed to Late 2027",
+      "content": "NASA has delayed the Artemis III crewed Moon landing mission to no earlier than late 2027, citing ongoing development challenges with SpaceX's Starship lunar lander. Administrator Bill Nelson emphasized that safety remains the top priority.\n\nThe mission, which aims to land the first woman and first person of color on the Moon, has faced multiple delays since its original 2025 target. The Starship Human Landing System requires several more uncrewed test flights before NASA will certify it for astronauts.\n\nSpaceX CEO Elon Musk expressed confidence that Starship would be ready, pointing to recent successful orbital test flights. However, the vehicle's in-space refueling system remains unproven.\n\nChina's competing lunar program continues to advance, with CNSA targeting a crewed landing by 2030. The growing space race has added political pressure to NASA's timeline.",
+      "summary": "NASA pushes the Artemis III Moon landing to late 2027 due to SpaceX Starship development delays. China's lunar program adds competitive pressure.",
+      "image_url": null,
+      "source": {
+        "name": "Reuters",
+        "url": "https://example.com/articles/nasa-artemis-iii-delay",
+        "credibility_score": 0.95
+      },
+      "published_at": "2026-11-12T04:16:12.746678",
+      "reading_time_minutes": 4,
+      "categories": ["science", "tech"],
+      "entities": [
+        {
+          "id": "c2e75c45-f0a2-47f4-bca9-b3d2071b054d",
+          "text": "NASA",
+          "type": "ORG",
+          "start": 0,
+          "end": 4,
+          "priority": "high"
+        },
+        {
+          "id": "968c1647-eea8-4151-ac15-c91a3badc238",
+          "text": "SpaceX",
+          "type": "ORG",
+          "start": 123,
+          "end": 129,
+          "priority": "high"
+        },
+        {
+          "id": "e38341ba-2c82-45a3-8d16-f5b6be957b8f",
+          "text": "Bill Nelson",
+          "type": "PERSON",
+          "start": 170,
+          "end": 181,
+          "priority": "medium"
+        },
+        {
+          "id": "3811ff94-caa5-497e-bd80-9094612d39c4",
+          "text": "Elon Musk",
+          "type": "PERSON",
+          "start": 477,
+          "end": 486,
+          "priority": "high"
+        }
+      ]
+    }
+  },
+  "references": {
+    "89021bed-ec73-4cdc-a2f3-ecb61da7d7f4": {
+      "article": {
+        "id": "89021bed-ec73-4cdc-a2f3-ecb61da7d7f4",
+        "title": "Philip Glass Withdraws From Kennedy Center Performance Amid Controversy",
+        "content": "Philip Glass, the acclaimed minimalist composer, has announced his withdrawal from an upcoming performance at the Kennedy Center. The decision comes amid growing controversy over federal arts funding cuts proposed by the current administration.\n\nGlass, 89, whose works include 'Einstein on the Beach' and the film scores for 'The Hours' and 'Koyaanisqatsi', released a statement saying he could not in good conscience perform at a venue receiving federal funding while artists across the country face unprecedented budget reductions.\n\nThe Kennedy Center, located in Washington D.C., is one of the nation's premier performing arts venues. The National Symphony Orchestra, which was set to accompany Glass, expressed disappointment but respect for his decision.\n\nSeveral other prominent artists, including Yo-Yo Ma and Renee Fleming, have voiced support for Glass's position, though they have not announced similar withdrawals.",
+        "summary": "Composer Philip Glass pulls out of a Kennedy Center performance to protest federal arts funding cuts, drawing support from fellow artists.",
+        "image_url": null,
+        "source": {
+          "name": "The New York Times",
+          "url": "https://example.com/articles/philip-glass-kennedy-center",
+          "credibility_score": 0.92
+        },
+        "published_at": "2026-11-12T14:16:12.746678",
+        "reading_time_minutes": 3,
+        "categories": ["general", "world"],
+        "entities": [
+          {
+            "id": "399100b5-e078-46f2-bb2b-65d310ca0599",
+            "text": "Philip Glass",
+            "type": "PERSON",
+            "start": 0,
+            "end": 12,
+            "priority": "high"
+          },
+          {
+            "id": "1bee56a4-8da0-451b-a0c5-1e0e501bd6c1",
+            "text": "Kennedy Center",
+            "type": "ORG",
+            "start": 92,
+            "end": 106,
+            "priority": "high"
+          },
+          {
+            "id": "af8badc6-2743-4a2e-b2ea-6193adeb3831",
+            "text": "National Symphony Orchestra",
+            "type": "ORG",
+            "start": 597,
+            "end": 624,
+            "priority": "medium"
+          },
+          {
+            "id": "1678ead0-f085-41ab-aaa7-d3825416cbb5",
+            "text": "Yo-Yo Ma",
+            "type": "PERSON",
+            "start": 730,
+            "end": 738,
+            "priority": "medium"
+          }
+        ]
+      },
+      "entities": [
+        {
+          "id": "399100b5-e078-46f2-bb2b-65d310ca0599",
+          "name": "Philip Glass",
+          "type": "PERSON",
+          "context": "American composer known for minimalist music, including operas, symphonies, and film scores.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/Philip_Glass",
+          "image_url": null
+        },
+        {
+          "id": "1678ead0-f085-41ab-aaa7-d3825416cbb5",
+          "name": "Yo-Yo Ma",
+          "type": "PERSON",
+          "context": "French-born American cellist, considered one of the greatest cellists of all time.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/Yo-Yo_Ma",
+          "image_url": null
+        },
+        {
+          "id": "1bee56a4-8da0-451b-a0c5-1e0e501bd6c1",
+          "name": "Kennedy Center",
+          "type": "ORG",
+          "context": "The nation's premier performing arts center in Washington D.C., named after President John F. Kennedy.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/John_F._Kennedy_Center_for_the_Performing_Arts",
+          "image_url": null
+        },
+        {
+          "id": "af8badc6-2743-4a2e-b2ea-6193adeb3831",
+          "name": "National Symphony Orchestra",
+          "type": "ORG",
+          "context": "Major American orchestra based at the Kennedy Center in Washington D.C.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/National_Symphony_Orchestra_(United_States)",
+          "image_url": null
+        }
+      ],
+      "related_articles": []
+    },
+    "1176f0e0-7d79-4fa5-9673-93ef9501052a": {
+      "article": {
+        "id": "1176f0e0-7d79-4fa5-9673-93ef9501052a",
+        "title": "OpenAI Announces GPT-5 With Breakthrough Reasoning Capabilities",
+        "content": "OpenAI has officially unveiled GPT-5, its most advanced large language model to date, claiming significant breakthroughs in multi-step reasoning and factual accuracy. CEO Sam Altman presented the model at a press event in San Francisco.\n\nThe new model reportedly scores 92% on graduate-level science benchmarks, up from GPT-4's 78%. Altman described it as 'the first model that can genuinely reason through complex problems rather than pattern-matching.'\n\nCompetitors including Google DeepMind and Anthropic have been racing to develop similar capabilities. Google's Gemini Ultra 2 and Anthropic's Claude have both shown improvements in reasoning, but OpenAI claims GPT-5 sets a new bar.\n\nThe model will be available to ChatGPT Plus subscribers starting next month, with API access following shortly after. Pricing has not yet been announced.",
+        "summary": "OpenAI launches GPT-5 with major reasoning improvements, outscoring GPT-4 on science benchmarks. Available to subscribers next month.",
+        "image_url": null,
+        "source": {
+          "name": "TechCrunch",
+          "url": "https://example.com/articles/openai-gpt5-announcement",
+          "credibility_score": 0.85
+        },
+        "published_at": "2026-11-12T11:16:12.746678",
+        "reading_time_minutes": 4,
+        "categories": ["tech"],
+        "entities": [
+          {
+            "id": "4a64db3d-a4ab-4331-a6c0-ed5d27f27c66",
+            "text": "OpenAI",
+            "type": "ORG",
+            "start": 0,
+            "end": 6,
+            "priority": "high"
+          },
+          {
+            "id": "447f3cdf-c1b7-4470-93d4-a02eda0f221c",
+            "text": "Sam Altman",
+            "type": "PERSON",
+            "start": 152,
+            "end": 162,
+            "priority": "high"
+          },
+          {
+            "id": "ad23c806-8521-424f-9ee2-dce9c30c2d9f",
+            "text": "Google DeepMind",
+            "type": "ORG",
+            "start": 419,
+            "end": 434,
+            "priority": "medium"
+          },
+          {
+            "id": "f1ebbec3-3dac-4c4e-9a9b-e105af48bbbb",
+            "text": "Anthropic",
+            "type": "ORG",
+            "start": 439,
+            "end": 448,
+            "priority": "medium"
+          }
+        ]
+      },
+      "entities": [
+        {
+          "id": "4a64db3d-a4ab-4331-a6c0-ed5d27f27c66",
+          "name": "OpenAI",
+          "type": "ORG",
+          "context": "AI research company that created ChatGPT and the GPT series of language models.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/OpenAI",
+          "image_url": null
+        },
+        {
+          "id": "447f3cdf-c1b7-4470-93d4-a02eda0f221c",
+          "name": "Sam Altman",
+          "type": "PERSON",
+          "context": "CEO of OpenAI, former president of Y Combinator.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/Sam_Altman",
+          "image_url": null
+        },
+        {
+          "id": "ad23c806-8521-424f-9ee2-dce9c30c2d9f",
+          "name": "Google DeepMind",
+          "type": "ORG",
+          "context": "Google's AI research lab, known for AlphaGo and Gemini.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/Google_DeepMind",
+          "image_url": null
+        },
+        {
+          "id": "f1ebbec3-3dac-4c4e-9a9b-e105af48bbbb",
+          "name": "Anthropic",
+          "type": "ORG",
+          "context": "AI safety company founded by former OpenAI members, creator of the Claude AI assistant.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/Anthropic",
+          "image_url": null
+        }
+      ],
+      "related_articles": []
+    },
+    "1a38116b-4533-4a3b-aab7-7dda0ef96272": {
+      "article": {
+        "id": "1a38116b-4533-4a3b-aab7-7dda0ef96272",
+        "title": "Federal Reserve Holds Interest Rates Steady, Signals Cuts Later This Year",
+        "content": "The Federal Reserve voted unanimously to hold its benchmark interest rate steady at 4.25-4.50%, in line with market expectations. Fed Chair Jerome Powell indicated that rate cuts remain on the table for later in 2026.\n\nIn his press conference, Powell cited ongoing inflation concerns but acknowledged that the labor market has shown signs of cooling. The unemployment rate ticked up to 4.1% last month.\n\nWall Street reacted positively to the announcement, with the S&P 500 rising 1.2% and the Nasdaq gaining 1.5%. Treasury yields fell slightly on expectations of future rate cuts.\n\nThe European Central Bank faces a similar decision next week, with economists split on whether ECB President Christine Lagarde will signal a more dovish stance.",
+        "summary": "The Fed keeps rates at 4.25-4.50% as expected. Chair Powell hints at possible cuts later in 2026, boosting stocks.",
+        "image_url": null,
+        "source": {
+          "name": "Reuters",
+          "url": "https://example.com/articles/fed-interest-rates-hold",
+          "credibility_score": 0.95
+        },
+        "published_at": "2026-11-12T08:16:12.746678",
+        "reading_time_minutes": 3,
+        "categories": ["business"],
+        "entities": [
+          {
+            "id": "9be46223-2d95-4657-888c-2a3c92fabadb",
+            "text": "Federal Reserve",
+            "type": "ORG",
+            "start": 4,
+            "end": 19,
+            "priority": "high"
+          },
+          {
+            "id": "7bf5bcc8-ee50-4236-a61f-69e9add2945f",
+            "text": "Jerome Powell",
+            "type": "PERSON",
+            "start": 133,
+            "end": 146,
+            "priority": "high"
+          },
+          {
+            "id": "8d7bb829-8925-4290-ad52-3fe5602b2ab0",
+            "text": "S&P 500",
+            "type": "MISC",
+            "start": 440,
+            "end": 447,
+            "priority": "medium"
+          },
+          {
+            "id": "0c965aab-f7b1-4b4a-95b6-27717897278c",
+            "text": "Christine Lagarde",
+            "type": "PERSON",
+            "start": 617,
+            "end": 634,
+            "priority": "medium"
+          }
+        ]
+      },
+      "entities": [
+        {
+          "id": "9be46223-2d95-4657-888c-2a3c92fabadb",
+          "name": "Federal Reserve",
+          "type": "ORG",
+          "context": "The central bank of the United States, responsible for monetary policy and interest rates.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/Federal_Reserve",
+          "image_url": null
+        },
+        {
+          "id": "7bf5bcc8-ee50-4236-a61f-69e9add2945f",
+          "name": "Jerome Powell",
+          "type": "PERSON",
+          "context": "Chair of the Federal Reserve since 2018, overseeing U.S. monetary policy.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/Jerome_Powell",
+          "image_url": null
+        },
+        {
+          "id": "0c965aab-f7b1-4b4a-95b6-27717897278c",
+          "name": "Christine Lagarde",
+          "type": "PERSON",
+          "context": "President of the European Central Bank since 2019, former head of the IMF.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/Christine_Lagarde",
+          "image_url": null
+        },
+        {
+          "id": "8d7bb829-8925-4290-ad52-3fe5602b2ab0",
+          "name": "S&P 500",
+          "type": "MISC",
+          "context": "A stock market index tracking 500 of the largest U.S. public companies, widely used as a market benchmark.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/S%26P_500",
+          "image_url": null
+        }
+      ],
+      "related_articles": []
+    },
+    "1c278552-1987-4b59-9fb4-1bb84ec9ed65": {
+      "article": {
+        "id": "1c278552-1987-4b59-9fb4-1bb84ec9ed65",
+        "title": "NASA's Artemis III Moon Landing Pushed to Late 2027",
+        "content": "NASA has delayed the Artemis III crewed Moon landing mission to no earlier than late 2027, citing ongoing development challenges with SpaceX's Starship lunar lander. Administrator Bill Nelson emphasized that safety remains the top priority.\n\nThe mission, which aims to land the first woman and first person of color on the Moon, has faced multiple delays since its original 2025 target. The Starship Human Landing System requires several more uncrewed test flights before NASA will certify it for astronauts.\n\nSpaceX CEO Elon Musk expressed confidence that Starship would be ready, pointing to recent successful orbital test flights. However, the vehicle's in-space refueling system remains unproven.\n\nChina's competing lunar program continues to advance, with CNSA targeting a crewed landing by 2030. The growing space race has added political pressure to NASA's timeline.",
+        "summary": "NASA pushes the Artemis III Moon landing to late 2027 due to SpaceX Starship development delays. China's lunar program adds competitive pressure.",
+        "image_url": null,
+        "source": {
+          "name": "Reuters",
+          "url": "https://example.com/articles/nasa-artemis-iii-delay",
+          "credibility_score": 0.95
+        },
+        "published_at": "2026-11-12T04:16:12.746678",
+        "reading_time_minutes": 4,
+        "categories": ["science", "tech"],
+        "entities": [
+          {
+            "id": "c2e75c45-f0a2-47f4-bca9-b3d2071b054d",
+            "text": "NASA",
+            "type": "ORG",
+            "start": 0,
+            "end": 4,
+            "priority": "high"
+          },
+          {
+            "id": "968c1647-eea8-4151-ac15-c91a3badc238",
+            "text": "SpaceX",
+            "type": "ORG",
+            "start": 123,
+            "end": 129,
+            "priority": "high"
+          },
+          {
+            "id": "e38341ba-2c82-45a3-8d16-f5b6be957b8f",
+            "text": "Bill Nelson",
+            "type": "PERSON",
+            "start": 170,
+            "end": 181,
+            "priority": "medium"
+          },
+          {
+            "id": "3811ff94-caa5-497e-bd80-9094612d39c4",
+            "text": "Elon Musk",
+            "type": "PERSON",
+            "start": 477,
+            "end": 486,
+            "priority": "high"
+          }
+        ]
+      },
+      "entities": [
+        {
+          "id": "3811ff94-caa5-497e-bd80-9094612d39c4",
+          "name": "Elon Musk",
+          "type": "PERSON",
+          "context": "CEO of SpaceX and Tesla, one of the world's wealthiest people.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/Elon_Musk",
+          "image_url": null
+        },
+        {
+          "id": "c2e75c45-f0a2-47f4-bca9-b3d2071b054d",
+          "name": "NASA",
+          "type": "ORG",
+          "context": "The U.S. federal agency responsible for space exploration and aeronautics research.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/NASA",
+          "image_url": null
+        },
+        {
+          "id": "968c1647-eea8-4151-ac15-c91a3badc238",
+          "name": "SpaceX",
+          "type": "ORG",
+          "context": "Private aerospace company founded by Elon Musk, developing rockets and the Starship vehicle.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/SpaceX",
+          "image_url": null
+        },
+        {
+          "id": "e38341ba-2c82-45a3-8d16-f5b6be957b8f",
+          "name": "Bill Nelson",
+          "type": "PERSON",
+          "context": "Administrator of NASA since 2021, former U.S. Senator from Florida.",
+          "wikipedia_url": "https://en.wikipedia.org/wiki/Bill_Nelson",
+          "image_url": null
+        }
+      ],
+      "related_articles": []
+    }
+  },
+  "context": {
+    "399100b5-e078-46f2-bb2b-65d310ca0599": {
+      "entity": {
+        "id": "399100b5-e078-46f2-bb2b-65d310ca0599",
+        "name": "Philip Glass",
+        "type": "PERSON",
+        "wikidata_id": "Q189729",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/Philip_Glass"
+      },
+      "context": {
+        "text": "American composer known for minimalist music, including operas, symphonies, and film scores.",
+        "generated_at": "2026-11-12T16:35:32.516336Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "1678ead0-f085-41ab-aaa7-d3825416cbb5",
+          "name": "Yo-Yo Ma",
+          "type": "PERSON"
+        },
+        {
+          "id": "1bee56a4-8da0-451b-a0c5-1e0e501bd6c1",
+          "name": "Kennedy Center",
+          "type": "ORG"
+        },
+        {
+          "id": "af8badc6-2743-4a2e-b2ea-6193adeb3831",
+          "name": "National Symphony Orchestra",
+          "type": "ORG"
+        }
+      ],
+      "related_articles": []
+    },
+    "1bee56a4-8da0-451b-a0c5-1e0e501bd6c1": {
+      "entity": {
+        "id": "1bee56a4-8da0-451b-a0c5-1e0e501bd6c1",
+        "name": "Kennedy Center",
+        "type": "ORG",
+        "wikidata_id": "Q631289",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/John_F._Kennedy_Center_for_the_Performing_Arts"
+      },
+      "context": {
+        "text": "The nation's premier performing arts center in Washington D.C., named after President John F. Kennedy.",
+        "generated_at": "2026-11-12T16:35:32.520175Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "1678ead0-f085-41ab-aaa7-d3825416cbb5",
+          "name": "Yo-Yo Ma",
+          "type": "PERSON"
+        },
+        {
+          "id": "399100b5-e078-46f2-bb2b-65d310ca0599",
+          "name": "Philip Glass",
+          "type": "PERSON"
+        },
+        {
+          "id": "af8badc6-2743-4a2e-b2ea-6193adeb3831",
+          "name": "National Symphony Orchestra",
+          "type": "ORG"
+        }
+      ],
+      "related_articles": []
+    },
+    "af8badc6-2743-4a2e-b2ea-6193adeb3831": {
+      "entity": {
+        "id": "af8badc6-2743-4a2e-b2ea-6193adeb3831",
+        "name": "National Symphony Orchestra",
+        "type": "ORG",
+        "wikidata_id": "Q1967952",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/National_Symphony_Orchestra_(United_States)"
+      },
+      "context": {
+        "text": "Major American orchestra based at the Kennedy Center in Washington D.C.",
+        "generated_at": "2026-11-12T16:35:32.523582Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "1678ead0-f085-41ab-aaa7-d3825416cbb5",
+          "name": "Yo-Yo Ma",
+          "type": "PERSON"
+        },
+        {
+          "id": "1bee56a4-8da0-451b-a0c5-1e0e501bd6c1",
+          "name": "Kennedy Center",
+          "type": "ORG"
+        },
+        {
+          "id": "399100b5-e078-46f2-bb2b-65d310ca0599",
+          "name": "Philip Glass",
+          "type": "PERSON"
+        }
+      ],
+      "related_articles": []
+    },
+    "1678ead0-f085-41ab-aaa7-d3825416cbb5": {
+      "entity": {
+        "id": "1678ead0-f085-41ab-aaa7-d3825416cbb5",
+        "name": "Yo-Yo Ma",
+        "type": "PERSON",
+        "wikidata_id": "Q180278",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/Yo-Yo_Ma"
+      },
+      "context": {
+        "text": "French-born American cellist, considered one of the greatest cellists of all time.",
+        "generated_at": "2026-11-12T16:35:32.526833Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "1bee56a4-8da0-451b-a0c5-1e0e501bd6c1",
+          "name": "Kennedy Center",
+          "type": "ORG"
+        },
+        {
+          "id": "399100b5-e078-46f2-bb2b-65d310ca0599",
+          "name": "Philip Glass",
+          "type": "PERSON"
+        },
+        {
+          "id": "af8badc6-2743-4a2e-b2ea-6193adeb3831",
+          "name": "National Symphony Orchestra",
+          "type": "ORG"
+        }
+      ],
+      "related_articles": []
+    },
+    "4a64db3d-a4ab-4331-a6c0-ed5d27f27c66": {
+      "entity": {
+        "id": "4a64db3d-a4ab-4331-a6c0-ed5d27f27c66",
+        "name": "OpenAI",
+        "type": "ORG",
+        "wikidata_id": "Q21708200",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/OpenAI"
+      },
+      "context": {
+        "text": "AI research company that created ChatGPT and the GPT series of language models.",
+        "generated_at": "2026-11-12T16:35:32.533691Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "447f3cdf-c1b7-4470-93d4-a02eda0f221c",
+          "name": "Sam Altman",
+          "type": "PERSON"
+        },
+        {
+          "id": "ad23c806-8521-424f-9ee2-dce9c30c2d9f",
+          "name": "Google DeepMind",
+          "type": "ORG"
+        },
+        {
+          "id": "f1ebbec3-3dac-4c4e-9a9b-e105af48bbbb",
+          "name": "Anthropic",
+          "type": "ORG"
+        }
+      ],
+      "related_articles": []
+    },
+    "447f3cdf-c1b7-4470-93d4-a02eda0f221c": {
+      "entity": {
+        "id": "447f3cdf-c1b7-4470-93d4-a02eda0f221c",
+        "name": "Sam Altman",
+        "type": "PERSON",
+        "wikidata_id": "Q16030873",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/Sam_Altman"
+      },
+      "context": {
+        "text": "CEO of OpenAI, former president of Y Combinator.",
+        "generated_at": "2026-11-12T16:35:32.536797Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "4a64db3d-a4ab-4331-a6c0-ed5d27f27c66",
+          "name": "OpenAI",
+          "type": "ORG"
+        },
+        {
+          "id": "ad23c806-8521-424f-9ee2-dce9c30c2d9f",
+          "name": "Google DeepMind",
+          "type": "ORG"
+        },
+        {
+          "id": "f1ebbec3-3dac-4c4e-9a9b-e105af48bbbb",
+          "name": "Anthropic",
+          "type": "ORG"
+        }
+      ],
+      "related_articles": []
+    },
+    "ad23c806-8521-424f-9ee2-dce9c30c2d9f": {
+      "entity": {
+        "id": "ad23c806-8521-424f-9ee2-dce9c30c2d9f",
+        "name": "Google DeepMind",
+        "type": "ORG",
+        "wikidata_id": "Q15056543",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/Google_DeepMind"
+      },
+      "context": {
+        "text": "Google's AI research lab, known for AlphaGo and Gemini.",
+        "generated_at": "2026-11-12T16:35:32.539898Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "447f3cdf-c1b7-4470-93d4-a02eda0f221c",
+          "name": "Sam Altman",
+          "type": "PERSON"
+        },
+        {
+          "id": "4a64db3d-a4ab-4331-a6c0-ed5d27f27c66",
+          "name": "OpenAI",
+          "type": "ORG"
+        },
+        {
+          "id": "f1ebbec3-3dac-4c4e-9a9b-e105af48bbbb",
+          "name": "Anthropic",
+          "type": "ORG"
+        }
+      ],
+      "related_articles": []
+    },
+    "f1ebbec3-3dac-4c4e-9a9b-e105af48bbbb": {
+      "entity": {
+        "id": "f1ebbec3-3dac-4c4e-9a9b-e105af48bbbb",
+        "name": "Anthropic",
+        "type": "ORG",
+        "wikidata_id": "Q107096030",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/Anthropic"
+      },
+      "context": {
+        "text": "AI safety company founded by former OpenAI members, creator of the Claude AI assistant.",
+        "generated_at": "2026-11-12T16:35:32.543541Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "447f3cdf-c1b7-4470-93d4-a02eda0f221c",
+          "name": "Sam Altman",
+          "type": "PERSON"
+        },
+        {
+          "id": "4a64db3d-a4ab-4331-a6c0-ed5d27f27c66",
+          "name": "OpenAI",
+          "type": "ORG"
+        },
+        {
+          "id": "ad23c806-8521-424f-9ee2-dce9c30c2d9f",
+          "name": "Google DeepMind",
+          "type": "ORG"
+        }
+      ],
+      "related_articles": []
+    },
+    "9be46223-2d95-4657-888c-2a3c92fabadb": {
+      "entity": {
+        "id": "9be46223-2d95-4657-888c-2a3c92fabadb",
+        "name": "Federal Reserve",
+        "type": "ORG",
+        "wikidata_id": "Q53536",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/Federal_Reserve"
+      },
+      "context": {
+        "text": "The central bank of the United States, responsible for monetary policy and interest rates.",
+        "generated_at": "2026-11-12T16:35:32.550172Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "0c965aab-f7b1-4b4a-95b6-27717897278c",
+          "name": "Christine Lagarde",
+          "type": "PERSON"
+        },
+        {
+          "id": "7bf5bcc8-ee50-4236-a61f-69e9add2945f",
+          "name": "Jerome Powell",
+          "type": "PERSON"
+        },
+        {
+          "id": "8d7bb829-8925-4290-ad52-3fe5602b2ab0",
+          "name": "S&P 500",
+          "type": "MISC"
+        }
+      ],
+      "related_articles": []
+    },
+    "7bf5bcc8-ee50-4236-a61f-69e9add2945f": {
+      "entity": {
+        "id": "7bf5bcc8-ee50-4236-a61f-69e9add2945f",
+        "name": "Jerome Powell",
+        "type": "PERSON",
+        "wikidata_id": "Q6178961",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/Jerome_Powell"
+      },
+      "context": {
+        "text": "Chair of the Federal Reserve since 2018, overseeing U.S. monetary policy.",
+        "generated_at": "2026-11-12T16:35:32.552825Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "0c965aab-f7b1-4b4a-95b6-27717897278c",
+          "name": "Christine Lagarde",
+          "type": "PERSON"
+        },
+        {
+          "id": "8d7bb829-8925-4290-ad52-3fe5602b2ab0",
+          "name": "S&P 500",
+          "type": "MISC"
+        },
+        {
+          "id": "9be46223-2d95-4657-888c-2a3c92fabadb",
+          "name": "Federal Reserve",
+          "type": "ORG"
+        }
+      ],
+      "related_articles": []
+    },
+    "8d7bb829-8925-4290-ad52-3fe5602b2ab0": {
+      "entity": {
+        "id": "8d7bb829-8925-4290-ad52-3fe5602b2ab0",
+        "name": "S&P 500",
+        "type": "MISC",
+        "wikidata_id": "Q199316",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/S%26P_500"
+      },
+      "context": {
+        "text": "A stock market index tracking 500 of the largest U.S. public companies, widely used as a market benchmark.",
+        "generated_at": "2026-11-12T16:35:32.555483Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "0c965aab-f7b1-4b4a-95b6-27717897278c",
+          "name": "Christine Lagarde",
+          "type": "PERSON"
+        },
+        {
+          "id": "7bf5bcc8-ee50-4236-a61f-69e9add2945f",
+          "name": "Jerome Powell",
+          "type": "PERSON"
+        },
+        {
+          "id": "9be46223-2d95-4657-888c-2a3c92fabadb",
+          "name": "Federal Reserve",
+          "type": "ORG"
+        }
+      ],
+      "related_articles": []
+    },
+    "0c965aab-f7b1-4b4a-95b6-27717897278c": {
+      "entity": {
+        "id": "0c965aab-f7b1-4b4a-95b6-27717897278c",
+        "name": "Christine Lagarde",
+        "type": "PERSON",
+        "wikidata_id": "Q182692",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/Christine_Lagarde"
+      },
+      "context": {
+        "text": "President of the European Central Bank since 2019, former head of the IMF.",
+        "generated_at": "2026-11-12T16:35:32.558004Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "7bf5bcc8-ee50-4236-a61f-69e9add2945f",
+          "name": "Jerome Powell",
+          "type": "PERSON"
+        },
+        {
+          "id": "8d7bb829-8925-4290-ad52-3fe5602b2ab0",
+          "name": "S&P 500",
+          "type": "MISC"
+        },
+        {
+          "id": "9be46223-2d95-4657-888c-2a3c92fabadb",
+          "name": "Federal Reserve",
+          "type": "ORG"
+        }
+      ],
+      "related_articles": []
+    },
+    "c2e75c45-f0a2-47f4-bca9-b3d2071b054d": {
+      "entity": {
+        "id": "c2e75c45-f0a2-47f4-bca9-b3d2071b054d",
+        "name": "NASA",
+        "type": "ORG",
+        "wikidata_id": "Q23548",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/NASA"
+      },
+      "context": {
+        "text": "The U.S. federal agency responsible for space exploration and aeronautics research.",
+        "generated_at": "2026-11-12T16:35:32.564043Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "3811ff94-caa5-497e-bd80-9094612d39c4",
+          "name": "Elon Musk",
+          "type": "PERSON"
+        },
+        {
+          "id": "968c1647-eea8-4151-ac15-c91a3badc238",
+          "name": "SpaceX",
+          "type": "ORG"
+        },
+        {
+          "id": "e38341ba-2c82-45a3-8d16-f5b6be957b8f",
+          "name": "Bill Nelson",
+          "type": "PERSON"
+        }
+      ],
+      "related_articles": []
+    },
+    "968c1647-eea8-4151-ac15-c91a3badc238": {
+      "entity": {
+        "id": "968c1647-eea8-4151-ac15-c91a3badc238",
+        "name": "SpaceX",
+        "type": "ORG",
+        "wikidata_id": "Q193701",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/SpaceX"
+      },
+      "context": {
+        "text": "Private aerospace company founded by Elon Musk, developing rockets and the Starship vehicle.",
+        "generated_at": "2026-11-12T16:35:32.566845Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "3811ff94-caa5-497e-bd80-9094612d39c4",
+          "name": "Elon Musk",
+          "type": "PERSON"
+        },
+        {
+          "id": "c2e75c45-f0a2-47f4-bca9-b3d2071b054d",
+          "name": "NASA",
+          "type": "ORG"
+        },
+        {
+          "id": "e38341ba-2c82-45a3-8d16-f5b6be957b8f",
+          "name": "Bill Nelson",
+          "type": "PERSON"
+        }
+      ],
+      "related_articles": []
+    },
+    "e38341ba-2c82-45a3-8d16-f5b6be957b8f": {
+      "entity": {
+        "id": "e38341ba-2c82-45a3-8d16-f5b6be957b8f",
+        "name": "Bill Nelson",
+        "type": "PERSON",
+        "wikidata_id": "Q357719",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/Bill_Nelson"
+      },
+      "context": {
+        "text": "Administrator of NASA since 2021, former U.S. Senator from Florida.",
+        "generated_at": "2026-11-12T16:35:32.569661Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "3811ff94-caa5-497e-bd80-9094612d39c4",
+          "name": "Elon Musk",
+          "type": "PERSON"
+        },
+        {
+          "id": "968c1647-eea8-4151-ac15-c91a3badc238",
+          "name": "SpaceX",
+          "type": "ORG"
+        },
+        {
+          "id": "c2e75c45-f0a2-47f4-bca9-b3d2071b054d",
+          "name": "NASA",
+          "type": "ORG"
+        }
+      ],
+      "related_articles": []
+    },
+    "3811ff94-caa5-497e-bd80-9094612d39c4": {
+      "entity": {
+        "id": "3811ff94-caa5-497e-bd80-9094612d39c4",
+        "name": "Elon Musk",
+        "type": "PERSON",
+        "wikidata_id": "Q317521",
+        "wikipedia_url": "https://en.wikipedia.org/wiki/Elon_Musk"
+      },
+      "context": {
+        "text": "CEO of SpaceX and Tesla, one of the world's wealthiest people.",
+        "generated_at": "2026-11-12T16:35:32.572691Z",
+        "source": "rag_pipeline",
+        "cached": false
+      },
+      "related_entities": [
+        {
+          "id": "968c1647-eea8-4151-ac15-c91a3badc238",
+          "name": "SpaceX",
+          "type": "ORG"
+        },
+        {
+          "id": "c2e75c45-f0a2-47f4-bca9-b3d2071b054d",
+          "name": "NASA",
+          "type": "ORG"
+        },
+        {
+          "id": "e38341ba-2c82-45a3-8d16-f5b6be957b8f",
+          "name": "Bill Nelson",
+          "type": "PERSON"
+        }
+      ],
+      "related_articles": []
+    }
+  },
+  "trending": []
+}
