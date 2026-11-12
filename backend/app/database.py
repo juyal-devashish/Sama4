@@ -2,7 +2,7 @@ from collections.abc import AsyncIterator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import NullPool, StaticPool
 
 from app.config import settings
 
@@ -13,7 +13,12 @@ _engine_kwargs: dict = {}
 if _is_sqlite:
     _engine_kwargs["connect_args"] = {"check_same_thread": False}
     _engine_kwargs["poolclass"] = StaticPool
-elif settings.database_ssl:
+else:
+    if settings.environment == "test":
+        # pytest-asyncio gives each test its own event loop; pooled asyncpg
+        # connections are bound to the loop that created them.
+        _engine_kwargs["poolclass"] = NullPool
+if not _is_sqlite and settings.database_ssl:
     import ssl as _ssl
 
     _ssl_ctx = _ssl.create_default_context()
