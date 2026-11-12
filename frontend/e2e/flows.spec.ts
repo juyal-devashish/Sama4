@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import fixtures from "./fixtures/api.json";
 import { ARTICLE_ID, mockApi } from "./mock-api";
 
 // The API is served from recorded fixtures (see mock-api.ts), so these run anywhere.
@@ -56,4 +57,37 @@ test("reader toolbar controls stay inside the viewport", async ({ page }) => {
     expect(box, "control is rendered").not.toBeNull();
     expect(box!.x + box!.width, "control fits horizontally").toBeLessThanOrEqual(width);
   }
+});
+
+test.describe("keyboard shortcuts", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 1024, "list and pane swap on small screens");
+
+  test.beforeEach(async ({ page }) => {
+    await mockApi(page);
+    await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+    await page.goto(ARTICLE);
+    await expect(page.getByRole("button", { name: /^save/i })).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("J and K move between stories", async ({ page }) => {
+    const first = new URL(page.url()).searchParams.get("article");
+    await page.keyboard.press("j");
+    await expect.poll(() => new URL(page.url()).searchParams.get("article")).not.toBe(first);
+    await page.keyboard.press("k");
+    await expect.poll(() => new URL(page.url()).searchParams.get("article")).toBe(first);
+  });
+
+  test("S toggles save and the story shows up in Saved", async ({ page }) => {
+    const save = page.getByRole("button", { name: /^save/i });
+    await expect(save).toHaveAttribute("aria-pressed", "false");
+    await page.keyboard.press("s");
+    await expect(save).toHaveAttribute("aria-pressed", "true");
+    await page.goto("/saved");
+    await expect(page.getByText(fixtures.feed.articles[0].title).first()).toBeVisible();
+  });
+
+  test("/ opens search", async ({ page }) => {
+    await page.keyboard.press("/");
+    await expect(page).toHaveURL(/\/search/);
+  });
 });
