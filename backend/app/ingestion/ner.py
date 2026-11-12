@@ -146,7 +146,13 @@ class NERService:
         """
         spacy_entities = self._extract_spacy(content, title)
 
-        llm_entities = await self._extract_llm_knowledge_gaps(content, title, categories)
+        llm_entities, llm_types = await self._extract_llm_knowledge_gaps(
+            content, title, categories, ner_names=[e.text for e in spacy_entities]
+        )
+        # spaCy's labels are noisy (e.g. "Nvidia" tagged GPE -> LOCATION). Claude typed
+        # every spaCy name with the article in view, so its type wins.
+        for ent in spacy_entities:
+            ent.type = llm_types.get(ent.text.lower(), ent.type)
 
         merged = self._merge_and_deduplicate(spacy_entities, llm_entities, content, title)
 
@@ -163,7 +169,7 @@ class NERService:
             if ent.label_ not in ALLOWED_LABELS:
                 continue
 
-            normalized = ent.text.strip()
+            normalized = strip_possessive(ent.text.strip())
             key = normalized.lower()
             # Trim the offsets with the text, then make sure they still point at it.
             hint = ent.start_char + (len(ent.text) - len(ent.text.lstrip()))
@@ -214,19 +220,24 @@ class NERService:
         content: str,
         title: str,
         categories: list[str] | None = None,
-    ) -> list[ExtractedEntity]:
+        ner_names: list[str] | None = None,
+    ) -> tuple[list[ExtractedEntity], dict[str, str]]:
         """Stage 2: LLM identifies terms a general reader wouldn't know.
+
+        In the same call it also types the names spaCy found (``ner_names``), because
+        spaCy's own labels are often wrong. Returns (terms, {lowercased name: type}).
 
         This catches: jargon, acronyms, policies, technical terms, lesser-known
         people, historical references, domain-specific concepts — everything
         spaCy misses because they aren't standard named entities.
         """
         if self.llm is None or not self.llm.available:
-            return []
+            return [], {}
 
         # Truncate content to fit token budget
         truncated = content[:3000]
         cat_hint = f"Article category: {', '.join(categories)}" if categories else ""
+        names_block = "\n".join(f"- {n}" for n in (ner_names or [])) or "(none)"
 
         prompt = f"""You are an expert at identifying terms in news articles that a typical 20-year-old reader would NOT immediately understand without additional context.
 
@@ -252,13 +263,20 @@ DO NOT include:
 - Major countries, big tech companies, or very famous people
 - Generic words or phrases that don't carry specialized meaning
 
-Return a JSON array of objects. Each object must have:
-- "text": the exact term as it appears in the article (case-sensitive)
-- "type": one of PERSON, ORG, LOCATION, EVENT, CONCEPT
-- "reason": 5-10 word explanation of why this needs context
+An automatic tagger also found these names in the article. Its types are often wrong:
+{names_block}
 
-Return 5-15 terms, prioritizing the most important knowledge gaps.
-Return ONLY the JSON array, no markdown."""  # noqa: E501 (LLM prompt text)
+Return a JSON object with two keys:
+- "terms": an array of 5-15 objects, the most important knowledge gaps first. Each has:
+  - "text": the exact term as it appears in the article (case-sensitive), without a
+    possessive "'s"
+  - "type": one of PERSON, ORG, LOCATION, EVENT, CONCEPT
+  - "reason": 5-10 word explanation of why this needs context
+- "types": an object mapping EVERY name from the tagger's list to its correct type
+  (PERSON, ORG, LOCATION, EVENT, CONCEPT). Companies are ORG (e.g. "Nvidia"), never
+  LOCATION.
+
+Return ONLY the JSON object, no markdown."""  # noqa: E501 (LLM prompt text)
 
         try:
             raw = await self.llm.generate(prompt, effort="low")
@@ -271,13 +289,20 @@ Return ONLY the JSON array, no markdown."""  # noqa: E501 (LLM prompt text)
                 cleaned = cleaned.rsplit("```", 1)[0]
             cleaned = cleaned.strip()
 
-            items = json.loads(cleaned)
+            parsed = json.loads(cleaned)
+            # Older prompt shape: a bare array of terms.
+            items = parsed if isinstance(parsed, list) else parsed.get("terms", [])
+            raw_types = parsed.get("types", {}) if isinstance(parsed, dict) else {}
             if not isinstance(items, list):
-                return []
+                items = []
+            types = {
+                strip_possessive(str(name)).lower(): normalize_llm_type(t)
+                for name, t in (raw_types.items() if isinstance(raw_types, dict) else [])
+            }
 
             entities = []
             for item in items:
-                text = item.get("text", "").strip()
+                text = strip_possessive(str(item.get("text", "")).strip())
                 entity_type = normalize_llm_type(item.get("type"))
                 if not text:
                     continue
@@ -315,11 +340,11 @@ Return ONLY the JSON array, no markdown."""  # noqa: E501 (LLM prompt text)
                     )
                 )
 
-            return entities
+            return entities, types
 
         except Exception as e:
             logger.warning("LLM knowledge-gap extraction failed: %s", e)
-            return []
+            return [], {}
 
     def _merge_and_deduplicate(
         self,
@@ -347,9 +372,7 @@ Return ONLY the JSON array, no markdown."""  # noqa: E501 (LLM prompt text)
                 # Keep the LLM source tag and boost priority
                 existing = merged[key]
                 existing.source = "both"
-                # spaCy's labels are noisy (e.g. "Nvidia" tagged GPE -> LOCATION);
-                # Claude typed the term with the whole article in view, so its type wins.
-                existing.type = ent.type
+                existing.type = ent.type  # Claude's type wins (see extract_entities_hybrid)
                 existing.priority = "high"  # confirmed by both → definitely important
             else:
                 merged[key] = ent
@@ -382,6 +405,15 @@ def normalize_llm_type(raw: object) -> str:
     if value in ENTITY_TYPES:
         return value
     return _LLM_TYPE_ALIASES.get(value, "CONCEPT")
+
+
+_POSSESSIVE = re.compile(r"(?<=\w)(?:['’]s|['’])$")
+
+
+def strip_possessive(text: str) -> str:
+    """ "Jensen Huang's" -> "Jensen Huang": a possessive is the same entity, not a new one."""
+    stripped = _POSSESSIVE.sub("", text).rstrip()
+    return stripped if len(stripped) >= 2 else text
 
 
 def is_aligned(content: str, text: str, start: int, end: int) -> bool:

@@ -13,6 +13,7 @@ from app.ingestion.ner import (
     NERService,
     locate_mention,
     normalize_llm_type,
+    strip_possessive,
 )
 from tests.fakes import FakeLLM
 
@@ -444,3 +445,52 @@ class TestHybridTypes:
         assert normalize_llm_type("company") == "ORG"
         assert normalize_llm_type(None) == "CONCEPT"
         assert normalize_llm_type("") == "CONCEPT"
+
+
+# ---------------------------------------------------------------------------
+# 6. Canonical mentions: possessives and spaCy's wrong types
+# ---------------------------------------------------------------------------
+
+NVIDIA = "Jensen Huang's company Nvidia beat forecasts. Jensen Huang said demand was strong."
+
+
+class TestCanonicalMentions:
+    def test_strip_possessive(self):
+        assert strip_possessive("Jensen Huang's") == "Jensen Huang"
+        assert strip_possessive("Jensen Huang’s") == "Jensen Huang"
+        assert strip_possessive("Reuters'") == "Reuters"
+        assert strip_possessive("Nvidia") == "Nvidia"
+        assert strip_possessive("'s") == "'s"  # nothing left: keep as-is
+
+    async def test_possessive_spacy_span_merges_with_the_plain_name(self):
+        spans = [
+            _make_span("Jensen Huang's", "PERSON", 0, 14),
+            _make_span("Jensen Huang", "PERSON", 46, 58),
+        ]
+        service = _hybrid_service(spans, [])
+
+        result = await service.extract_entities_hybrid(NVIDIA, "Earnings")
+
+        assert [(e.text, e.type) for e in result] == [("Jensen Huang", "PERSON")]
+        _assert_aligned(NVIDIA, result)
+
+    async def test_claude_types_override_spacy_for_names_it_did_not_pick(self):
+        spans = [_make_span("Nvidia", "GPE", 23, 29)]  # spaCy: GPE -> LOCATION
+        service = NERService(
+            llm=FakeLLM(default=json.dumps({"terms": [], "types": {"Nvidia": "ORG"}}))
+        )
+        service._nlp = MagicMock(return_value=_make_doc(spans))
+
+        result = await service.extract_entities_hybrid(NVIDIA, "Earnings")
+
+        assert [(e.text, e.type) for e in result] == [("Nvidia", "ORG")]
+        # Claude was shown the tagger's names so it could type them
+        assert "- Nvidia" in service.llm.calls[0]["prompt"]
+
+    async def test_possessive_llm_term_is_canonicalized(self):
+        service = _hybrid_service([], [{"text": "Jensen Huang's", "type": "PERSON"}])
+
+        result = await service.extract_entities_hybrid(NVIDIA, "Earnings")
+
+        assert result[0].text == "Jensen Huang"
+        _assert_aligned(NVIDIA, result)
