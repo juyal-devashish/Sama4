@@ -295,8 +295,16 @@ function Story({
         )}
 
         {article.summary && (
-          <section aria-label="Summary" className="mt-9 border-l-[3px] border-accent-primary pl-5">
-            <h2 className="font-display text-[13px] font-semibold text-accent-primary">In brief</h2>
+          <section
+            aria-labelledby="summary-label"
+            className="mt-9 border-l-[3px] border-accent-primary pl-5"
+          >
+            <h2 id="summary-label" className="flex flex-wrap items-baseline gap-x-2 text-[13px]">
+              <span className="font-display font-semibold text-accent-primary">In brief</span>
+              <span className="text-text-tertiary">
+                AI summary written by samā4 from the article. Check the original for detail.
+              </span>
+            </h2>
             <p className="mt-1.5 text-[17px] leading-[1.65] text-foreground">
               <MatchedText
                 text={article.summary}
@@ -308,7 +316,18 @@ function Story({
           </section>
         )}
 
-        <div className="mt-9 max-w-measure text-[18px] leading-[1.75] text-foreground">
+        <section
+          aria-labelledby="body-label"
+          className="mt-9 max-w-measure text-[18px] leading-[1.75] text-foreground"
+        >
+          <h2 id="body-label" className="mb-3 flex flex-wrap items-baseline gap-x-2 text-[13px]">
+            <span className="font-display font-semibold text-foreground">
+              From {article.source.name}
+            </span>
+            <span className="leading-normal text-text-tertiary">
+              The publisher&apos;s text from its feed, unchanged. samā4 adds the highlights.
+            </span>
+          </h2>
           {article.content ? (
             <ArticleBody
               content={article.content}
@@ -335,7 +354,7 @@ function Story({
               )}
             </p>
           )}
-        </div>
+        </section>
 
         <div className="mt-16">
           <OutlookSection articleId={article.id} articleTitle={article.title} />
