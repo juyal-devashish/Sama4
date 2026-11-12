@@ -11,6 +11,7 @@ from app.ingestion.ner import (
     ENTITY_TYPE_MAP,
     ExtractedEntity,
     NERService,
+    canonical_mention,
     locate_mention,
     normalize_llm_type,
     strip_possessive,
@@ -494,3 +495,23 @@ class TestCanonicalMentions:
 
         assert result[0].text == "Jensen Huang"
         _assert_aligned(NVIDIA, result)
+
+
+class TestPossessiveNames:
+    def test_keeps_the_s_when_it_is_part_of_the_name(self):
+        text = "New drugs slow Alzheimer's. Alzheimer's affects millions."
+        assert canonical_mention("Alzheimer's", text) == "Alzheimer's"
+        assert canonical_mention("McDonald's", "McDonald's profits rose.") == "McDonald's"
+
+    def test_drops_the_s_when_the_story_uses_the_plain_name(self):
+        assert canonical_mention("Jensen Huang's", NVIDIA) == "Jensen Huang"
+
+    async def test_spacy_possessive_name_without_plain_form_is_kept(self):
+        text = "Researchers studied Alzheimer's in mice."
+        spans = [_make_span("Alzheimer's", "ORG", 20, 31)]
+        service = _hybrid_service(spans, [])
+
+        result = await service.extract_entities_hybrid(text, "Study")
+
+        assert [e.text for e in result] == ["Alzheimer's"]
+        _assert_aligned(text, result)

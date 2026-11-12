@@ -169,7 +169,7 @@ class NERService:
             if ent.label_ not in ALLOWED_LABELS:
                 continue
 
-            normalized = strip_possessive(ent.text.strip())
+            normalized = canonical_mention(ent.text.strip(), content)
             key = normalized.lower()
             # Trim the offsets with the text, then make sure they still point at it.
             hint = ent.start_char + (len(ent.text) - len(ent.text.lstrip()))
@@ -302,7 +302,7 @@ Return ONLY the JSON object, no markdown."""  # noqa: E501 (LLM prompt text)
 
             entities = []
             for item in items:
-                text = strip_possessive(str(item.get("text", "")).strip())
+                text = canonical_mention(str(item.get("text", "")).strip(), content)
                 entity_type = normalize_llm_type(item.get("type"))
                 if not text:
                     continue
@@ -414,6 +414,17 @@ def strip_possessive(text: str) -> str:
     """ "Jensen Huang's" -> "Jensen Huang": a possessive is the same entity, not a new one."""
     stripped = _POSSESSIVE.sub("", text).rstrip()
     return stripped if len(stripped) >= 2 else text
+
+
+def canonical_mention(text: str, content: str) -> str:
+    """The name to store for a mention: without a possessive only if the story also uses
+    the plain name ("Jensen Huang's" when "Jensen Huang said…" appears). In names like
+    "Alzheimer's" or "McDonald's" the 's is part of the name, so it is kept."""
+    base = strip_possessive(text)
+    if base == text:
+        return text
+    plain = re.compile(rf"(?<!\w){re.escape(base)}(?![\w'’])", re.IGNORECASE)
+    return base if plain.search(content) else text
 
 
 def is_aligned(content: str, text: str, start: int, end: int) -> bool:
