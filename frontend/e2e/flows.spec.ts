@@ -110,6 +110,22 @@ test("every story links to its original article in a new tab", async ({ page }) 
   await expect(link).toBeFocused();
 });
 
+test("follow-up answers show the sources they used", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  await page.locator(".term").first().click();
+  const box = page.getByRole("textbox", { name: /Ask a follow-up question/ });
+  await box.fill("What does it make?");
+  await box.press("Enter");
+  const source = page.getByRole("link", { name: "Source: Article" });
+  await expect(source).toBeVisible({ timeout: 10_000 });
+  const article = (fixtures.articles as Record<string, { source: { url: string } }>)[ARTICLE_ID];
+  await expect(source).toHaveAttribute("href", article.source.url);
+  await expect(page.getByRole("link", { name: "Source: Wikipedia" })).toBeVisible();
+  await expect(page.getByText("[article]")).toHaveCount(0); // raw tags never shown
+});
+
 test("publisher text and samā4-generated text are labelled", async ({ page }) => {
   await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));

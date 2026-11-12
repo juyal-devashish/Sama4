@@ -9,7 +9,8 @@ import { EntityBadge } from "@/components/ui/entity-badge";
 import type { SelectedTerm } from "@/components/reader/ArticleText";
 import { uniqueEntities } from "@/lib/highlight";
 import { ENTITY_LABELS, ENTITY_TYPES, entityColor, entityKind } from "@/lib/utils";
-import type { ArticleDetail } from "@/types";
+import type { ArticleDetail, ExplainResponse } from "@/types";
+import { splitCitations, type CitationTag } from "@/lib/citations";
 
 interface Props {
   term: SelectedTerm;
@@ -158,7 +159,48 @@ export function ContextPanel({ term, articleId, onSelectTerm, onOpenArticle, onC
   );
 }
 
-type Turn = { q: string; a?: string; failed?: boolean };
+type Turn = { q: string; a?: string; sources?: ExplainResponse["sources"]; failed?: boolean };
+
+const TAG_LABEL: Record<CitationTag, string> = {
+  article: "Article",
+  explanation: "Explanation",
+  Wikipedia: "Wikipedia",
+  outlook: "Outlook",
+};
+
+/** A follow-up answer with its [source] tags shown as small labels (linked where possible). */
+function CitedAnswer({ text, sources = [] }: { text: string; sources?: Turn["sources"] }) {
+  const href = (tag: CitationTag) =>
+    tag === "outlook"
+      ? "#outlook"
+      : sources.find((s) => s.type.toLowerCase() === tag.toLowerCase())?.url;
+  return (
+    <p className="mt-1 text-[14px] leading-[1.6] text-foreground">
+      {splitCitations(text).map((part, i) => {
+        if ("text" in part) return <span key={i}>{part.text}</span>;
+        const label = TAG_LABEL[part.tag];
+        const url = href(part.tag);
+        const cls =
+          "ml-1 inline-flex h-[18px] items-center rounded border px-1.5 align-[1px] font-display text-[10.5px] font-medium text-text-secondary";
+        return url ? (
+          <a
+            key={i}
+            href={url}
+            {...(url.startsWith("#") ? {} : { target: "_blank", rel: "noopener noreferrer" })}
+            className={`${cls} hover:border-accent-secondary hover:text-accent-secondary`}
+            aria-label={`Source: ${label}`}
+          >
+            {label}
+          </a>
+        ) : (
+          <span key={i} className={cls} aria-label={`Source: ${label}`}>
+            {label}
+          </span>
+        );
+      })}
+    </p>
+  );
+}
 
 function FollowUp({
   term,
@@ -184,7 +226,11 @@ function FollowUp({
         article_id: articleId,
         question: q,
       });
-      setTurns((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, a: res.explanation } : x)));
+      setTurns((t) =>
+        t.map((x, i) =>
+          i === t.length - 1 ? { ...x, a: res.explanation, sources: res.sources } : x,
+        ),
+      );
     } catch {
       setTurns((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, failed: true } : x)));
     }
@@ -198,7 +244,7 @@ function FollowUp({
             <div key={i}>
               <p className="font-display text-[13.5px] font-semibold">{t.q}</p>
               {t.a ? (
-                <p className="mt-1 text-[14px] leading-[1.6] text-foreground">{t.a}</p>
+                <CitedAnswer text={t.a} sources={t.sources} />
               ) : t.failed ? (
                 <p className="mt-1 text-[13.5px] text-error">
                   No answer came back. Ask again in a moment.

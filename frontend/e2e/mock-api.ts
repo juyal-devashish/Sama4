@@ -34,6 +34,24 @@ export async function mockApi(page: Page) {
       });
     }
     if (path === "/feed") return json(route, fixtures.feed);
+    if (path === "/context/explain") {
+      const { article_id, question } = route.request().postDataJSON() as {
+        article_id: string;
+        question: string;
+      };
+      const article = (fixtures.articles as Record<string, { source: { url: string } }>)[
+        article_id
+      ];
+      return json(route, {
+        entity: null,
+        explanation: `You asked: ${question}. The story covers it [article]. Background agrees [Wikipedia].`,
+        sources: [
+          { type: "article", title: "The article", url: article?.source.url },
+          { type: "wikipedia", title: "Wikipedia", url: "https://en.wikipedia.org/wiki/Example" },
+        ],
+        confidence: 0.85,
+      });
+    }
     if (path === "/predictions/trending") return json(route, fixtures.trending);
     if (path.startsWith("/predictions/article/")) return json(route, null);
 
