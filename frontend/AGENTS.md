@@ -37,6 +37,7 @@ src/
 ## Recipes
 
 **Use a new endpoint**
+
 1. Add the types to `types/index.ts`.
 2. Add a method to `api` in `lib/api.ts`, using `apiPath()`.
 3. Add a key to `queryKeys`.
