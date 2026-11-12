@@ -55,3 +55,46 @@ test("a finished outlook is labelled as an AI projection and explains its figure
   await expect(outlook.getByText("AI persona")).toHaveCount(5);
   await expect(outlook.getByText(/They are not real people/)).toBeVisible();
 });
+
+test("a running outlook shows its steps and can be cancelled", async ({ page }) => {
+  let status = "queued";
+  const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "*" };
+  await mockApi(page);
+  await page.route("**/api/v1/predictions/**", (route) => {
+    const url = route.request().url();
+    if (route.request().method() === "OPTIONS")
+      return route.fulfill({ status: 204, headers: cors });
+    if (url.endsWith("/cancel")) {
+      status = "failed";
+      return route.fulfill({
+        contentType: "application/json",
+        headers: cors,
+        body: JSON.stringify({ id: PREDICTION.id, status, progress_message: "Cancelled" }),
+      });
+    }
+    if (url.includes("/status")) {
+      return route.fulfill({
+        contentType: "application/json",
+        headers: cors,
+        body: JSON.stringify({ id: PREDICTION.id, status, progress_message: "" }),
+      });
+    }
+    return route.fulfill({
+      contentType: "application/json",
+      headers: cors,
+      body: JSON.stringify({ ...PREDICTION, status, agent_perspectives: [] }),
+    });
+  });
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(`/?article=${ARTICLE_ID}`);
+
+  const steps = page.getByRole("list", { name: "Outlook progress" });
+  await expect(steps).toBeVisible({ timeout: 10_000 });
+  await expect(steps.locator('[aria-current="step"]')).toHaveText("Waiting to start");
+  await expect(page.getByText(/you can keep reading/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Cancel outlook" }).click();
+
+  await expect(page.getByText(/You cancelled the outlook/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /Run outlook/ })).toBeEnabled();
+});

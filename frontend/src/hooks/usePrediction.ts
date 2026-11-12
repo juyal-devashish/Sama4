@@ -43,6 +43,14 @@ export function useTriggerSimulation() {
   });
 }
 
+export function useCancelPrediction(articleId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (predictionId: string) => api.cancelPrediction(predictionId),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.prediction(articleId) }),
+  });
+}
+
 export function usePredictionChat() {
   return useMutation({
     mutationFn: (request: {
