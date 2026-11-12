@@ -206,3 +206,9 @@ export interface TrendingPrediction {
   agent_count: number;
   completed_at?: string;
 }
+
+// ---- Waitlist (backend/app/api/routers/waitlist.py) ----
+
+export interface WaitlistResponse {
+  status: "joined" | "exists";
+}

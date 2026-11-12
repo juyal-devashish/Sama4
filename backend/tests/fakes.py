@@ -79,6 +79,10 @@ class MemoryCache(Cache):
     async def delete(self, key: str) -> None:
         self.store.pop(key, None)
 
+    async def hit(self, key: str, window_seconds: int) -> int | None:
+        self.store[key] = int(self.store.get(key, 0)) + 1  # type: ignore[arg-type]
+        return int(self.store[key])  # type: ignore[arg-type]
+
 
 def make_container(settings: Settings | None = None) -> Container:
     s = settings or Settings(admin_secret="test-secret", environment="test")

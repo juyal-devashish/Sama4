@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routers import admin, articles, context, feed, predictions, search
+from app.api.routers import admin, articles, context, feed, predictions, search, waitlist
 from app.config import Settings, settings
 from app.container import get_container
 from app.database import create_tables
@@ -84,6 +84,7 @@ def create_app(s: Settings = settings) -> FastAPI:
     app.include_router(context.router, prefix=f"{API_PREFIX}/context", tags=["context"])
     app.include_router(search.router, prefix=f"{API_PREFIX}/search", tags=["search"])
     app.include_router(predictions.router, prefix=f"{API_PREFIX}/predictions", tags=["predictions"])
+    app.include_router(waitlist.router, prefix=f"{API_PREFIX}/waitlist", tags=["waitlist"])
 
     @app.get("/health")
     async def health_check() -> dict[str, str]:

@@ -45,6 +45,23 @@ class Cache:
         except Exception:
             logger.warning("Redis set failed", exc_info=True)
 
+    async def hit(self, key: str, window_seconds: int) -> int | None:
+        """Increment a counter that expires `window_seconds` after its first hit.
+
+        Returns the new count, or None if Redis is unavailable (callers decide
+        whether to fail open).
+        """
+        if not self._redis:
+            return None
+        try:
+            count = await self._redis.incr(key)
+            if count == 1:
+                await self._redis.expire(key, window_seconds)
+            return int(count)
+        except Exception:
+            logger.warning("Redis hit counter failed", exc_info=True)
+            return None
+
     async def delete(self, key: str) -> None:
         """Delete a cached value."""
         if not self._redis:

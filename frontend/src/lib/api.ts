@@ -17,6 +17,7 @@ import type {
   AgentInterviewRequest,
   AgentInterviewResponse,
   TrendingPrediction,
+  WaitlistResponse,
 } from "@/types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -133,5 +134,11 @@ export const api = {
 
   getTrendingPredictions(limit = 20) {
     return fetchAPI<TrendingPrediction[]>(apiPath("/predictions/trending", { limit }));
+  },
+
+  // ---- Waitlist (announcements page) ----
+
+  joinWaitlist(email: string) {
+    return fetchAPI<WaitlistResponse>(apiPath("/waitlist"), { method: "POST", body: { email } });
   },
 };
