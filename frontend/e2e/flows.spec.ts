@@ -250,3 +250,25 @@ test("privacy page explains how data is handled", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "The early-access waitlist" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "No tracking" })).toBeVisible();
 });
+
+test("search results can be narrowed by topic, source and date", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto("/search");
+  await page.getByRole("searchbox").or(page.getByLabel("Search stories")).first().fill("e");
+  const count = page.getByText(/\d+ stor(y|ies)( of \d+)? · newest first/);
+  await expect(count).toBeVisible({ timeout: 10_000 });
+  const total = Number((await count.textContent())!.match(/^(\d+)/)![1]);
+  expect(total).toBeGreaterThan(1);
+
+  const source = page.getByLabel("Source");
+  const firstSource = (await source.locator("option").nth(1).textContent())!;
+  await source.selectOption({ index: 1 });
+  const expected = Number(firstSource.match(/\((\d+)\)/)![1]);
+  await expect(count).toHaveText(new RegExp(`^${expected} stor(y|ies) of ${total} · newest first`));
+
+  await page.getByRole("button", { name: "Clear filters" }).first().click();
+  await expect(count).toHaveText(new RegExp(`^${total} stor`));
+  await expect(page.getByLabel("Topic")).toHaveValue("all");
+  await expect(page.getByLabel("Date")).toHaveValue("any");
+});
