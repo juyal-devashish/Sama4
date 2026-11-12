@@ -26,11 +26,11 @@ except Exception as e:
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Manage application startup and shutdown."""
 
-    # Create tables for SQLite (no Alembic needed locally)
-    from app.database import IS_SQLITE, create_tables
+    # Create any missing tables (idempotent). There are no Alembic migrations yet,
+    # so this is what bootstraps a fresh Postgres as well as local SQLite.
+    from app.database import create_tables
 
-    if IS_SQLITE:
-        await create_tables()
+    await create_tables()
 
     # Start background ingestion scheduler
     from app.ingestion.scheduler import setup_scheduler
