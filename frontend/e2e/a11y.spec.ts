@@ -41,3 +41,19 @@ test("first-run welcome dialog is accessible", async ({ page }) => {
   );
   expect(summary, summary.join("\n")).toEqual([]);
 });
+
+test("loading skeletons are accessible (feed request held open)", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.route("**/api/v1/feed**", () => {
+    /* never fulfil: keep the skeleton on screen */
+  });
+  await page.goto("/");
+  await expect(page.getByLabel("Loading stories")).toBeVisible();
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+    .analyze();
+  const summary = results.violations.map(
+    (v) => `${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes[0]?.target.join(" ")}`,
+  );
+  expect(summary, summary.join("\n")).toEqual([]);
+});

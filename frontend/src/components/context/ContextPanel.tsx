@@ -47,7 +47,12 @@ export function ContextPanel({ term, articleId, onSelectTerm, onOpenArticle, onC
         </h2>
 
         {isLoading ? (
-          <div className="mt-5 space-y-2.5" aria-busy="true" aria-label="Loading explanation">
+          <div
+            className="mt-5 space-y-2.5"
+            role="status"
+            aria-busy="true"
+            aria-label="Loading explanation"
+          >
             <div className="skeleton h-4 w-full" />
             <div className="skeleton h-4 w-full" />
             <div className="skeleton h-4 w-11/12" />

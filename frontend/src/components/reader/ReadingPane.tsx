@@ -304,7 +304,12 @@ function Story({
 
 function ArticleSkeleton() {
   return (
-    <div className="mx-auto max-w-[760px] px-10 pt-24" aria-busy="true" aria-label="Loading story">
+    <div
+      className="mx-auto max-w-[760px] px-10 pt-24"
+      role="status"
+      aria-busy="true"
+      aria-label="Loading story"
+    >
       <div className="skeleton h-3 w-24" />
       <div className="skeleton mt-4 h-8 w-full" />
       <div className="skeleton mt-2 h-8 w-3/4" />
