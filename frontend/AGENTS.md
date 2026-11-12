@@ -11,7 +11,8 @@ src/
                        (product intro + waitlist), /settings
   components/
     shell/             AppShell, Sidebar, Page
-    onboarding/        first-visit Splash, IntroFlow (welcome + topics), OnboardingGate
+    onboarding/        first-visit Splash, IntroFlow (welcome + topics), OnboardingGate;
+                       in-app Tip, TermHint (rules in lib/onboarding.ts)
     reader/            Reader (3 panes) = StoryList | ReadingPane | context/ContextPanel
                        ArticleText renders highlighted entities
     context/           ContextPanel: explanation + follow-up questions for a selected term
