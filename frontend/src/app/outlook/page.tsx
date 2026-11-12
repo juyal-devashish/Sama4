@@ -21,8 +21,8 @@ export default function OutlookPage() {
       title="Outlook"
       description={
         <>
-          AI-generated projections of what might happen next in a story, ranked by the
-          model&apos;s estimate of impact. They are estimates, not confirmed events.
+          AI-generated projections of what might happen next in a story, ranked by the model&apos;s
+          estimate of impact. They are estimates, not confirmed events.
           <span className="mt-2 block text-[13.5px] text-text-tertiary">
             <strong className="font-medium text-text-secondary">Impact</strong>: {IMPACT_HELP}{" "}
             <strong className="font-medium text-text-secondary">Model confidence</strong>:{" "}
