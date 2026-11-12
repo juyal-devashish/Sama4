@@ -3,7 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Bookmark, BookmarkCheck, Check, Library, Link2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Bookmark,
+  BookmarkCheck,
+  Check,
+  Library,
+  Link2,
+} from "lucide-react";
 import { useArticle } from "@/hooks/useArticle";
 import { useSavedStories, TOPIC_LABELS } from "@/lib/preferences";
 import { cn, formatTimeAgo } from "@/lib/utils";
@@ -251,7 +259,7 @@ function Story({
         <h1 className="font-display text-[32px] font-bold leading-[1.18] tracking-[-0.02em] xl:text-[38px]">
           {article.title}
         </h1>
-        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-[13.5px] text-text-secondary">
+        <div className="mt-4 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-[13.5px] text-text-secondary">
           <span className="font-medium text-foreground">{article.source.name}</span>
           {article.published_at && (
             <time dateTime={article.published_at} suppressHydrationWarning>
@@ -263,6 +271,18 @@ function Story({
           ) : null}
           {termCount > 0 && <span>{termCount} terms explained</span>}
         </div>
+        {article.source.url && (
+          <a
+            href={article.source.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-lg border px-3.5 font-display text-[13.5px] font-medium text-foreground transition-colors hover:border-accent-secondary hover:text-accent-secondary"
+          >
+            Read the original at {article.source.name}
+            <ArrowUpRight size={15} aria-hidden />
+            <span className="sr-only">(opens in a new tab)</span>
+          </a>
+        )}
 
         {article.image_url && (
           // eslint-disable-next-line @next/next/no-img-element

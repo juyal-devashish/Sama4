@@ -91,3 +91,21 @@ test.describe("keyboard shortcuts", () => {
     await expect(page).toHaveURL(/\/search/);
   });
 });
+
+test("every story links to its original article in a new tab", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  const source = (fixtures.articles as Record<string, { source: { name: string; url: string } }>)[
+    ARTICLE_ID
+  ].source;
+  const link = page.getByRole("link", {
+    name: `Read the original at ${source.name} (opens in a new tab)`,
+  });
+  await expect(link).toBeVisible({ timeout: 10_000 });
+  await expect(link).toHaveAttribute("href", source.url);
+  await expect(link).toHaveAttribute("target", "_blank");
+  await expect(link).toHaveAttribute("rel", /noopener/);
+  await link.focus();
+  await expect(link).toBeFocused();
+});
