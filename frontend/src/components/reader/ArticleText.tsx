@@ -2,7 +2,7 @@
 
 import { Fragment } from "react";
 import {
-  cleanSpans,
+  bodySpans,
   findMentions,
   paragraphRanges,
   segmentRange,
@@ -85,10 +85,7 @@ export function ArticleBody({
   activeId?: string;
   onSelect: (e: EntityInArticle) => void;
 }) {
-  const spans = cleanSpans(
-    entities.map((e) => ({ start: e.start, end: e.end, entity: e })),
-    content.length,
-  );
+  const spans = bodySpans(content, entities);
 
   const paragraphs = paragraphRanges(content);
 
