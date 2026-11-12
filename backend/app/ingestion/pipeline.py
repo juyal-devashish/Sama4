@@ -191,7 +191,7 @@ class IngestionPipeline:
 
             # Summarize
             if cleaned:
-                article.summary = await self.summarizer.summarize(cleaned)
+                article.summary = await self.summarizer.summarize(cleaned, title=article.title)
 
             # Embed
             await self.embedder.embed_article(
