@@ -41,7 +41,7 @@ test("reference page is accessible", async ({ page }) => {
 });
 
 test("reader toolbar controls stay inside the viewport", async ({ page }) => {
-  test.skip(!!process.env.CI, "needs a seeded backend (run `make seed` locally)");
+  await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
   await page.goto(ARTICLE);
   const save = page.getByRole("button", { name: /^save/i });
