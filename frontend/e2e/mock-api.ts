@@ -33,7 +33,28 @@ export async function mockApi(page: Page) {
         },
       });
     }
-    if (path === "/feed") return json(route, fixtures.feed);
+    if (path === "/feed") {
+      const category = url.searchParams.get("category");
+      if (!category) return json(route, fixtures.feed);
+      // Per-topic feeds: the fixture stories in that topic, then 40 generated ones, so
+      // topic switching and "Load more" can be tested against real pagination.
+      const pool = [
+        ...fixtures.feed.articles.filter((a) => a.categories.includes(category)),
+        ...Array.from({ length: 40 }, (_, i) => ({
+          ...fixtures.feed.articles[0],
+          id: `${category}-${i}`,
+          title: `${category} story ${i + 1}`,
+          categories: [category],
+        })),
+      ];
+      const page = Number(url.searchParams.get("page") ?? 1);
+      const limit = Number(url.searchParams.get("limit") ?? 25);
+      const articles = pool.slice((page - 1) * limit, page * limit);
+      return json(route, {
+        articles,
+        pagination: { page, limit, total: pool.length, has_next: page * limit < pool.length },
+      });
+    }
     if (path === "/context/explain") {
       const { article_id, question } = route.request().postDataJSON() as {
         article_id: string;
