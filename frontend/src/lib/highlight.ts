@@ -26,6 +26,22 @@ export function cleanSpans<T extends { start: number; end: number }>(
   return out;
 }
 
+/**
+ * Spans for highlighting the article body from the backend's stored offsets.
+ * Only mentions whose text really sits at [start, end) are kept: older rows
+ * (e.g. headline-only terms in short RSS teasers) can carry offsets that point at
+ * unrelated text. Those entities still appear in the side panel and in summaries.
+ */
+export function bodySpans(content: string, entities: EntityInArticle[]): Span[] {
+  const aligned = entities.filter(
+    (e) => content.slice(e.start, e.end).toLowerCase() === e.text.toLowerCase(),
+  );
+  return cleanSpans(
+    aligned.map((e) => ({ start: e.start, end: e.end, entity: e })),
+    content.length,
+  );
+}
+
 /** Split content[from, to) into plain and entity segments. Spans crossing the range are skipped. */
 export function segmentRange(content: string, from: number, to: number, spans: Span[]): Segment[] {
   const segs: Segment[] = [];

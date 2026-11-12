@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { EntityInArticle } from "@/types";
 import {
+  bodySpans,
   cleanSpans,
   findMentions,
   paragraphRanges,
@@ -119,5 +120,19 @@ describe("findMentions", () => {
 describe("findMentions punctuation", () => {
   it("matches names ending in punctuation", () => {
     expect(findMentions("Ties with the U.S. grew.", [ent("U.S.")])).toHaveLength(1);
+  });
+});
+
+describe("bodySpans", () => {
+  it("keeps mentions whose text sits at their offsets (case-insensitive)", () => {
+    const content = "Ada met Babbage.";
+    const spans = bodySpans(content, [ent("ada", 0), ent("Babbage", 8)]);
+    expect(spans.map((s) => s.entity.text)).toEqual(["ada", "Babbage"]);
+  });
+
+  it("drops misaligned mentions, e.g. a headline term stored at offset 0", () => {
+    const content = "A short teaser about chemistry.";
+    const spans = bodySpans(content, [ent("Hideki Shirakawa", 0), ent("chemistry", 21)]);
+    expect(spans.map((s) => s.entity.text)).toEqual(["chemistry"]);
   });
 });
