@@ -142,7 +142,7 @@ export const api = {
     return fetchAPI<TrendingPrediction[]>(apiPath("/predictions/trending", { limit }));
   },
 
-  // ---- Waitlist (announcements page) ----
+  // ---- Waitlist (early-access page) ----
 
   joinWaitlist(email: string) {
     return fetchAPI<WaitlistResponse>(apiPath("/waitlist"), { method: "POST", body: { email } });
