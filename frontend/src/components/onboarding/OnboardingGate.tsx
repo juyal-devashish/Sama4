@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
+import { GATE_ATTR } from "@/lib/onboarding";
 import { useOnboarding, useTopics } from "@/lib/preferences";
 import { IntroFlow } from "./IntroFlow";
 
@@ -21,6 +22,8 @@ export function OnboardingGate() {
 
   useEffect(() => {
     const html = document.documentElement;
+    // Tells the pre-paint script's failsafe that the app is running and owns the intro.
+    html.setAttribute(GATE_ATTR, "");
     if (!html.classList.contains("intro")) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const hold = reduce ? SPLASH_MS_REDUCED : SPLASH_MS;

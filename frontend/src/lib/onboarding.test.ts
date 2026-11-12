@@ -9,6 +9,8 @@ import {
   reduceOnboarding,
   startScreen,
   FIRST_VISIT_SCRIPT,
+  GATE_ATTR,
+  SPLASH_FAILSAFE_MS,
   type HintContext,
   type OnboardingState,
 } from "./onboarding";
@@ -182,10 +184,11 @@ describe("FIRST_VISIT_SCRIPT", () => {
     };
     const location = { pathname: url.pathname, search: url.search };
     const localStorage = { getItem: (k: string) => storage[k] ?? null };
-    new Function("document", "location", "localStorage", FIRST_VISIT_SCRIPT)(
+    new Function("document", "location", "localStorage", "setTimeout", FIRST_VISIT_SCRIPT)(
       document,
       location,
       localStorage,
+      () => {},
     );
     return added;
   }
@@ -236,6 +239,39 @@ describe("FIRST_VISIT_SCRIPT", () => {
       expect(run(path, {})).toEqual([]);
     }
     expect(run("/?topic=tech", {})).toEqual(["intro", "intro-splash"]);
+  });
+
+  it("reveals the app by itself if the JavaScript app never starts", () => {
+    const classes = new Set<string>();
+    const attrs = new Set<string>();
+    const timers: [() => void, number][] = [];
+    const html = {
+      classList: {
+        add: (...c: string[]) => c.forEach((x) => classes.add(x)),
+        remove: (...c: string[]) => c.forEach((x) => classes.delete(x)),
+      },
+      hasAttribute: (a: string) => attrs.has(a),
+    };
+    const exec = () =>
+      new Function("document", "location", "localStorage", "setTimeout", FIRST_VISIT_SCRIPT)(
+        { documentElement: html },
+        { pathname: "/", search: "" },
+        { getItem: () => null },
+        (fn: () => void, ms: number) => timers.push([fn, ms]),
+      );
+
+    exec();
+    expect(Array.from(classes)).toEqual(["intro", "intro-splash"]);
+    expect(timers[0][1]).toBe(SPLASH_FAILSAFE_MS);
+    timers[0][0](); // the app never mounted
+    expect(Array.from(classes)).toEqual([]);
+
+    // When the gate has mounted, the failsafe leaves the intro alone.
+    timers.length = 0;
+    exec();
+    attrs.add(GATE_ATTR);
+    timers[0][0]();
+    expect(Array.from(classes)).toEqual(["intro", "intro-splash"]);
   });
 
   it("does nothing when storage throws", () => {
