@@ -24,8 +24,11 @@ async def test_context_generates_with_claude_and_returns_related(client, contain
     assert body["context"]["cached"] is False
     assert [e["name"] for e in body["related_entities"]] == ["Charles Babbage"]
     assert body["related_articles"] == [{"id": str(article.id), "title": "Related"}]
-    # Wikipedia extract is passed to Claude
-    assert "A short Wikipedia extract." in container.llm.calls[0]["prompt"]
+    # Claude gets the Wikipedia extract and the story the entity appears in
+    call = container.llm.calls[0]
+    assert "A short Wikipedia extract." in call["prompt"]
+    assert "<headline>Related story</headline>" in call["prompt"]
+    assert call["system"] and call["effort"] == "low"
 
 
 async def test_context_second_call_is_served_from_cache(client, container, db_session):

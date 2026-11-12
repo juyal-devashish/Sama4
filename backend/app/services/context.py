@@ -16,8 +16,8 @@ from app.clients.mirofish import MirofishClient
 from app.clients.vectors import VectorStore, article_id_from_vector_id
 from app.clients.wikimedia import WikimediaClient
 from app.models.article import Article
-from app.models.entity import Entity
-from app.prompts.templates import PROMPTS
+from app.models.entity import ArticleEntity, Entity
+from app.prompts.templates import PROMPTS, entity_context_prompt
 from app.repositories import entities as entity_repo
 from app.repositories import predictions as prediction_repo
 from app.schemas.context import (
@@ -52,6 +52,26 @@ def related_article_briefs(matches: list[dict]) -> list[RelatedArticleBrief]:
             title = (m.get("metadata") or {}).get("title", "")
             briefs.append(RelatedArticleBrief(id=article_id, title=title))
     return briefs
+
+
+EXCERPT_RADIUS = 300  # characters of article text kept on each side of a mention
+
+
+def mention_excerpt(text: str, mention: ArticleEntity, radius: int = EXCERPT_RADIUS) -> str | None:
+    """Article text around a mention, snapped to word boundaries, with ellipses when cut."""
+    if not text:
+        return None
+    start = max(0, mention.start_position - radius)
+    end = min(len(text), mention.end_position + radius)
+    if start > 0:  # move forward to the next word start, but never into the mention
+        space = text.find(" ", start, mention.start_position)
+        start = space + 1 if space != -1 else start
+    if end < len(text):  # move back to the previous word end, but never into the mention
+        space = text.rfind(" ", mention.end_position, end)
+        end = space if space != -1 else end
+    prefix = "…" if start > 0 else ""
+    suffix = "…" if end < len(text) else ""
+    return prefix + text[start:end].strip() + suffix
 
 
 class ContextService:
@@ -92,7 +112,7 @@ class ContextService:
         if entity.short_context and not self.llm.available:
             context_text = entity.short_context
         else:
-            context_text = await self._generate_context(entity)
+            context_text = await self._generate_context(entity, db)
 
         now = datetime.now(UTC)
         await self.cache.set(
@@ -116,18 +136,24 @@ class ContextService:
             related_articles=related_articles,
         )
 
-    async def _generate_context(self, entity: Entity) -> str:
+    async def _generate_context(self, entity: Entity, db: AsyncSession) -> str:
         wikipedia_extract = await self.wikimedia.get_wikipedia_extract(entity.wikipedia_url or "")
         graph_context = await self._mirofish_graph_context(entity)
-        prompt = PROMPTS["entity_context"]["v1"]["template"].format(
-            entity_name=entity.canonical_name,
+        article_title, excerpt = None, None
+        mention = await entity_repo.latest_mention(db, entity)
+        if mention is not None:
+            article, ae = mention
+            article_title = article.title
+            excerpt = mention_excerpt(article.cleaned_content or article.raw_content or "", ae)
+        system, prompt = entity_context_prompt(
+            name=entity.canonical_name,
             entity_type=entity.entity_type,
-            article_excerpt="",
-            wikidata_facts="",
-            wikipedia_excerpt=wikipedia_extract or "No Wikipedia information available.",
-            related_articles_summaries=graph_context,
+            article_title=article_title,
+            article_excerpt=excerpt,
+            background=wikipedia_extract,
+            related_news=graph_context,
         )
-        return await self.llm.generate(prompt, effort="low")
+        return await self.llm.generate(prompt, effort="low", system=system)
 
     async def answer_followup(
         self, entity: Entity, article: Article, question: str, db: AsyncSession

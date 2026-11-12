@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.article import Article
 from app.models.entity import ArticleEntity, Entity
 
 
@@ -53,3 +54,17 @@ async def get_or_create(
         db.add(entity)
         await db.flush()
     return entity
+
+
+async def latest_mention(db: AsyncSession, entity: Entity) -> tuple[Article, ArticleEntity] | None:
+    """The newest article mentioning `entity`, with the mention (for story context)."""
+    row = (
+        await db.execute(
+            select(Article, ArticleEntity)
+            .join(ArticleEntity, ArticleEntity.article_id == Article.id)
+            .where(ArticleEntity.entity_id == entity.id)
+            .order_by(Article.published_at.desc().nulls_last())
+            .limit(1)
+        )
+    ).first()
+    return (row[0], row[1]) if row else None
