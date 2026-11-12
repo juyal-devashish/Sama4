@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     backend_port: int = 8000
     cors_origins: list[str] = ["http://localhost:3000"]
+    # Regex for extra allowed origins, e.g. every Vercel URL of the frontend project
+    # (production aliases, git-branch and preview deployments). None = list only.
+    cors_origin_regex: str | None = None
     # Run the 30-minute ingestion job in-process. Tests and one-off scripts set False.
     scheduler_enabled: bool = True
 

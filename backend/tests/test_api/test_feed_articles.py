@@ -76,3 +76,27 @@ async def test_reference_page_groups_entities(client, db_session):
     assert body["article"]["id"] == str(article.id)
     assert body["entities"][0]["context"] == "Mathematician."
     assert body["related_articles"] == []
+
+
+async def test_cors_origin_regex_allows_project_preview_urls():
+    from httpx import ASGITransport, AsyncClient
+
+    from app.config import Settings
+    from app.main import create_app
+
+    app = create_app(
+        Settings(
+            cors_origins=["https://listed.example"],
+            cors_origin_regex=r"^https://frontend(-[a-z0-9-]+)?-team\.vercel\.app$",
+        )
+    )
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+
+        async def allowed(origin: str) -> str | None:
+            r = await ac.get("/health", headers={"Origin": origin})
+            return r.headers.get("access-control-allow-origin")
+
+        assert await allowed("https://frontend-git-main-team.vercel.app") is not None
+        assert await allowed("https://frontend-team.vercel.app") is not None
+        assert await allowed("https://listed.example") is not None
+        assert await allowed("https://evil-team.vercel.app") is None
