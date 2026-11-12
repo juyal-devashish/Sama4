@@ -16,3 +16,20 @@ for (const [saved, dark] of [
     expect(isDark).toBe(dark);
   });
 }
+
+test("with nothing saved, the app is light even when the OS is dark", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto("/settings");
+  await expect(page.getByRole("radio", { name: /light/i })).toBeChecked();
+  expect(await page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(
+    false,
+  );
+});
+
+test('"Match system" still follows a dark OS', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.addInitScript(() => localStorage.setItem("sama4_theme", '"system"'));
+  await page.goto("/settings", { waitUntil: "domcontentloaded" });
+  expect(await page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(true);
+});
