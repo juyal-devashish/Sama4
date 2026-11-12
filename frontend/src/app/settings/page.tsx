@@ -58,7 +58,7 @@ export default function SettingsPage() {
         <div
           role="radiogroup"
           aria-label="Theme"
-          className="inline-flex rounded-lg border bg-background p-1"
+          className="inline-flex max-w-full rounded-lg border bg-background p-1"
         >
           {THEMES.map(({ value, label, icon: Icon }) => (
             <button
@@ -68,13 +68,21 @@ export default function SettingsPage() {
               aria-checked={theme === value}
               onClick={() => setTheme(value)}
               className={cn(
-                "flex h-8 items-center gap-2 rounded-md px-3.5 text-[13px] font-medium transition-colors",
+                "flex h-8 items-center gap-2 whitespace-nowrap rounded-md px-3 text-[13px] font-medium transition-colors sm:px-3.5",
                 theme === value
                   ? "bg-accent-primary text-on-accent"
                   : "text-text-secondary hover:text-foreground",
               )}
             >
-              <Icon size={15} /> {label}
+              <Icon size={15} className="hidden sm:block" aria-hidden />
+              {value === "system" ? (
+                <>
+                  <span className="sm:hidden">System</span>
+                  <span className="hidden sm:inline">{label}</span>
+                </>
+              ) : (
+                label
+              )}
             </button>
           ))}
         </div>
