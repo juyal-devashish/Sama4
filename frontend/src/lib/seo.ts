@@ -19,6 +19,7 @@ export function storyMetadata(article: ArticleDetail): Metadata {
   return {
     title: article.title,
     description,
+    alternates: { canonical: storyPath(article.id) },
     openGraph: {
       type: "article",
       siteName: SITE_NAME,

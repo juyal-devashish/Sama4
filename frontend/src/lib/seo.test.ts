@@ -18,6 +18,7 @@ describe("storyMetadata", () => {
     const m = storyMetadata(story);
     expect(m.title).toBe("A headline");
     expect(m.description).toBe("A short summary.");
+    expect(m.alternates).toEqual({ canonical: "/article/abc" });
     expect(m.openGraph).toMatchObject({
       type: "article",
       url: "/article/abc",

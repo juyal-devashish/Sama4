@@ -3,6 +3,7 @@ import { Page } from "@/components/shell/Page";
 
 export const metadata = {
   title: "Privacy",
+  alternates: { canonical: "/privacy" },
   description:
     "How Samā4 handles your data, in plain terms: the waitlist, what stays on your device, error reports, and no tracking.",
 };
