@@ -122,6 +122,15 @@ export const LANDING_MARKUP = `<section class="hero">
     </div>
   </div>
 </section>
+<section class="reader-shot reveal">
+  <div class="reader-shot-inner">
+    <p class="section-label">See it working</p>
+    <figure>
+      <img src="/images/reader-explained.webp" width="1400" height="925" loading="lazy" decoding="async" alt="The Samā4 reader: a story summary with names and ideas highlighted, and beside it a short explanation of the highlighted term “the Detroit Pistons”, with related terms and other stories that mention it." />
+      <figcaption>A real story in the reader, with one highlighted term explained in the margin. <a href="/">Open today&rsquo;s stories</a></figcaption>
+    </figure>
+  </div>
+</section>
 <section class="features reveal" id="features">
   <div class="features-inner">
     <p class="section-label">Available now</p>

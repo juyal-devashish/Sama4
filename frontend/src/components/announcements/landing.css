@@ -521,6 +521,31 @@
   padding: 120px 48px;
   border-top: 1px solid var(--border);
 }
+/* A real screenshot of the reader (public/images/reader-explained.webp). */
+.s4-landing .reader-shot {
+  padding: 0 48px 120px;
+}
+.s4-landing .reader-shot-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.s4-landing .reader-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border-strong);
+}
+.s4-landing .reader-shot figcaption {
+  margin-top: 14px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.s4-landing .reader-shot figcaption a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 .s4-landing .how-inner {
   max-width: 900px;
   margin: 0 auto;
@@ -969,6 +994,9 @@
   }
 }
 @media (max-width: 640px) {
+  .s4-landing .reader-shot {
+    padding: 0 20px 80px;
+  }
   .s4-landing .hero {
     padding: 48px 20px 40px;
   }
