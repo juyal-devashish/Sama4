@@ -515,3 +515,16 @@ class TestPossessiveNames:
 
         assert [e.text for e in result] == ["Alzheimer's"]
         _assert_aligned(text, result)
+
+
+def test_spacy_names_running_across_a_paragraph_break_are_dropped():
+    content = "The bill passed in the House of X.\n\nScott Bessent welcomed it."
+    spans = [
+        _make_span("X.\n\nScott", "PERSON", 32, 41),
+        _make_span("Scott Bessent", "PERSON", 36, 49),
+    ]
+    service = _build_service_with_mock(spans)
+
+    result = service.extract_entities(content, "Bill passes")
+
+    assert [e.text for e in result] == ["Scott Bessent"]

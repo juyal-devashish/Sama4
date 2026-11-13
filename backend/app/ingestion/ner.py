@@ -170,6 +170,9 @@ class NERService:
                 continue
 
             normalized = canonical_mention(ent.text.strip(), content)
+            if "\n" in normalized:
+                # spaCy sometimes runs a name across a paragraph break ("X.\n\nScott").
+                continue
             key = normalized.lower()
             # Trim the offsets with the text, then make sure they still point at it.
             hint = ent.start_char + (len(ent.text) - len(ent.text.lstrip()))
@@ -304,7 +307,7 @@ Return ONLY the JSON object, no markdown."""  # noqa: E501 (LLM prompt text)
             for item in items:
                 text = canonical_mention(str(item.get("text", "")).strip(), content)
                 entity_type = normalize_llm_type(item.get("type"))
-                if not text:
+                if not text or "\n" in text:
                     continue
 
                 # Offsets must come from `content` itself (the stored cleaned_content).
