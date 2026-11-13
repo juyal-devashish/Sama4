@@ -367,7 +367,7 @@ function Story({
             href={article.source.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-outline mt-4"
+            className="btn-ink mt-5 px-4 py-2.5 text-[11px]"
           >
             Read the original at {article.source.name}
             <ArrowUpRight size={13} aria-hidden />
@@ -439,7 +439,7 @@ function Story({
               href={article.source.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="link-ui mt-6 inline-flex items-center gap-1 font-ui text-[13px] text-text-secondary hover:text-foreground"
+              className="btn-ink mt-6 px-4 py-2.5 text-[11px]"
             >
               Continue reading at {article.source.name}
               <ArrowUpRight size={13} aria-hidden />
