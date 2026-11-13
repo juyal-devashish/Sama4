@@ -4,31 +4,33 @@
  * - Every rule is scoped to .s4-landing so nothing leaks into the reader.
  * - Its colour and font variables point at the reader's tokens (styles/globals.css).
  * - Its dark-mode rules follow the app's `.dark` class. Layout is unchanged.
+ * - Restyled in the reader's broadsheet theme: square corners, ink band, red accent,
+ *   regular-weight serif headlines, uppercase sans labels in place of monospace.
  */
 .s4-landing {
   --bg: var(--background);
   --bg-2: var(--surface);
   --bg-secondary: var(--background-secondary);
-  --bg-dark: #0d1b3e;
-  --bg-dark-2: #16264f;
+  --bg-dark: #171716;
+  --bg-dark-2: #252422;
   --border-light: var(--divider);
   --border-strong: color-mix(in srgb, var(--foreground) 15%, transparent);
   --text: var(--foreground);
   --text-muted: var(--text-tertiary);
-  --text-light: #fafafa;
-  --text-light-muted: #a7b0c8;
+  --text-light: #f4f0e8;
+  --text-light-muted: #b8b3a8;
   --accent: var(--accent-primary);
   --accent-hover: var(--accent-secondary);
   --highlight-bg: var(--entity-highlight);
   --highlight-border: var(--entity-highlight-active);
-  --serif: var(--font-poppins), system-ui, sans-serif;
-  --sans: var(--font-roboto), system-ui, sans-serif;
-  --mono: ui-monospace, "SF Mono", Menlo, monospace;
-  --radius: 6px;
+  --serif: Georgia, "Times New Roman", serif;
+  --sans: Arial, Helvetica, sans-serif;
+  --mono: Arial, Helvetica, sans-serif;
+  --radius: 0;
 }
 .dark .s4-landing {
-  --bg-dark: var(--surface);
-  --bg-dark-2: var(--background-secondary);
+  --bg-dark: var(--background-secondary);
+  --bg-dark-2: #26241f;
 }
 .s4-landing *,
 .s4-landing *::before,
@@ -39,9 +41,6 @@
 }
 .s4-landing {
   background-color: var(--bg);
-  background-image: linear-gradient(rgba(128, 128, 128, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(128, 128, 128, 0.06) 1px, transparent 1px);
-  background-size: 64px 64px;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
@@ -79,7 +78,7 @@
 .s4-landing .theme-toggle {
   background: none;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 0;
   padding: 6px 8px;
   cursor: pointer;
   color: var(--text-muted);
@@ -168,7 +167,7 @@
   background: var(--accent);
   border: none;
   padding: 10px 24px;
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
   text-decoration: none;
   transition:
@@ -190,7 +189,7 @@
   background: transparent;
   border: 1px solid var(--border-strong);
   padding: 10px 24px;
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
   text-decoration: none;
   transition: all 0.2s;
@@ -223,7 +222,7 @@
   color: var(--text-muted);
   background: var(--bg-2);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 0;
   padding: 14px 18px;
   margin-bottom: 32px;
 }
@@ -245,9 +244,9 @@
 .s4-landing .hero-title {
   font-family: var(--serif);
   font-size: clamp(3rem, 8vw, 6rem);
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  line-height: 0.9;
+  font-weight: 400;
+  letter-spacing: -0.045em;
+  line-height: 0.92;
   margin-bottom: 24px;
   color: var(--text);
 }
@@ -278,7 +277,7 @@
   color: var(--text-muted);
   border: 1px solid var(--border);
   padding: 6px 12px;
-  border-radius: 4px;
+  border-radius: 0;
   letter-spacing: 0.02em;
 }
 .s4-landing .hero-demo {
@@ -315,7 +314,7 @@
   width: 80px;
   height: 6px;
   background: var(--border-strong);
-  border-radius: 3px;
+  border-radius: 0;
 }
 .s4-landing .phone-statusbar {
   display: flex;
@@ -350,7 +349,7 @@
   height: 22px;
   background: var(--accent);
   color: var(--on-accent);
-  border-radius: 6px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -370,7 +369,7 @@
   color: #28c840;
   background: rgba(40, 200, 64, 0.1);
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: 0;
   margin-left: auto;
   letter-spacing: 0.04em;
 }
@@ -391,7 +390,7 @@
   height: 18px;
   background: #c4302b;
   color: #fff;
-  border-radius: 3px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -433,7 +432,7 @@
   background: var(--highlight-bg);
   border-bottom: 2px solid var(--highlight-border);
   padding: 1px 2px;
-  border-radius: 2px;
+  border-radius: 0;
   color: var(--text);
 }
 .s4-landing .context-card {
@@ -464,7 +463,7 @@
   width: 32px;
   height: 4px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
+  border-radius: 0;
   margin: 0 auto 12px;
 }
 .s4-landing .context-card-type {
@@ -527,7 +526,7 @@
   width: 100px;
   height: 4px;
   background: var(--border-strong);
-  border-radius: 2px;
+  border-radius: 0;
 }
 .s4-landing .trust-bar {
   padding: 0 48px 80px;
@@ -587,8 +586,8 @@
 .s4-landing .value-title {
   font-family: var(--serif);
   font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 400;
+  letter-spacing: -0.035em;
   line-height: 1.1;
   margin-bottom: 20px;
 }
@@ -618,14 +617,14 @@
   color: var(--text-light-muted);
   border: 1px solid rgba(245, 245, 243, 0.1);
   padding: 6px 14px;
-  border-radius: 4px;
+  border-radius: 0;
 }
 .s4-landing .value-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1px;
   background: rgba(245, 245, 243, 0.08);
-  border-radius: 8px;
+  border-radius: 0;
   overflow: hidden;
 }
 .s4-landing .value-card {
@@ -774,7 +773,7 @@
   display: inline-flex;
   gap: 0;
   border: 1px solid var(--border-strong);
-  border-radius: 6px;
+  border-radius: 0;
   overflow: hidden;
   background: var(--bg-2);
   transition: border-color 0.2s;
@@ -1289,13 +1288,13 @@
   }
 }
 
-/* On the navy band the navy accent would vanish: use the reader's gold highlight tone. */
+/* On the ink band the ink accent would vanish: use the dark theme's red. */
 .s4-landing .value-section {
-  --accent: #e8c874;
-  --accent-hover: #f0d68f;
+  --accent: #e0685d;
+  --accent-hover: #ea8a81;
 }
 .dark .s4-landing .value-section {
-  --accent: var(--accent-primary);
+  --accent: var(--accent-secondary);
   --accent-hover: var(--accent-secondary);
 }
 

@@ -34,10 +34,10 @@ export function TopicChips({
             type="button"
             onClick={() => onChange(t)}
             className={cn(
-              "h-8 rounded-full border px-3.5 text-[13px] font-medium transition-colors",
+              "label-ui h-7 border px-2.5 transition-colors",
               on
-                ? "border-accent-primary bg-accent-primary text-on-accent"
-                : "bg-transparent text-text-secondary hover:border-accent-secondary hover:text-foreground",
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-transparent text-text-secondary hover:border-foreground hover:text-foreground",
             )}
           >
             {t === "all" ? "All" : (TOPIC_LABELS[t] ?? t)}
@@ -59,36 +59,29 @@ export const StoryRow = forwardRef<
       onClick={onClick}
       aria-current={selected ? "true" : undefined}
       className={cn(
-        "group relative flex w-full gap-4 rounded-xl px-4 text-left transition-colors",
-        dense ? "py-3" : "py-4",
-        selected ? "bg-surface" : "hover:bg-surface/70",
+        "group relative flex w-full gap-4 px-4 text-left transition-colors",
+        dense ? "py-3.5" : "py-5",
+        selected ? "bg-background-secondary/70" : "hover:bg-background-secondary/40",
       )}
     >
-      {selected && (
-        <span
-          className="absolute inset-y-4 left-0 w-[3px] rounded-full bg-accent-primary"
-          aria-hidden
-        />
-      )}
+      {selected && <span className="absolute inset-y-0 left-0 w-[3px] bg-foreground" aria-hidden />}
       <div className="min-w-0 flex-1">
-        <div className="mb-1 flex items-baseline gap-2 text-[12px]">
-          <span className="truncate font-display font-semibold text-foreground">
-            {story.source.name}
-          </span>
-          <span className="flex-shrink-0 text-text-tertiary">
+        <div className="mb-1.5 flex items-baseline gap-2">
+          <span className="kicker truncate">{story.source.name}</span>
+          <span className="label-ui flex-shrink-0 text-text-tertiary" suppressHydrationWarning>
             {formatTimeAgo(story.published_at)}
           </span>
         </div>
         <h2
           className={cn(
-            "font-display text-[15px] font-semibold leading-snug tracking-[-0.005em]",
-            dense ? "line-clamp-2" : "line-clamp-3",
+            "font-editorial leading-[1.12] tracking-[-0.02em] group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4",
+            dense ? "line-clamp-2 text-[17px]" : "line-clamp-3 text-[20px]",
           )}
         >
           {story.title}
         </h2>
         {!dense && story.summary && (
-          <p className="mt-1.5 line-clamp-2 text-[13.5px] leading-[1.5] text-text-secondary">
+          <p className="mt-2 line-clamp-2 font-editorial text-[14px] leading-[1.4] text-text-secondary">
             {story.summary}
           </p>
         )}
@@ -101,7 +94,7 @@ export const StoryRow = forwardRef<
           alt=""
           loading="lazy"
           className={cn(
-            "flex-shrink-0 rounded-lg bg-background-secondary object-cover",
+            "flex-shrink-0 bg-background-secondary object-cover",
             dense ? "h-14 w-14" : "h-[72px] w-[72px]",
           )}
         />
@@ -121,7 +114,7 @@ export function StoryListSkeleton({ rows = 6 }: { rows?: number }) {
             <div className="skeleton h-4 w-4/5" />
             <div className="skeleton h-3 w-3/5" />
           </div>
-          <div className="skeleton h-[72px] w-[72px] rounded-lg" />
+          <div className="skeleton h-[72px] w-[72px]" />
         </div>
       ))}
     </div>
@@ -165,21 +158,24 @@ export function StoryList({
     <section
       aria-label="Stories"
       className={cn(
-        "flex w-full flex-shrink-0 flex-col border-r bg-background-secondary/40 lg:w-[340px]",
+        "flex w-full flex-shrink-0 flex-col border-r border-border bg-background lg:w-[360px]",
         className,
       )}
     >
-      <header className="px-6 pb-4 pt-6">
-        <h1 className="font-display text-[24px] font-bold tracking-[-0.02em]">Today</h1>
-        <p className="mt-0.5 text-[13px] text-text-tertiary" suppressHydrationWarning>
+      <header className="mx-4 border-b border-border pb-4 pt-5">
+        <p className="kicker">The daily edition</p>
+        <h1
+          className="mt-1 font-editorial text-[20px] leading-tight tracking-[-0.01em]"
+          suppressHydrationWarning
+        >
           {formatLongDate()}
-        </p>
+        </h1>
         <div className="mt-4">
           <TopicChips topics={topics} active={topic} onChange={onTopicChange} />
         </div>
       </header>
 
-      <div className="scroll-thin flex-1 overflow-y-auto px-2 pb-6">
+      <div className="scroll-thin flex-1 overflow-y-auto pb-6">
         {isLoading ? (
           <StoryListSkeleton />
         ) : isError ? (
@@ -190,7 +186,7 @@ export function StoryList({
           </EmptyState>
         ) : (
           <>
-            <ul className="space-y-1">
+            <ul className="divide-y divide-divider">
               {stories.map((s) => (
                 <li key={s.id}>
                   <StoryRow
@@ -208,15 +204,15 @@ export function StoryList({
                   type="button"
                   onClick={onLoadMore}
                   disabled={loadingMore}
-                  className="h-9 w-full rounded-lg border text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface hover:text-foreground disabled:opacity-60"
+                  className="btn-outline w-full"
                 >
                   {loadingMore ? "Loading…" : "Load more stories"}
                 </button>
               </div>
             )}
-            <p className="px-6 pt-5 text-[12px] leading-relaxed text-text-tertiary">
-              Press <kbd className="rounded border px-1 font-body">J</kbd> and{" "}
-              <kbd className="rounded border px-1 font-body">K</kbd> to move between stories.
+            <p className="px-4 pt-5 font-ui text-[11.5px] leading-relaxed text-text-tertiary">
+              Press <kbd className="border px-1">J</kbd> and <kbd className="border px-1">K</kbd> to
+              move between stories.
             </p>
           </>
         )}

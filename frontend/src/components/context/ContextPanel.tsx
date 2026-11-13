@@ -46,13 +46,13 @@ export function ContextPanel({
   return (
     <div className="flex h-full flex-col">
       <div className="h-[3px] flex-shrink-0" style={{ backgroundColor: color }} aria-hidden />
-      <div className="flex items-center justify-between px-6 pb-1 pt-4">
+      <div className="flex items-center justify-between px-6 pb-1 pt-5">
         <EntityBadge type={term.type} />
         <button
           type="button"
           onClick={onClose}
           title="Close (Esc)"
-          className="-mr-2 flex h-8 w-8 items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-secondary hover:text-foreground"
+          className="-mr-2 flex h-8 w-8 items-center justify-center text-text-tertiary transition-colors hover:text-foreground"
         >
           <X size={16} />
           <span className="sr-only">Close explanation</span>
@@ -60,9 +60,7 @@ export function ContextPanel({
       </div>
 
       <div className="scroll-thin flex-1 overflow-y-auto px-6 pb-6">
-        <h2 className="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em]">
-          {data?.entity.name ?? term.name}
-        </h2>
+        <h2 className="headline mt-1 text-[30px]">{data?.entity.name ?? term.name}</h2>
 
         {isLoading ? (
           <div
@@ -77,13 +75,9 @@ export function ContextPanel({
             <div className="skeleton h-4 w-3/5" />
           </div>
         ) : isError || !data ? (
-          <div className="mt-5 text-[14px] leading-relaxed text-text-secondary">
+          <div className="mt-5 text-[15px] leading-relaxed text-text-secondary">
             <p>The explanation didn&apos;t load. The server may be busy generating it.</p>
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="mt-3 h-8 rounded-lg border px-3 text-[13px] font-medium text-foreground hover:bg-background-secondary"
-            >
+            <button type="button" onClick={() => refetch()} className="btn-outline mt-3">
               Try again
             </button>
           </div>
@@ -91,26 +85,22 @@ export function ContextPanel({
           <>
             {data.context.text.trim() ? (
               <>
-                <p className="mt-4 text-[15.5px] leading-[1.65] text-foreground">
+                <p className="mt-4 text-[16.5px] leading-[1.6] text-foreground">
                   {data.context.text}
                 </p>
-                <p className="mt-2 text-[12.5px] text-text-tertiary">
+                <p className="mt-2 font-ui text-[11.5px] text-text-tertiary">
                   Written by samā4&apos;s AI from Wikipedia and this story.
                 </p>
               </>
             ) : (
-              <div className="mt-4 text-[14px] leading-relaxed text-text-secondary">
+              <div className="mt-4 text-[15px] leading-relaxed text-text-secondary">
                 <p>
                   samā4 couldn&apos;t write an explanation for this term right now.
                   {data.entity.wikipedia_url
                     ? " Wikipedia has background on it below."
                     : " You can still ask a question about it below."}
                 </p>
-                <button
-                  type="button"
-                  onClick={() => refetch()}
-                  className="mt-3 h-8 rounded-lg border px-3 text-[13px] font-medium text-foreground hover:bg-background-secondary"
-                >
+                <button type="button" onClick={() => refetch()} className="btn-outline mt-3">
                   Try again
                 </button>
               </div>
@@ -121,23 +111,23 @@ export function ContextPanel({
                 href={data.entity.wikipedia_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-1 text-[13.5px] font-medium text-accent-secondary hover:underline"
+                className="label-ui link-ui mt-4 inline-flex items-center gap-1 font-bold text-accent-secondary"
               >
                 Read more on Wikipedia
-                <ArrowUpRight size={14} aria-hidden />
+                <ArrowUpRight size={12} aria-hidden />
               </a>
             )}
 
             {data.related_entities.length > 0 && (
-              <section className="mt-7">
-                <h3 className="text-[13px] font-semibold text-text-secondary">Connected to</h3>
-                <div className="mt-2.5 flex flex-wrap gap-1.5">
+              <section className="mt-8">
+                <h3 className="section-label">Connected to</h3>
+                <div className="mt-3 flex flex-wrap gap-1.5">
                   {data.related_entities.slice(0, 8).map((r) => (
                     <button
                       key={r.id}
                       type="button"
                       onClick={() => onSelectTerm({ id: r.id, name: r.name, type: r.type })}
-                      className="inline-flex h-7 items-center gap-1.5 rounded-full border bg-surface px-2.5 text-[12.5px] font-medium text-foreground transition-colors hover:border-accent-secondary"
+                      className="inline-flex h-7 items-center gap-1.5 border border-border px-2.5 font-editorial text-[13.5px] text-foreground transition-colors hover:border-foreground"
                     >
                       <span
                         className="h-1.5 w-1.5 rounded-full"
@@ -152,38 +142,41 @@ export function ContextPanel({
             )}
 
             {data.related_articles.filter((a) => a.id !== articleId).length > 0 && (
-              <section className="mt-7">
-                <h3 className="text-[13px] font-semibold text-text-secondary">Also in the news</h3>
-                <ul className="mt-2 divide-y">
+              <section className="mt-8">
+                <h3 className="section-label">Also in the news</h3>
+                <ol className="divide-y divide-divider">
                   {data.related_articles
                     .filter((a) => a.id !== articleId)
                     .slice(0, 4)
-                    .map((a) => (
+                    .map((a, i) => (
                       <li key={a.id}>
                         <button
                           type="button"
                           onClick={() => onOpenArticle(a.id)}
-                          className="w-full py-2.5 text-left text-[14px] leading-snug text-foreground hover:text-accent-secondary"
+                          className="flex w-full gap-3 py-3 text-left"
                         >
-                          {a.title}
+                          <span className="kicker pt-[3px] tabular-nums">
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <span className="font-editorial text-[15.5px] leading-[1.25] text-foreground hover:underline hover:decoration-1 hover:underline-offset-4">
+                            {a.title}
+                          </span>
                         </button>
                       </li>
                     ))}
-                </ul>
+                </ol>
               </section>
             )}
 
             {prediction?.status === "completed" && prediction.prediction_summary && (
-              <section className="mt-7 rounded-xl bg-background-secondary px-4 py-3.5">
-                <h3 className="text-[13px] font-semibold text-text-secondary">
-                  Where this story may go
-                </h3>
-                <p className="mt-1.5 line-clamp-4 text-[13.5px] leading-[1.55] text-foreground">
+              <section className="mt-8">
+                <h3 className="section-label">Where this story may go</h3>
+                <p className="mt-3 line-clamp-4 text-[15px] italic leading-[1.5] text-foreground">
                   {prediction.prediction_summary}
                 </p>
                 <a
                   href="#outlook"
-                  className="mt-2 inline-block text-[13px] font-medium text-accent-secondary hover:underline"
+                  className="label-ui link-ui mt-2 inline-block font-bold text-accent-secondary"
                 >
                   See the full outlook
                 </a>
@@ -220,19 +213,19 @@ function CitedAnswer({ text, sources = [] }: { text: string; sources?: Turn["sou
       ? "#outlook"
       : sources.find((s) => s.type.toLowerCase() === tag.toLowerCase())?.url;
   return (
-    <p className="mt-1 text-[14px] leading-[1.6] text-foreground">
+    <p className="mt-1 text-[15px] leading-[1.55] text-foreground">
       {splitCitations(text).map((part, i) => {
         if ("text" in part) return <span key={i}>{part.text}</span>;
         const label = TAG_LABEL[part.tag];
         const url = href(part.tag);
         const cls =
-          "ml-1 inline-flex h-[18px] items-center rounded border px-1.5 align-[1px] font-display text-[10.5px] font-medium text-text-secondary";
+          "ml-1 inline-flex h-[16px] items-center border border-border px-1 align-[2px] font-ui text-[9px] uppercase tracking-label text-accent-secondary";
         return url ? (
           <a
             key={i}
             href={url}
             {...(url.startsWith("#") ? {} : { target: "_blank", rel: "noopener noreferrer" })}
-            className={`${cls} hover:border-accent-secondary hover:text-accent-secondary`}
+            className={`${cls} hover:border-foreground`}
             aria-label={`Source: ${label}`}
           >
             {label}
@@ -299,7 +292,7 @@ function FollowUp({
   };
 
   return (
-    <div className="relative flex-shrink-0 border-t bg-background-secondary/50">
+    <div className="relative flex-shrink-0 border-t-2 border-foreground bg-background-secondary/60">
       <AnimatePresence>
         {tip && turns.length === 0 && (
           <Tip
@@ -319,15 +312,15 @@ function FollowUp({
         >
           {turns.map((t, i) => (
             <div key={i}>
-              <p className="font-display text-[13.5px] font-semibold">{t.q}</p>
+              <p className="font-editorial text-[15px] font-bold leading-snug">{t.q}</p>
               {t.a ? (
                 <CitedAnswer text={t.a} sources={t.sources} />
               ) : t.failed ? (
-                <p className="mt-1 text-[13.5px] text-error">
+                <p className="mt-1 font-ui text-[12.5px] text-error">
                   No answer came back. Ask again in a moment.
                 </p>
               ) : (
-                <p className="mt-1 inline-flex items-center gap-2 text-[13.5px] text-text-tertiary">
+                <p className="label-ui mt-1.5 inline-flex items-center gap-2 text-text-tertiary">
                   <Loader2 size={13} className="animate-spin" /> Writing an answer
                 </p>
               )}
@@ -352,12 +345,12 @@ function FollowUp({
           disabled={disabled}
           placeholder={`Ask about ${term.name}`}
           autoComplete="off"
-          className="h-10 min-w-0 flex-1 rounded-lg border bg-surface px-3.5 text-[14px] text-foreground outline-none placeholder:text-text-tertiary focus:border-accent-secondary"
+          className="h-10 min-w-0 flex-1 border border-border bg-background px-3 font-editorial text-[15px] text-foreground outline-none placeholder:italic placeholder:text-text-tertiary focus:border-foreground"
         />
         <button
           type="submit"
           disabled={!question.trim() || explain.isPending}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-accent-primary text-on-accent transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center bg-foreground text-background transition-opacity hover:opacity-85 disabled:opacity-40"
         >
           <Send size={15} />
           <span className="sr-only">Ask</span>
@@ -386,46 +379,46 @@ export function KeyTerms({
 
   return (
     <div className="scroll-thin h-full overflow-y-auto px-6 py-6">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-[15px] font-semibold">In this story</h2>
+      <div className="section-label flex items-center justify-between">
+        <h2 className="font-ui font-bold">In this story</h2>
         {onClose && (
           <button
             type="button"
             onClick={onClose}
             title="Close (Esc)"
-            className="-mr-2 flex h-8 w-8 items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-background-secondary hover:text-foreground"
+            className="-mr-2 flex h-8 w-8 items-center justify-center text-text-tertiary transition-colors hover:text-foreground"
           >
             <X size={16} />
             <span className="sr-only">Close the list of terms</span>
           </button>
         )}
       </div>
-      <p className="mt-1 text-[13px] leading-relaxed text-text-tertiary">
+      <p className="mt-2 font-ui text-[12px] leading-relaxed text-text-tertiary">
         Select any highlighted term, or one below, to see who or what it is.
       </p>
       {groups.length === 0 ? (
-        <p className="mt-6 text-[13.5px] text-text-secondary">
+        <p className="mt-6 text-[15px] text-text-secondary">
           No terms were picked out for this story.
         </p>
       ) : (
         <div className="mt-6 space-y-6">
           {groups.map((g) => (
             <section key={g.type}>
-              <h3 className="flex items-center gap-2 text-[12.5px] font-semibold text-text-secondary">
+              <h3 className="label-ui flex items-center gap-2 font-bold text-text-secondary">
                 <span
-                  className="h-2 w-2 rounded-full"
+                  className="h-1.5 w-1.5 rounded-full"
                   style={{ backgroundColor: entityColor(g.type) }}
                   aria-hidden
                 />
                 {ENTITY_LABELS[g.type].many}
               </h3>
-              <ul className="mt-1.5">
+              <ul className="mt-1.5 divide-y divide-divider">
                 {g.items.map((e) => (
                   <li key={e.id}>
                     <button
                       type="button"
                       onClick={() => onSelect({ id: e.id, name: e.text, type: e.type })}
-                      className="-mx-2 block w-[calc(100%+1rem)] rounded-md px-2 py-1.5 text-left text-[14px] text-foreground transition-colors hover:bg-background-secondary"
+                      className="block w-full py-2 text-left font-editorial text-[15.5px] leading-snug text-foreground hover:underline hover:decoration-1 hover:underline-offset-4"
                     >
                       {e.text}
                     </button>

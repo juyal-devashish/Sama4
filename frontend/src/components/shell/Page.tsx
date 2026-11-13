@@ -18,15 +18,13 @@ export function Page({
 }) {
   return (
     <div className="scroll-thin flex-1 overflow-y-auto bg-surface">
-      <div className={cn("mx-auto px-10 pb-24 pt-10", width)}>
+      <div className={cn("mx-auto px-6 pb-24 pt-10 sm:px-10", width)}>
         {before}
-        <header className="flex items-end justify-between gap-6 pb-8">
+        <header className="mb-8 flex items-end justify-between gap-6 border-b border-border pb-6">
           <div className="min-w-0">
-            <h1 className="font-display text-[28px] font-bold leading-tight tracking-[-0.02em]">
-              {title}
-            </h1>
+            <h1 className="headline text-[40px] sm:text-[48px]">{title}</h1>
             {description && (
-              <p className="mt-1.5 max-w-[62ch] text-[15px] leading-relaxed text-text-secondary">
+              <p className="mt-3 max-w-[60ch] text-[18px] leading-[1.4] text-text-secondary">
                 {description}
               </p>
             )}
