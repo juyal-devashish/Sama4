@@ -21,7 +21,9 @@ class User(Base):
     reading_level: Mapped[str] = mapped_column(String(20), default="general")
 
     # Timestamps
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
@@ -31,7 +33,9 @@ class UserReadingHistory(Base):
     __tablename__ = "user_reading_history"
 
     id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(GUID, ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        GUID, ForeignKey("users.id", ondelete="CASCADE")
+    )
     article_id: Mapped[uuid.UUID] = mapped_column(
         GUID, ForeignKey("articles.id", ondelete="CASCADE")
     )
