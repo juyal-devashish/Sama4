@@ -57,9 +57,9 @@ export default function SearchPage() {
           e.preventDefault();
           add(query);
         }}
-        className="flex h-12 items-center gap-3 rounded-xl border bg-background px-4 focus-within:border-accent-secondary"
+        className="flex h-14 items-center gap-3 border-b-2 border-foreground"
       >
-        <SearchIcon size={18} className="text-text-tertiary" aria-hidden />
+        <SearchIcon size={20} strokeWidth={1.5} className="text-text-tertiary" aria-hidden />
         <label htmlFor="q" className="sr-only">
           Search stories
         </label>
@@ -71,7 +71,7 @@ export default function SearchPage() {
           onKeyDown={(e) => e.key === "Escape" && setQuery("")}
           placeholder="Try a name, a place or a topic"
           autoComplete="off"
-          className="h-full flex-1 bg-transparent text-[16px] outline-none placeholder:text-text-tertiary"
+          className="h-full flex-1 bg-transparent font-editorial text-[24px] tracking-[-0.01em] outline-none placeholder:italic placeholder:text-text-tertiary"
         />
         {query && (
           <button
@@ -89,14 +89,12 @@ export default function SearchPage() {
         {!q ? (
           recent.length > 0 && (
             <section>
-              <div className="flex items-baseline justify-between">
-                <h2 className="font-editorial text-[14px] font-semibold text-text-secondary">
-                  Recent searches
-                </h2>
+              <div className="section-label flex items-baseline justify-between">
+                <h2 className="font-ui font-bold">Recent searches</h2>
                 <button
                   type="button"
                   onClick={clear}
-                  className="text-[13px] text-text-tertiary hover:text-foreground"
+                  className="font-normal text-text-tertiary hover:text-foreground"
                 >
                   Clear
                 </button>
@@ -107,7 +105,7 @@ export default function SearchPage() {
                     key={term}
                     type="button"
                     onClick={() => setQuery(term)}
-                    className="h-8 rounded-full border px-3.5 text-[13px] font-medium text-text-secondary hover:border-accent-secondary hover:text-foreground"
+                    className="h-8 border border-border px-3 font-editorial text-[14.5px] text-foreground hover:border-foreground"
                   >
                     {term}
                   </button>
@@ -165,29 +163,29 @@ export default function SearchPage() {
                 <button
                   type="button"
                   onClick={() => setFilters(NO_FILTERS)}
-                  className="h-9 rounded-lg px-2 text-[13px] font-medium text-accent-secondary hover:underline"
+                  className="label-ui link-ui h-9 px-2 font-bold text-accent-secondary"
                 >
                   Clear filters
                 </button>
               )}
             </div>
-            <p className="mb-2 text-[13px] text-text-tertiary" aria-live="polite">
+            <p className="section-label mb-0" aria-live="polite">
               {results.length} {results.length === 1 ? "story" : "stories"}
               {filtered && ` of ${matches.length}`} · newest first
             </p>
             {results.length === 0 && (
-              <p className="py-6 text-[14px] text-text-secondary">
+              <p className="py-6 text-[16px] text-text-secondary">
                 None of the {matches.length} matching stories fit these filters.{" "}
                 <button
                   type="button"
                   onClick={() => setFilters(NO_FILTERS)}
-                  className="font-medium text-accent-secondary hover:underline"
+                  className="text-[16px] text-accent-secondary underline underline-offset-2"
                 >
                   Clear filters
                 </button>
               </p>
             )}
-            <ul className="-mx-4 space-y-1">
+            <ul className="-mx-4 divide-y divide-divider">
               {results.map((s) => (
                 <li key={s.id}>
                   <StoryRow story={s} onClick={() => open(s.id)} />
@@ -215,14 +213,14 @@ function FilterSelect({
   const id = `filter-${label.toLowerCase()}`;
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-[12px] font-medium text-text-secondary">
+      <label htmlFor={id} className="label-ui text-text-secondary">
         {label}
       </label>
       <select
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-9 rounded-lg border bg-surface px-2.5 text-[13.5px] text-foreground focus:border-accent-secondary"
+        className="h-9 border border-border bg-background px-2 text-[13px] text-foreground focus:border-foreground"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

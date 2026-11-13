@@ -225,7 +225,7 @@ function CitedAnswer({ text, sources = [] }: { text: string; sources?: Turn["sou
             key={i}
             href={url}
             {...(url.startsWith("#") ? {} : { target: "_blank", rel: "noopener noreferrer" })}
-            className={`${cls} hover:border-accent-secondary`}
+            className={`${cls} hover:border-foreground`}
             aria-label={`Source: ${label}`}
           >
             {label}

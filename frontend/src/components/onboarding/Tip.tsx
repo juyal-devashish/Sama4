@@ -49,7 +49,7 @@ export function Tip({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       className={cn(
-        "relative flex max-w-[300px] items-start gap-2 rounded-xl bg-accent-primary py-2.5 pl-4 pr-2 text-[14px] leading-snug text-on-accent shadow-[var(--shadow-panel)]",
+        "relative flex max-w-[300px] items-start gap-2 bg-foreground py-2.5 pl-4 pr-2 font-editorial text-[15px] leading-snug text-background shadow-[var(--shadow-panel)]",
         className,
       )}
       style={style}
@@ -57,7 +57,7 @@ export function Tip({
       <span
         aria-hidden="true"
         className={cn(
-          "absolute h-2.5 w-2.5 rotate-45 bg-accent-primary",
+          "absolute h-2.5 w-2.5 rotate-45 bg-foreground",
           arrow === "top" ? "-top-1" : "-bottom-1",
         )}
         style={{ left: arrowLeft }}
@@ -67,7 +67,7 @@ export function Tip({
         type="button"
         onClick={onDismiss}
         aria-label="Dismiss tip"
-        className="relative -my-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-on-accent/80 transition-colors hover:bg-white/15 hover:text-on-accent"
+        className="relative -my-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center text-background/75 transition-colors hover:text-background"
       >
         <X size={15} aria-hidden="true" />
       </button>

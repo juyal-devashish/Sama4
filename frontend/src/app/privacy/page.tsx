@@ -95,14 +95,16 @@ export default function PrivacyPage() {
       <div className="max-w-[62ch] space-y-9">
         {SECTIONS.map((s) => (
           <section key={s.title}>
-            <h2 className="font-editorial text-[17px] font-semibold">{s.title}</h2>
-            <div className="mt-2 space-y-3 text-[15.5px] leading-[1.7] text-text-secondary">
+            <h2 className="font-editorial text-[24px] leading-tight tracking-[-0.02em]">
+              {s.title}
+            </h2>
+            <div className="mt-2 space-y-3 text-[17px] leading-[1.65] text-text-secondary">
               {s.body}
             </div>
           </section>
         ))}
         <p>
-          <Link href="/" className="text-[14px] font-medium text-accent-secondary hover:underline">
+          <Link href="/" className="label-ui link-ui font-bold text-accent-secondary">
             Back to today&apos;s stories
           </Link>
         </p>
