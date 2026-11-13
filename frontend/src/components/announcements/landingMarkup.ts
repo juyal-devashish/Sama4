@@ -56,8 +56,8 @@ export const LANDING_MARKUP = `<nav>
       </div>
       <div class="phone-content">
         <div class="demo-source">
-          <span class="demo-source-icon">R</span>
-          <span class="demo-source-name">Reuters</span>
+          <span class="demo-source-icon">S</span>
+          <span class="demo-source-name">Sample Wire</span>
           <span class="demo-source-date">Sample story</span>
         </div>
         <h2 class="demo-headline">Fed Holds Rates Steady Amid Renewed Stagflation Fears</h2>
