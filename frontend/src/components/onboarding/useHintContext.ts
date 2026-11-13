@@ -16,7 +16,7 @@ export function useIntroShowing() {
   return showing;
 }
 
-/** Wide enough for the three-pane reader, where keyboard shortcuts make sense. */
+/** Wide enough for the three-pane reader. */
 export function useDesktop() {
   const [desktop, setDesktop] = useState(false);
   useEffect(() => {

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { INTRO_STEPS, nextIntroStep, type IntroStep } from "@/lib/onboarding";
-import { ALL_TOPICS, TOPIC_LABELS, useTopics } from "@/lib/preferences";
+import { ALL_TOPICS, SECTIONS_ENABLED, TOPIC_LABELS, useTopics } from "@/lib/preferences";
 import { cn } from "@/lib/utils";
 import { TermDemo } from "./TermDemo";
 
@@ -19,13 +19,18 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
   const [step, setStep] = useState<IntroStep>("welcome");
   const [current] = useTopics();
   const [picked, setPicked] = useState<string[]>(current);
-  const index = INTRO_STEPS.indexOf(step);
+  // Without topic sections there is nothing to pick, so the intro is just the welcome.
+  const steps: readonly IntroStep[] = SECTIONS_ENABLED
+    ? INTRO_STEPS
+    : INTRO_STEPS.filter((s) => s !== "topics");
+  const index = steps.indexOf(step);
+  const last = index === steps.length - 1;
 
   // Focus each step's heading as it mounts (after the old step has animated out),
   // so screen readers announce the new step.
   const focusOnMount = useCallback((el: HTMLHeadingElement | null) => el?.focus(), []);
 
-  // The reader is hidden underneath; keep its shortcuts (/, J, K) from acting on it.
+  // Escape skips the intro; other keys stay inside the dialog.
   // Buttons still work: their activation is the key's default action, not a listener.
   const finishRef = useRef(onFinish);
   finishRef.current = onFinish;
@@ -45,7 +50,7 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
     setPicked((prev) => (prev.includes(t) ? prev.filter((p) => p !== t) : [...prev, t]));
 
   const next = () => {
-    const n = nextIntroStep(step);
+    const n = last ? null : nextIntroStep(step);
     if (n) setStep(n);
     else onFinish(picked);
   };
@@ -143,22 +148,24 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
 
       <div className="sticky bottom-0 border-t border-border bg-background/95 backdrop-blur-sm">
         <div className="mx-auto flex w-full max-w-[560px] items-center gap-3 px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-2">
-            <span className="flex gap-1.5" aria-hidden="true">
-              {INTRO_STEPS.map((s, i) => (
-                <span
-                  key={s}
-                  className={cn(
-                    "h-1.5 transition-all",
-                    i === index ? "w-5 bg-accent-primary" : "w-1.5 bg-border",
-                  )}
-                />
-              ))}
-            </span>
-            <span className="label-ui text-text-tertiary">
-              Step {index + 1} of {INTRO_STEPS.length}
-            </span>
-          </div>
+          {steps.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className="flex gap-1.5" aria-hidden="true">
+                {steps.map((s, i) => (
+                  <span
+                    key={s}
+                    className={cn(
+                      "h-1.5 transition-all",
+                      i === index ? "w-5 bg-accent-primary" : "w-1.5 bg-border",
+                    )}
+                  />
+                ))}
+              </span>
+              <span className="label-ui text-text-tertiary">
+                Step {index + 1} of {steps.length}
+              </span>
+            </div>
+          )}
           <div className="ml-auto flex items-center gap-1">
             {step === "welcome" ? (
               <button type="button" className={ghost} onClick={() => onFinish(null)}>
@@ -175,7 +182,7 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
               onClick={next}
               disabled={step === "topics" && picked.length === 0}
             >
-              {step === "welcome" ? "Continue" : "Start reading"}
+              {last ? "Start reading" : "Continue"}
             </button>
           </div>
         </div>

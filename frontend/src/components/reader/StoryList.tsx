@@ -134,7 +134,6 @@ interface StoryListProps {
   hasMore: boolean;
   loadingMore: boolean;
   onLoadMore: () => void;
-  rowRef: (id: string, el: HTMLButtonElement | null) => void;
   className?: string;
 }
 
@@ -151,7 +150,6 @@ export function StoryList({
   hasMore,
   loadingMore,
   onLoadMore,
-  rowRef,
   className,
 }: StoryListProps) {
   return (
@@ -170,9 +168,11 @@ export function StoryList({
         >
           {formatLongDate()}
         </h1>
-        <div className="mt-4">
-          <TopicChips topics={topics} active={topic} onChange={onTopicChange} />
-        </div>
+        {topics.length > 0 && (
+          <div className="mt-4">
+            <TopicChips topics={topics} active={topic} onChange={onTopicChange} />
+          </div>
+        )}
       </header>
 
       <div className="scroll-thin flex-1 overflow-y-auto pb-6">
@@ -182,7 +182,7 @@ export function StoryList({
           <ErrorState what="stories" onRetry={onRetry} />
         ) : stories.length === 0 ? (
           <EmptyState icon={Newspaper} title="No stories here yet">
-            New stories arrive through the day. Try another topic, or check back soon.
+            New stories arrive through the day. Check back soon.
           </EmptyState>
         ) : (
           <>
@@ -190,7 +190,6 @@ export function StoryList({
               {stories.map((s) => (
                 <li key={s.id}>
                   <StoryRow
-                    ref={(el) => rowRef(s.id, el)}
                     story={s}
                     selected={s.id === selectedId}
                     onClick={() => onSelect(s.id)}
@@ -210,10 +209,6 @@ export function StoryList({
                 </button>
               </div>
             )}
-            <p className="px-4 pt-5 font-ui text-[11.5px] leading-relaxed text-text-tertiary">
-              Press <kbd className="border px-1">J</kbd> and <kbd className="border px-1">K</kbd> to
-              move between stories.
-            </p>
           </>
         )}
       </div>
