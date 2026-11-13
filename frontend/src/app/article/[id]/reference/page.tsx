@@ -74,7 +74,7 @@ export default function ReferencesPage() {
             <section key={g.type} aria-labelledby={`g-${g.type}`}>
               <h2
                 id={`g-${g.type}`}
-                className="flex items-center gap-2 font-display text-[15px] font-semibold"
+                className="flex items-center gap-2 font-editorial text-[15px] font-semibold"
               >
                 <span
                   className="h-2.5 w-2.5 rounded-full"
@@ -101,7 +101,7 @@ export default function ReferencesPage() {
 
         {data.related_articles.length > 0 && (
           <aside>
-            <h2 className="font-display text-[15px] font-semibold">Related stories</h2>
+            <h2 className="font-editorial text-[15px] font-semibold">Related stories</h2>
             <ul className="mt-3 space-y-4">
               {data.related_articles.map((a) => (
                 <li key={a.id}>
@@ -144,7 +144,7 @@ function ReferenceRow({
         onClick={onToggle}
         className="flex w-full items-start gap-4 py-3.5 text-left"
       >
-        <span className="w-[200px] flex-shrink-0 font-display text-[14.5px] font-semibold">
+        <span className="w-[200px] flex-shrink-0 font-editorial text-[14.5px] font-semibold">
           {entity.name}
         </span>
         <span

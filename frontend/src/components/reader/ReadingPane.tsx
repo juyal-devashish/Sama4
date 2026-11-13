@@ -284,7 +284,7 @@ function Story({
         <span
           aria-hidden={!scrolled}
           className={cn(
-            "truncate font-display text-[13px] font-semibold transition-opacity duration-200",
+            "truncate font-editorial text-[13px] font-semibold transition-opacity duration-200",
             scrolled ? "opacity-100" : "opacity-0",
           )}
         >
@@ -339,11 +339,11 @@ function Story({
 
       <article className="mx-auto max-w-[760px] px-10 pb-28 pt-10 xl:px-14">
         {article.categories.length > 0 && (
-          <p className="mb-3 font-display text-[13px] font-medium text-accent-secondary">
+          <p className="mb-3 font-editorial text-[13px] font-medium text-accent-secondary">
             {article.categories.map((c) => TOPIC_LABELS[c] ?? c).join(", ")}
           </p>
         )}
-        <h1 className="font-display text-[32px] font-bold leading-[1.18] tracking-[-0.02em] xl:text-[38px]">
+        <h1 className="font-editorial text-[32px] font-bold leading-[1.18] tracking-[-0.02em] xl:text-[38px]">
           {article.title}
         </h1>
         <div className="mt-4 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-[13.5px] text-text-secondary">
@@ -363,7 +363,7 @@ function Story({
             href={article.source.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-lg border px-3.5 font-display text-[13.5px] font-medium text-foreground transition-colors hover:border-accent-secondary hover:text-accent-secondary"
+            className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-lg border px-3.5 font-editorial text-[13.5px] font-medium text-foreground transition-colors hover:border-accent-secondary hover:text-accent-secondary"
           >
             Read the original at {article.source.name}
             <ArrowUpRight size={15} aria-hidden />
@@ -387,7 +387,7 @@ function Story({
             className="mt-9 border-l-[3px] border-accent-primary pl-5"
           >
             <h2 id="summary-label" className="flex flex-wrap items-baseline gap-x-2 text-[13px]">
-              <span className="font-display font-semibold text-accent-primary">In brief</span>
+              <span className="font-editorial font-semibold text-accent-primary">In brief</span>
               <span className="text-text-tertiary">
                 AI summary written by samā4 from the article. Check the original for detail.
               </span>
@@ -408,7 +408,7 @@ function Story({
           className="mt-9 max-w-measure text-[18px] leading-[1.75] text-foreground"
         >
           <h2 id="body-label" className="mb-3 flex flex-wrap items-baseline gap-x-2 text-[13px]">
-            <span className="font-display font-semibold text-foreground">
+            <span className="font-editorial font-semibold text-foreground">
               From {article.source.name}
             </span>
             <span className="leading-normal text-text-tertiary">

@@ -62,17 +62,17 @@ export default function OutlookPage() {
                 href={`/?article=${p.article_id}`}
                 className="group grid grid-cols-[40px_1fr_140px] items-start gap-6 py-6"
               >
-                <span className="pt-0.5 font-display text-[22px] font-semibold tabular-nums text-text-tertiary">
+                <span className="pt-0.5 font-editorial text-[22px] font-semibold tabular-nums text-text-tertiary">
                   {i + 1}
                 </span>
                 <div className="min-w-0">
                   <p className="flex gap-3 text-[12.5px]">
-                    <span className="font-display font-semibold">{p.article_source}</span>
+                    <span className="font-editorial font-semibold">{p.article_source}</span>
                     <span className="text-text-tertiary" suppressHydrationWarning>
                       {formatTimeAgo(p.completed_at)}
                     </span>
                   </p>
-                  <h2 className="mt-1 font-display text-[17px] font-semibold leading-snug group-hover:text-accent-secondary">
+                  <h2 className="mt-1 font-editorial text-[17px] font-semibold leading-snug group-hover:text-accent-secondary">
                     {p.article_title}
                   </h2>
                   {p.prediction_summary && (
@@ -83,7 +83,7 @@ export default function OutlookPage() {
                 </div>
                 <div className="pt-1">
                   <p className="text-[12px] text-text-tertiary">Impact (estimate)</p>
-                  <p className="font-display text-[18px] font-semibold tabular-nums">
+                  <p className="font-editorial text-[18px] font-semibold tabular-nums">
                     {Math.round(p.impact_score)}
                   </p>
                   <div

@@ -21,8 +21,8 @@
   --accent-hover: var(--accent-secondary);
   --highlight-bg: var(--entity-highlight);
   --highlight-border: var(--entity-highlight-active);
-  --serif: var(--font-poppins), system-ui, sans-serif;
-  --sans: var(--font-roboto), system-ui, sans-serif;
+  --serif: Georgia, "Times New Roman", serif;
+  --sans: Arial, Helvetica, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, monospace;
   --radius: 6px;
 }

@@ -22,7 +22,7 @@ export function EmptyState({
       className={cn("flex flex-col items-center justify-center px-8 py-16 text-center", className)}
     >
       {Icon && <Icon size={28} strokeWidth={1.5} className="mb-4 text-text-tertiary" aria-hidden />}
-      <h2 className="font-display text-[17px] font-semibold">{title}</h2>
+      <h2 className="font-editorial text-[17px] font-semibold">{title}</h2>
       {children && (
         <p className="mt-1.5 max-w-[42ch] text-[14px] leading-relaxed text-text-secondary">
           {children}

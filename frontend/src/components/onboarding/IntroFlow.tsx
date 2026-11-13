@@ -82,7 +82,7 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
                   id="intro-title"
                   ref={focusOnMount}
                   tabIndex={-1}
-                  className="font-display text-[30px] font-bold leading-[1.15] tracking-[-0.02em] focus-visible:outline-none"
+                  className="font-editorial text-[30px] font-bold leading-[1.15] tracking-[-0.02em] focus-visible:outline-none"
                 >
                   News, understood.
                 </h1>
@@ -100,7 +100,7 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
                   id="intro-title"
                   ref={focusOnMount}
                   tabIndex={-1}
-                  className="font-display text-[30px] font-bold leading-[1.15] tracking-[-0.02em] focus-visible:outline-none"
+                  className="font-editorial text-[30px] font-bold leading-[1.15] tracking-[-0.02em] focus-visible:outline-none"
                 >
                   What do you want to follow?
                 </h1>

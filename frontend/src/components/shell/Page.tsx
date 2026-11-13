@@ -22,7 +22,7 @@ export function Page({
         {before}
         <header className="flex items-end justify-between gap-6 pb-8">
           <div className="min-w-0">
-            <h1 className="font-display text-[28px] font-bold leading-tight tracking-[-0.02em]">
+            <h1 className="font-editorial text-[28px] font-bold leading-tight tracking-[-0.02em]">
               {title}
             </h1>
             {description && (

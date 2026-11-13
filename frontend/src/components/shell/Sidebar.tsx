@@ -61,7 +61,7 @@ export function Sidebar() {
         aria-label="samā4, go to Today"
       >
         <Logo className="h-8 flex-shrink-0" />
-        <span className="hidden font-display text-[19px] font-bold tracking-[-0.01em] xwide:inline">
+        <span className="hidden font-editorial text-[19px] font-bold tracking-[-0.01em] xwide:inline">
           samā4
         </span>
       </Link>
@@ -77,7 +77,7 @@ export function Sidebar() {
                 aria-current={active ? "page" : undefined}
                 title={label}
                 className={cn(
-                  "group flex h-10 items-center justify-center gap-3 rounded-lg px-2.5 font-display text-[14px] font-medium transition-colors xwide:justify-start",
+                  "group flex h-10 items-center justify-center gap-3 rounded-lg px-2.5 font-editorial text-[14px] font-medium transition-colors xwide:justify-start",
                   active
                     ? "bg-accent-primary text-on-accent"
                     : "text-text-secondary hover:bg-background-secondary hover:text-foreground",
@@ -96,7 +96,7 @@ export function Sidebar() {
                   </span>
                 )}
                 {hint && !active && (
-                  <kbd className="hidden rounded border px-1.5 font-body text-[11px] text-text-tertiary xwide:group-hover:inline-block">
+                  <kbd className="hidden rounded border px-1.5 font-ui text-[11px] text-text-tertiary xwide:group-hover:inline-block">
                     {hint}
                   </kbd>
                 )}
@@ -121,7 +121,7 @@ export function Sidebar() {
           title="Settings"
           aria-current={pathname.startsWith("/settings") ? "page" : undefined}
           className={cn(
-            "flex h-10 items-center justify-center gap-3 rounded-lg px-2.5 font-display text-[14px] font-medium transition-colors xwide:justify-start",
+            "flex h-10 items-center justify-center gap-3 rounded-lg px-2.5 font-editorial text-[14px] font-medium transition-colors xwide:justify-start",
             pathname.startsWith("/settings")
               ? "bg-accent-primary text-on-accent"
               : "text-text-secondary hover:bg-background-secondary hover:text-foreground",

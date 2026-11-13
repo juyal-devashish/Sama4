@@ -90,7 +90,7 @@ export default function SearchPage() {
           recent.length > 0 && (
             <section>
               <div className="flex items-baseline justify-between">
-                <h2 className="font-display text-[14px] font-semibold text-text-secondary">
+                <h2 className="font-editorial text-[14px] font-semibold text-text-secondary">
                   Recent searches
                 </h2>
                 <button

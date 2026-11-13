@@ -54,12 +54,12 @@ export default function SavedPage() {
               <Link href={`/?article=${s.id}`} className="flex min-w-0 flex-1 gap-5">
                 <div className="min-w-0 flex-1">
                   <p className="flex gap-3 text-[12.5px]">
-                    <span className="font-display font-semibold">{s.source}</span>
+                    <span className="font-editorial font-semibold">{s.source}</span>
                     <span className="text-text-tertiary" suppressHydrationWarning>
                       Saved {formatTimeAgo(s.saved_at).toLowerCase()}
                     </span>
                   </p>
-                  <h2 className="mt-1 font-display text-[17px] font-semibold leading-snug group-hover:text-accent-secondary">
+                  <h2 className="mt-1 font-editorial text-[17px] font-semibold leading-snug group-hover:text-accent-secondary">
                     {s.title}
                   </h2>
                   {s.summary && (

@@ -81,7 +81,7 @@ export function OutlookSection({
 
   return (
     <section id="outlook" aria-labelledby="outlook-title" className="scroll-mt-20 border-t pt-10">
-      <h2 id="outlook-title" className="font-display text-[22px] font-semibold tracking-[-0.01em]">
+      <h2 id="outlook-title" className="font-editorial text-[22px] font-semibold tracking-[-0.01em]">
         What might happen next
       </h2>
       <p role="status" className="sr-only">
@@ -227,13 +227,13 @@ function OutlookReport({
 
       {prediction.predicted_outcomes.length > 0 && (
         <div>
-          <h3 className="font-display text-[15px] font-semibold">Possible outcomes</h3>
+          <h3 className="font-editorial text-[15px] font-semibold">Possible outcomes</h3>
           <ol className="mt-3 space-y-3">
             {prediction.predicted_outcomes.map((o, i) => (
               <li key={i} className="grid grid-cols-[96px_1fr] gap-4 text-[15px] leading-relaxed">
                 <span
                   className={cn(
-                    "pt-0.5 font-display text-[12.5px] font-semibold",
+                    "pt-0.5 font-editorial text-[12.5px] font-semibold",
                     i === 0 ? "text-success" : i === 1 ? "text-entity-event" : "text-text-tertiary",
                   )}
                 >
@@ -248,7 +248,7 @@ function OutlookReport({
 
       {prediction.key_findings.length > 0 && (
         <div>
-          <h3 className="font-display text-[15px] font-semibold">Key findings</h3>
+          <h3 className="font-editorial text-[15px] font-semibold">Key findings</h3>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-[15px] leading-relaxed marker:text-text-tertiary">
             {prediction.key_findings.map((f, i) => (
               <li key={i}>{f}</li>
@@ -259,7 +259,7 @@ function OutlookReport({
 
       {sentiment && (
         <div>
-          <h3 className="font-display text-[15px] font-semibold">Estimated public reaction</h3>
+          <h3 className="font-editorial text-[15px] font-semibold">Estimated public reaction</h3>
           <p className="mt-1 text-[13.5px] text-text-tertiary">{REACTION_HELP}</p>
           <div
             className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-background-secondary"
@@ -281,7 +281,7 @@ function OutlookReport({
 
       {prediction.agent_perspectives.length > 0 && (
         <div>
-          <h3 className="font-display text-[15px] font-semibold">Simulated viewpoints</h3>
+          <h3 className="font-editorial text-[15px] font-semibold">Simulated viewpoints</h3>
           <p className="mt-1 max-w-[62ch] text-[13.5px] text-text-tertiary">
             {PERSONA_HELP} Open one to ask it a question.
           </p>
@@ -302,7 +302,7 @@ function Stat({ label, value, help }: { label: string; value: string; help: stri
   return (
     <div>
       <dt className="text-[12.5px] text-text-tertiary">{label}</dt>
-      <dd className="font-display text-[20px] font-semibold tabular-nums">{value}</dd>
+      <dd className="font-editorial text-[20px] font-semibold tabular-nums">{value}</dd>
       <dd className="mt-1 text-[12.5px] leading-snug text-text-secondary">{help}</dd>
     </div>
   );
@@ -340,7 +340,7 @@ function Stakeholder({ agent, predictionId }: { agent: AgentPerspective; predict
         className="flex w-full items-start gap-3 px-4 py-3.5 text-left"
       >
         <span
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full font-display text-[14px] font-semibold"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full font-editorial text-[14px] font-semibold"
           style={{ backgroundColor: "var(--background-secondary)", color: stance.color }}
           aria-hidden
         >
@@ -348,7 +348,7 @@ function Stakeholder({ agent, predictionId }: { agent: AgentPerspective; predict
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline gap-2">
-            <span className="truncate font-display text-[14px] font-semibold">
+            <span className="truncate font-editorial text-[14px] font-semibold">
               {agent.agent_name}
             </span>
             <span className="flex-shrink-0 text-[12px] font-medium" style={{ color: stance.color }}>
@@ -388,7 +388,7 @@ function Stakeholder({ agent, predictionId }: { agent: AgentPerspective; predict
           )}
           {answers.map((x, i) => (
             <div key={i} className="mt-4">
-              <p className="font-display text-[13.5px] font-semibold">{x.q}</p>
+              <p className="font-editorial text-[13.5px] font-semibold">{x.q}</p>
               <p className="mt-1 text-[14px] leading-[1.6] text-foreground">{x.a}</p>
             </div>
           ))}
@@ -458,7 +458,7 @@ function OutlookChat({
   return (
     <div className="rounded-xl border bg-background-secondary/50">
       <div className="px-5 pt-4">
-        <h3 className="font-display text-[15px] font-semibold">Ask about this outlook</h3>
+        <h3 className="font-editorial text-[15px] font-semibold">Ask about this outlook</h3>
         {messages.length === 0 && (
           <p className="mt-1 text-[13.5px] text-text-tertiary">
             For example: what would change the outcome of &ldquo;

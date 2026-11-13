@@ -4,73 +4,74 @@
 
 @layer base {
   :root {
-    /* samā4 colour system: light */
-    --background: #fafafa;
-    --background-secondary: #f2f0ed;
-    --surface: #ffffff;
+    /* samā4 colour system, light: newsprint paper, ink, one red. */
+    --background: #f4f0e8;
+    --background-secondary: #ebe5d9;
+    --surface: #f4f0e8;
 
-    --foreground: #1a1a2e;
-    --text-secondary: #5a5a6e;
-    --text-tertiary: #6b6b7d;
+    --foreground: #171716;
+    --text-secondary: #5f5d56;
+    --text-tertiary: #6d6a62;
 
-    --border: #e5e5ea;
-    --divider: #e5e5ea;
+    --border: #b8b3a8;
+    --divider: #d3cdc1;
 
-    --accent-primary: #0d1b3e;
-    --accent-secondary: #3a5a8c;
-    --on-accent: #ffffff;
+    --accent-primary: #171716;
+    --accent-secondary: #a52b22;
+    --on-accent: #f4f0e8;
 
-    --entity-highlight: #f5e6c8;
-    --entity-highlight-hover: #eed9ab;
-    --entity-highlight-active: #e8c874;
+    --entity-highlight: #ebe2d0;
+    --entity-highlight-hover: #e2d6be;
+    --entity-highlight-active: #d8c7a4;
 
-    --entity-person: #4a7ab5;
-    --entity-organization: #7a5ab5;
-    --entity-event: #b5764a;
-    --entity-concept: #3f9e78;
-    --entity-location: #b54a6e;
+    /* Print inks: distinct from each other and from the red accent. */
+    --entity-person: #2c4f80;
+    --entity-organization: #6b3d78;
+    --entity-event: #8f5c0e;
+    --entity-concept: #3d6b2c;
+    --entity-location: #1f6675;
 
-    --success: #2d7a4f;
-    --error: #c94444;
+    --success: #3d6b2c;
+    --error: #a52b22;
 
-    --scrim: rgba(13, 27, 62, 0.28);
-    --shadow-panel: 0 12px 40px -12px rgba(13, 27, 62, 0.25);
+    --scrim: rgba(23, 23, 22, 0.32);
+    --shadow-panel: 0 14px 36px -16px rgba(23, 23, 22, 0.4);
 
     color-scheme: light;
   }
 
   .dark {
-    /* samā4 colour system: dark */
-    --background: #0a0a14;
-    --background-secondary: #12142a;
-    --surface: #171a30;
+    /* samā4 colour system, dark: the same paper and ink, inverted. */
+    --background: #141412;
+    --background-secondary: #1d1c19;
+    --surface: #141412;
 
-    --foreground: #eaeaf0;
-    --text-secondary: #a0a0b4;
-    --text-tertiary: #8e8eaa;
+    --foreground: #ece7dc;
+    --text-secondary: #a39f94;
+    --text-tertiary: #928e84;
 
-    --border: #262842;
-    --divider: #262842;
+    --border: #47443d;
+    --divider: #33312c;
 
-    --accent-primary: #6b9fd4;
-    --accent-secondary: #8ab4e0;
-    --on-accent: #0a0a14;
+    --accent-primary: #ece7dc;
+    --accent-secondary: #e0685d;
+    --on-accent: #141412;
 
-    --entity-highlight: #3d3220;
-    --entity-highlight-hover: #52432a;
-    --entity-highlight-active: #7a6330;
+    --entity-highlight: #26241f;
+    --entity-highlight-hover: #322e27;
+    --entity-highlight-active: #4a4230;
 
-    --entity-person: #6b9fd4;
-    --entity-organization: #a68ad0;
-    --entity-event: #d5965a;
-    --entity-concept: #5acf9a;
-    --entity-location: #d55a7e;
+    --entity-person: #8fb0dc;
+    --entity-organization: #c49ed4;
+    --entity-event: #d9a75a;
+    --entity-concept: #98c47a;
+    --entity-location: #6fc0ce;
 
-    --success: #4caf7a;
-    --error: #e06060;
+    --success: #98c47a;
+    --error: #e0685d;
 
-    --scrim: rgba(0, 0, 0, 0.5);
-    --shadow-panel: 0 12px 40px -12px rgba(0, 0, 0, 0.7);
+    --scrim: rgba(0, 0, 0, 0.55);
+    --shadow-panel: 0 14px 36px -16px rgba(0, 0, 0, 0.8);
 
     color-scheme: dark;
   }
@@ -87,24 +88,33 @@
   body {
     background: var(--background);
     color: var(--foreground);
-    font-family: var(--font-roboto), system-ui, sans-serif;
+    font-family: Georgia, "Times New Roman", serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
+  /* Headlines are serif at regular weight; size and tight tracking do the work. */
   h1,
   h2,
   h3,
-  h4,
+  h4 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 400;
+  }
+
+  /* Anything you operate is set in the small sans. */
   button,
-  label {
-    font-family: var(--font-poppins), system-ui, sans-serif;
+  label,
+  input,
+  select,
+  textarea,
+  kbd {
+    font-family: Arial, Helvetica, sans-serif;
   }
 
   :focus-visible {
     outline: 2px solid var(--accent-primary);
     outline-offset: 2px;
-    border-radius: 4px;
   }
 
   ::selection {
@@ -117,9 +127,8 @@
   /* A tappable term inside article text. Its underline colour comes from --term-color. */
   .term {
     background: var(--entity-highlight);
-    border-bottom: 2px solid var(--term-color, var(--accent-secondary));
-    border-radius: 2px;
-    padding: 0 2px;
+    border-bottom: 1.5px solid var(--term-color, var(--accent-secondary));
+    padding: 0 1px;
     cursor: pointer;
     transition: background-color 120ms ease;
     -webkit-box-decoration-break: clone;
@@ -129,7 +138,7 @@
     background: var(--entity-highlight-hover);
   }
   .term[data-priority="medium"] {
-    border-bottom-width: 1.5px;
+    border-bottom-width: 1px;
   }
   .term[data-priority="low"] {
     background: transparent;
@@ -152,14 +161,118 @@
   }
   .scroll-thin::-webkit-scrollbar-thumb {
     background: var(--border);
-    border-radius: 999px;
     border: 3px solid transparent;
     background-clip: content-box;
   }
 
+  /* Broadsheet furniture, shared by every page. */
+
+  /* Small uppercase sans for navigation, bylines and metadata. */
+  .label-ui {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    line-height: 1.5;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+  /* The red section line above a headline ("MODELS & TOOLS"). */
+  .kicker {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent-secondary);
+  }
+  /* A section heading sitting on a 2px ink rule ("BRIEFING"). */
+  .section-label {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--foreground);
+    border-bottom: 2px solid var(--foreground);
+    padding-bottom: 6px;
+  }
+  .rule-thick {
+    border-top: 4px solid var(--foreground);
+  }
+  .headline {
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    letter-spacing: -0.035em;
+    line-height: 1.04;
+  }
+  /* Square outlined button, the masthead's THEME button. */
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    line-height: 1.5;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    padding: 7px 12px;
+    transition:
+      border-color 120ms ease,
+      background-color 120ms ease;
+  }
+  .btn-outline:hover {
+    border-color: var(--foreground);
+  }
+  .btn-outline:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  /* Solid ink button, the masthead's RSS button. */
+  .btn-ink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    line-height: 1.5;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--background);
+    background: var(--foreground);
+    border: 1px solid var(--foreground);
+    padding: 7px 12px;
+    transition: opacity 120ms ease;
+  }
+  .btn-ink:hover {
+    opacity: 0.85;
+  }
+  .btn-ink:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  /* A red initial on the first paragraph of a story. */
+  .drop-cap::first-letter {
+    float: left;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 3.6em;
+    line-height: 0.82;
+    padding: 0.06em 0.08em 0 0;
+    color: var(--accent-secondary);
+  }
+  /* Underlined text link in the sans, as in the edition strip ("ARCHIVE"). */
+  .link-ui {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
   .skeleton {
     background: var(--background-secondary);
-    border-radius: 6px;
     animation: pulse 1.6s ease-in-out infinite;
   }
 }
@@ -202,7 +315,6 @@ html.intro [data-app-shell] {
 
 /* First-run tip: a soft pulse around the highlighted term it points at. */
 .hint-ring {
-  border-radius: 5px;
   box-shadow: 0 0 0 2px var(--accent-secondary);
   animation: hint-pulse 1.8s ease-out infinite;
 }

@@ -32,7 +32,7 @@ function Section({
   return (
     <section className="grid gap-6 border-t py-8 md:grid-cols-[240px_1fr]">
       <div>
-        <h2 className="font-display text-[15px] font-semibold">{title}</h2>
+        <h2 className="font-editorial text-[15px] font-semibold">{title}</h2>
         {description && (
           <p className="mt-1 text-[13.5px] leading-relaxed text-text-tertiary">{description}</p>
         )}
@@ -118,7 +118,7 @@ export default function SettingsPage() {
           {SHORTCUTS.map(([key, what]) => (
             <div key={key} className="contents">
               <dt>
-                <kbd className="inline-flex h-6 min-w-[24px] items-center justify-center rounded border bg-background px-1.5 font-body text-[12px]">
+                <kbd className="inline-flex h-6 min-w-[24px] items-center justify-center rounded border bg-background px-1.5 font-ui text-[12px]">
                   {key}
                 </kbd>
               </dt>

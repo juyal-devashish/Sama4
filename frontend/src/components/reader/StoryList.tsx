@@ -72,7 +72,7 @@ export const StoryRow = forwardRef<
       )}
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-baseline gap-2 text-[12px]">
-          <span className="truncate font-display font-semibold text-foreground">
+          <span className="truncate font-editorial font-semibold text-foreground">
             {story.source.name}
           </span>
           <span className="flex-shrink-0 text-text-tertiary">
@@ -81,7 +81,7 @@ export const StoryRow = forwardRef<
         </div>
         <h2
           className={cn(
-            "font-display text-[15px] font-semibold leading-snug tracking-[-0.005em]",
+            "font-editorial text-[15px] font-semibold leading-snug tracking-[-0.005em]",
             dense ? "line-clamp-2" : "line-clamp-3",
           )}
         >
@@ -170,7 +170,7 @@ export function StoryList({
       )}
     >
       <header className="px-6 pb-4 pt-6">
-        <h1 className="font-display text-[24px] font-bold tracking-[-0.02em]">Today</h1>
+        <h1 className="font-editorial text-[24px] font-bold tracking-[-0.02em]">Today</h1>
         <p className="mt-0.5 text-[13px] text-text-tertiary" suppressHydrationWarning>
           {formatLongDate()}
         </p>
@@ -215,8 +215,8 @@ export function StoryList({
               </div>
             )}
             <p className="px-6 pt-5 text-[12px] leading-relaxed text-text-tertiary">
-              Press <kbd className="rounded border px-1 font-body">J</kbd> and{" "}
-              <kbd className="rounded border px-1 font-body">K</kbd> to move between stories.
+              Press <kbd className="rounded border px-1 font-ui">J</kbd> and{" "}
+              <kbd className="rounded border px-1 font-ui">K</kbd> to move between stories.
             </p>
           </>
         )}

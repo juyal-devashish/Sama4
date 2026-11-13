@@ -13,7 +13,7 @@ export function Splash() {
     >
       <div className="splash-mark flex items-center gap-3">
         <Logo className="h-14" />
-        <span className="font-display text-[34px] font-bold tracking-[-0.02em]">samā4</span>
+        <span className="font-editorial text-[34px] font-bold tracking-[-0.02em]">samā4</span>
       </div>
       <p className="splash-tagline text-[15px] text-text-secondary">News, understood.</p>
     </div>

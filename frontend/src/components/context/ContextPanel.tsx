@@ -60,7 +60,7 @@ export function ContextPanel({
       </div>
 
       <div className="scroll-thin flex-1 overflow-y-auto px-6 pb-6">
-        <h2 className="font-display text-[22px] font-semibold leading-tight tracking-[-0.01em]">
+        <h2 className="font-editorial text-[22px] font-semibold leading-tight tracking-[-0.01em]">
           {data?.entity.name ?? term.name}
         </h2>
 
@@ -226,7 +226,7 @@ function CitedAnswer({ text, sources = [] }: { text: string; sources?: Turn["sou
         const label = TAG_LABEL[part.tag];
         const url = href(part.tag);
         const cls =
-          "ml-1 inline-flex h-[18px] items-center rounded border px-1.5 align-[1px] font-display text-[10.5px] font-medium text-text-secondary";
+          "ml-1 inline-flex h-[18px] items-center rounded border px-1.5 align-[1px] font-editorial text-[10.5px] font-medium text-text-secondary";
         return url ? (
           <a
             key={i}
@@ -319,7 +319,7 @@ function FollowUp({
         >
           {turns.map((t, i) => (
             <div key={i}>
-              <p className="font-display text-[13.5px] font-semibold">{t.q}</p>
+              <p className="font-editorial text-[13.5px] font-semibold">{t.q}</p>
               {t.a ? (
                 <CitedAnswer text={t.a} sources={t.sources} />
               ) : t.failed ? (
@@ -387,7 +387,7 @@ export function KeyTerms({
   return (
     <div className="scroll-thin h-full overflow-y-auto px-6 py-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-[15px] font-semibold">In this story</h2>
+        <h2 className="font-editorial text-[15px] font-semibold">In this story</h2>
         {onClose && (
           <button
             type="button"

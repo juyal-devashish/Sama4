@@ -14,14 +14,14 @@ export function TermDemo() {
 
   return (
     <div className="rounded-xl border bg-surface p-5">
-      <p aria-live="polite" className="font-display text-[13px] font-medium text-text-tertiary">
+      <p aria-live="polite" className="font-editorial text-[13px] font-medium text-text-tertiary">
         {open ? "That's it. Every story works like this." : "Try it: select the highlighted name."}
       </p>
       <p className="mt-2 text-[17px] leading-relaxed">
         Finance ministers met the{" "}
         <button
           type="button"
-          className="term text-left font-body"
+          className="term text-left font-ui"
           style={{ ["--term-color" as string]: color }}
           aria-expanded={open}
           aria-controls={open ? "term-demo-explainer" : undefined}
@@ -46,7 +46,7 @@ export function TermDemo() {
               style={{ borderLeftColor: color }}
             >
               <EntityBadge type="organization" />
-              <p className="mt-1 font-display text-[15px] font-semibold">{NAME}</p>
+              <p className="mt-1 font-editorial text-[15px] font-semibold">{NAME}</p>
               <p className="mt-1 text-[14px] leading-relaxed text-text-secondary">
                 An international organization, founded in 1944, that lends money to countries in
                 financial trouble and keeps watch over the world economy.

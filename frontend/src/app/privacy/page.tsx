@@ -95,7 +95,7 @@ export default function PrivacyPage() {
       <div className="max-w-[62ch] space-y-9">
         {SECTIONS.map((s) => (
           <section key={s.title}>
-            <h2 className="font-display text-[17px] font-semibold">{s.title}</h2>
+            <h2 className="font-editorial text-[17px] font-semibold">{s.title}</h2>
             <div className="mt-2 space-y-3 text-[15.5px] leading-[1.7] text-text-secondary">
               {s.body}
             </div>
