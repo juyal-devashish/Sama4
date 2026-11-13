@@ -51,30 +51,7 @@
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
-.s4-landing nav {
-  position: sticky !important;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 48px;
-  background: color-mix(in srgb, var(--background) 88%, transparent);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
-  transition: background 0.2s ease;
-}
-.dark .s4-landing nav {
-  background: color-mix(in srgb, var(--background) 88%, transparent);
-}
-.s4-landing .nav-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
+
 .s4-landing .theme-toggle {
   background: none;
   border: 1px solid var(--border);
@@ -107,61 +84,7 @@
 .dark .s4-landing .theme-toggle .icon-moon {
   display: none;
 }
-.s4-landing .nav-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.s4-landing .nav-logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--serif);
-  font-size: 24px;
-  font-weight: 400;
-  color: var(--text);
-  text-decoration: none;
-  letter-spacing: -0.02em;
-}
-.s4-landing .nav-tag {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  border-left: 1px solid var(--border-strong);
-  padding-left: 12px;
-}
-.s4-landing .nav-links {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-  list-style: none;
-}
-.s4-landing .nav-links a {
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: color 0.2s;
-  position: relative;
-}
-.s4-landing .nav-links a::after {
-  content: "";
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 0;
-  height: 1px;
-  background: var(--text);
-  transition: width 0.3s ease;
-}
-.s4-landing .nav-links a:hover {
-  color: var(--text);
-}
-.s4-landing .nav-links a:hover::after {
-  width: 100%;
-}
+
 .s4-landing .btn-primary {
   font-family: var(--sans);
   font-size: 14px;
@@ -827,68 +750,6 @@
   color: var(--text-muted);
   font-family: var(--mono);
 }
-.s4-landing .hamburger {
-  display: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  color: var(--text);
-}
-.s4-landing .hamburger svg {
-  display: block;
-}
-.s4-landing .hamburger .icon-close {
-  display: none;
-}
-.s4-landing .hamburger.active .icon-open {
-  display: none;
-}
-.s4-landing .hamburger.active .icon-close {
-  display: block;
-}
-.s4-landing .mobile-menu {
-  display: none;
-  position: fixed;
-  top: 57px;
-  left: 0;
-  right: 0;
-  z-index: 99;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  padding: 24px;
-  flex-direction: column;
-  gap: 16px;
-  opacity: 0;
-  transform: translateY(-8px);
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-.dark .s4-landing .mobile-menu {
-  background: var(--bg);
-}
-.s4-landing .mobile-menu.open {
-  opacity: 1;
-  transform: translateY(0);
-}
-.s4-landing .mobile-menu a {
-  display: block;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text);
-  text-decoration: none;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-}
-.s4-landing .mobile-menu a:last-child {
-  border-bottom: none;
-}
-.s4-landing .mobile-menu .btn-primary {
-  text-align: center;
-  justify-content: center;
-  margin-top: 8px;
-}
 
 @keyframes s4-fadeUp {
   from {
@@ -1108,21 +969,6 @@
   }
 }
 @media (max-width: 640px) {
-  .s4-landing nav {
-    padding: 14px 20px;
-  }
-  .s4-landing .nav-links {
-    display: none;
-  }
-  .s4-landing .nav-tag {
-    display: none;
-  }
-  .s4-landing .hamburger {
-    display: block;
-  }
-  .s4-landing .mobile-menu {
-    display: flex;
-  }
   .s4-landing .hero {
     padding: 48px 20px 40px;
   }
@@ -1190,13 +1036,6 @@
   }
 }
 
-/* Inside the app the sidebar is the navigation and Landing.tsx renders an app-style
-   bar ("Back to today's stories" + on-page links), so the page's own nav is hidden. */
-.s4-landing > nav,
-.s4-landing > .mobile-menu {
-  display: none !important;
-}
-
 .s4-landing .demo-caption {
   margin-top: 14px;
   text-align: center;
@@ -1206,10 +1045,6 @@
 }
 
 /* The owl mark: one image per theme, swapped by html.dark. */
-.s4-landing .nav-owl {
-  height: 28px;
-  width: auto;
-}
 .s4-landing .app-owl {
   height: 18px;
   width: auto;

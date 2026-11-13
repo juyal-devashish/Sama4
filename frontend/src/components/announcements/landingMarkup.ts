@@ -1,29 +1,7 @@
 // Markup of the original sama4.online waitlist page, ported once (static, trusted; edit here).
-// Behaviour (demo, reveal, menu, waitlist form) lives in Landing.tsx.
+// Behaviour (demo, reveal, waitlist form) lives in Landing.tsx; its in-app bar is the page's nav.
 // prettier-ignore
-export const LANDING_MARKUP = `<nav>
-  <div class="nav-left">
-    <a href="/" class="nav-logo"><img src="/logo-owl.png" alt="" class="nav-owl logo-light" /><img src="/logo-owl-dark.png" alt="" class="nav-owl logo-dark" /><span>Samā4</span></a>
-    <span class="nav-tag">Read News Smarter</span>
-  </div>
-  <ul class="nav-links">
-    <li><a href="#how">How it works</a></li>
-    <li><a href="#features">Features</a></li>
-  </ul>
-  <div class="nav-right">
-    <a href="#waitlist" class="btn-primary">Get early access →</a>
-    <button class="hamburger" id="hamburger" aria-label="Menu">
-      <svg class="icon-open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      <svg class="icon-close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-  </div>
-</nav>
-<div class="mobile-menu" id="mobileMenu">
-  <a href="#how">How it works</a>
-  <a href="#features">Features</a>
-  <a href="#waitlist" class="btn-primary">Get early access →</a>
-</div>
-<section class="hero">
+export const LANDING_MARKUP = `<section class="hero">
   <div class="hero-content">
     <h1 class="hero-title">News, explained <span class="accent">inline</span>.</h1>
     <p class="hero-sub">

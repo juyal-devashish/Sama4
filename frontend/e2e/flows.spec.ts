@@ -154,8 +154,11 @@ test("the old Announcements link lands on Early access, with a way back to readi
     "page",
   );
   await expect(page.getByRole("link", { name: "Back to today's stories" })).toBeVisible();
-  // One navigation: the page's own top nav is hidden inside the app.
-  await expect(page.locator(".s4-landing > nav")).toBeHidden();
+  // One on-page navigation, the in-app bar; the page's old nav and mobile menu are gone.
+  await expect(page.locator(".s4-landing nav, .s4-landing .mobile-menu")).toHaveCount(0);
+  // Narrow screens hide the bar's links with display:none, so assistive tech skips them too.
+  const wide = (page.viewportSize()?.width ?? 0) >= 640;
+  await expect(page.getByRole("navigation", { name: "On this page" })).toHaveCount(wide ? 1 : 0);
 });
 
 test("a term with no explanation says so and offers a next step", async ({ page }) => {
