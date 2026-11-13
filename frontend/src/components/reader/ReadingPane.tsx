@@ -270,21 +270,21 @@ function Story({
     <>
       <div
         className={cn(
-          "sticky top-[2px] z-10 flex h-14 items-center gap-2 border-b bg-surface/90 px-4 backdrop-blur transition-colors sm:px-6",
+          "sticky top-[2px] z-10 flex h-12 items-center gap-2 border-b bg-surface/95 px-4 backdrop-blur transition-colors sm:px-6",
           scrolled ? "border-border" : "border-transparent",
         )}
       >
         <button
           type="button"
           onClick={onBack}
-          className="-ml-2 flex h-9 items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium text-text-secondary hover:bg-background-secondary lg:hidden"
+          className="label-ui -ml-2 flex h-9 items-center gap-1.5 px-2 text-text-secondary hover:text-foreground lg:hidden"
         >
-          <ArrowLeft size={16} /> Stories
+          <ArrowLeft size={14} /> Stories
         </button>
         <span
           aria-hidden={!scrolled}
           className={cn(
-            "truncate font-editorial text-[13px] font-semibold transition-opacity duration-200",
+            "label-ui truncate font-bold transition-opacity duration-200",
             scrolled ? "opacity-100" : "opacity-0",
           )}
         >
@@ -298,26 +298,26 @@ function Story({
               aria-expanded={listOpen}
               aria-controls="context-margin"
               aria-label="Terms in this story"
-              className="flex h-9 items-center gap-2 rounded-lg px-3 text-[13px] font-medium text-text-secondary transition-colors hover:bg-background-secondary hover:text-foreground wide:hidden"
+              className="label-ui flex h-9 items-center gap-1.5 px-2.5 text-text-secondary transition-colors hover:text-foreground wide:hidden"
             >
-              <ListTree size={16} aria-hidden />
+              <ListTree size={14} aria-hidden />
               <span className="hidden sm:inline">Terms</span>
             </button>
           )}
           <Link
             href={`/article/${article.id}/reference`}
             aria-label="References"
-            className="flex h-9 items-center gap-2 rounded-lg px-3 text-[13px] font-medium text-text-secondary transition-colors hover:bg-background-secondary hover:text-foreground"
+            className="label-ui flex h-9 items-center gap-1.5 px-2.5 text-text-secondary transition-colors hover:text-foreground"
           >
-            <Library size={16} /> <span className="hidden sm:inline">References</span>
+            <Library size={14} /> <span className="hidden sm:inline">References</span>
           </Link>
           <button
             type="button"
             onClick={copyLink}
             aria-label={copied ? "Link copied" : "Copy link"}
-            className="flex h-9 items-center gap-2 rounded-lg px-3 text-[13px] font-medium text-text-secondary transition-colors hover:bg-background-secondary hover:text-foreground"
+            className="label-ui flex h-9 items-center gap-1.5 px-2.5 text-text-secondary transition-colors hover:text-foreground"
           >
-            {copied ? <Check size={16} className="text-success" /> : <Link2 size={16} />}
+            {copied ? <Check size={14} className="text-success" /> : <Link2 size={14} />}
             <span className="hidden sm:inline">{copied ? "Link copied" : "Copy link"}</span>
           </button>
           <button
@@ -327,46 +327,57 @@ function Story({
             aria-label={saved ? "Saved" : "Save"}
             title={saved ? "Remove from saved (S)" : "Save for later (S)"}
             className={cn(
-              "flex h-9 items-center gap-2 rounded-lg px-3 text-[13px] font-medium transition-colors hover:bg-background-secondary",
-              saved ? "text-accent-primary" : "text-text-secondary hover:text-foreground",
+              "label-ui flex h-9 items-center gap-1.5 px-2.5 transition-colors",
+              saved ? "font-bold text-foreground" : "text-text-secondary hover:text-foreground",
             )}
           >
-            {saved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+            {saved ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
             <span className="hidden sm:inline">{saved ? "Saved" : "Save"}</span>
           </button>
         </div>
       </div>
 
-      <article className="mx-auto max-w-[760px] px-10 pb-28 pt-10 xl:px-14">
+      <article className="mx-auto max-w-[760px] px-6 pb-28 pt-10 sm:px-10 xl:px-14">
         {article.categories.length > 0 && (
-          <p className="mb-3 font-editorial text-[13px] font-medium text-accent-secondary">
-            {article.categories.map((c) => TOPIC_LABELS[c] ?? c).join(", ")}
+          <p className="kicker mb-4">
+            {article.categories.map((c) => TOPIC_LABELS[c] ?? c).join(" & ")}
           </p>
         )}
-        <h1 className="font-editorial text-[32px] font-bold leading-[1.18] tracking-[-0.02em] xl:text-[38px]">
+        <h1 className="headline text-[36px] leading-[1] sm:text-[44px] xl:text-[52px] xl:leading-[0.96]">
           {article.title}
         </h1>
-        <div className="mt-4 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-[13.5px] text-text-secondary">
-          <span className="font-medium text-foreground">{article.source.name}</span>
+        <p className="label-ui mt-5 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-text-secondary">
+          <span className="font-bold text-foreground">{article.source.name}</span>
           {article.published_at && (
-            <time dateTime={article.published_at} suppressHydrationWarning>
-              {formatTimeAgo(article.published_at)}
-            </time>
+            <>
+              <span aria-hidden>·</span>
+              <time dateTime={article.published_at} suppressHydrationWarning>
+                {formatTimeAgo(article.published_at)}
+              </time>
+            </>
           )}
           {article.reading_time_minutes ? (
-            <span>{article.reading_time_minutes} min read</span>
+            <>
+              <span aria-hidden>·</span>
+              <span>{article.reading_time_minutes} min read</span>
+            </>
           ) : null}
-          {termCount > 0 && <span>{termCount} terms explained</span>}
-        </div>
+          {termCount > 0 && (
+            <>
+              <span aria-hidden>·</span>
+              <span>{termCount} terms explained</span>
+            </>
+          )}
+        </p>
         {article.source.url && (
           <a
             href={article.source.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-lg border px-3.5 font-editorial text-[13.5px] font-medium text-foreground transition-colors hover:border-accent-secondary hover:text-accent-secondary"
+            className="btn-outline mt-4"
           >
             Read the original at {article.source.name}
-            <ArrowUpRight size={15} aria-hidden />
+            <ArrowUpRight size={13} aria-hidden />
             <span className="sr-only">(opens in a new tab)</span>
           </a>
         )}
@@ -377,22 +388,19 @@ function Story({
             src={article.image_url}
             onError={(e) => (e.currentTarget.style.display = "none")}
             alt=""
-            className="mt-8 aspect-[16/9] w-full rounded-xl bg-background-secondary object-cover"
+            className="mt-8 aspect-[16/9] w-full bg-background-secondary object-cover"
           />
         )}
 
         {article.summary && (
-          <section
-            aria-labelledby="summary-label"
-            className="mt-9 border-l-[3px] border-accent-primary pl-5"
-          >
-            <h2 id="summary-label" className="flex flex-wrap items-baseline gap-x-2 text-[13px]">
-              <span className="font-editorial font-semibold text-accent-primary">In brief</span>
-              <span className="text-text-tertiary">
-                AI summary written by samā4 from the article. Check the original for detail.
-              </span>
+          <section aria-labelledby="summary-label" className="mt-10">
+            <h2 id="summary-label" className="section-label">
+              In brief
             </h2>
-            <p className="mt-1.5 text-[17px] leading-[1.65] text-foreground">
+            <p className="mt-2 font-ui text-[11.5px] leading-snug text-text-tertiary">
+              AI summary written by samā4 from the article. Check the original for detail.
+            </p>
+            <p className="drop-cap mt-4 text-[19.5px] leading-[1.55] text-foreground">
               <MatchedText
                 text={article.summary}
                 entities={article.entities}
@@ -405,16 +413,14 @@ function Story({
 
         <section
           aria-labelledby="body-label"
-          className="mt-9 max-w-measure text-[18px] leading-[1.75] text-foreground"
+          className="mt-12 text-[18px] leading-[1.7] text-foreground"
         >
-          <h2 id="body-label" className="mb-3 flex flex-wrap items-baseline gap-x-2 text-[13px]">
-            <span className="font-editorial font-semibold text-foreground">
-              From {article.source.name}
-            </span>
-            <span className="leading-normal text-text-tertiary">
-              The publisher&apos;s text from its feed, unchanged. samā4 adds the highlights.
-            </span>
+          <h2 id="body-label" className="section-label">
+            From {article.source.name}
           </h2>
+          <p className="mb-5 mt-2 font-ui text-[11.5px] leading-snug text-text-tertiary">
+            The publisher&apos;s text from its feed, unchanged. samā4 adds the highlights.
+          </p>
           {article.content ? (
             <ArticleBody
               content={article.content}
@@ -423,7 +429,7 @@ function Story({
               onSelect={select}
             />
           ) : (
-            <p className="text-[15px] text-text-secondary">
+            <p className="text-[16px] text-text-secondary">
               Only the summary is available for this story.
               {article.source.url && (
                 <>
@@ -432,7 +438,7 @@ function Story({
                     href={article.source.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-accent-secondary hover:underline"
+                    className="text-accent-secondary underline underline-offset-2"
                   >
                     Visit {article.source.name}
                   </a>{" "}
@@ -471,7 +477,7 @@ function ArticleSkeleton() {
       <div className="skeleton mt-4 h-8 w-full" />
       <div className="skeleton mt-2 h-8 w-3/4" />
       <div className="skeleton mt-5 h-3 w-64" />
-      <div className="skeleton mt-8 aspect-[16/9] w-full rounded-xl" />
+      <div className="skeleton mt-8 aspect-[16/9] w-full" />
       <div className="mt-8 space-y-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="skeleton h-4" style={{ width: `${92 - (i % 3) * 9}%` }} />
