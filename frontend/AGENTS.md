@@ -10,7 +10,7 @@ src/
                        /search, /saved, /outlook (predictions), /early-access
                        (product intro + waitlist), /settings
   components/
-    shell/             AppShell, Masthead (nameplate + top nav), Page
+    shell/             AppShell, Sidebar (desktop rail, NAV), Masthead (nameplate; nav on phones), Page
     onboarding/        first-visit Splash, IntroFlow (welcome + topics), OnboardingGate;
                        in-app Tip, TermHint (rules in lib/onboarding.ts)
     reader/            Reader (3 panes) = StoryList | ReadingPane | context/ContextPanel
@@ -48,7 +48,7 @@ src/
 4. Add a hook in `hooks/`.
 5. Use it in a component and handle loading and error with `components/ui/states.tsx`. For errors, check `error instanceof ApiError` and `error.isNotFound`.
 
-**Add a page:** create `src/app/<route>/page.tsx` and wrap it in `components/shell/Page.tsx`. Add it to `NAV` in `Masthead` if it should be in the nav.
+**Add a page:** create `src/app/<route>/page.tsx` and wrap it in `components/shell/Page.tsx`. Add it to `NAV` in `Sidebar` if it should be in the nav.
 
 ## Checks
 

@@ -4,21 +4,21 @@
  * - Every rule is scoped to .s4-landing so nothing leaks into the reader.
  * - Its colour and font variables point at the reader's tokens (styles/globals.css).
  * - Its dark-mode rules follow the app's `.dark` class. Layout is unchanged.
- * - Restyled in the reader's broadsheet theme: square corners, ink band, red accent,
+ * - Restyled in the reader's broadsheet theme: square corners, navy band, blue accent,
  *   regular-weight serif headlines, uppercase sans labels in place of monospace.
  */
 .s4-landing {
   --bg: var(--background);
   --bg-2: var(--surface);
   --bg-secondary: var(--background-secondary);
-  --bg-dark: #171716;
-  --bg-dark-2: #252422;
+  --bg-dark: #0f1a36;
+  --bg-dark-2: #1b2a52;
   --border-light: var(--divider);
   --border-strong: color-mix(in srgb, var(--foreground) 15%, transparent);
   --text: var(--foreground);
   --text-muted: var(--text-tertiary);
-  --text-light: #f4f0e8;
-  --text-light-muted: #b8b3a8;
+  --text-light: #f5f8fd;
+  --text-light-muted: #a9b6d0;
   --accent: var(--accent-primary);
   --accent-hover: var(--accent-secondary);
   --highlight-bg: var(--entity-highlight);
@@ -30,7 +30,7 @@
 }
 .dark .s4-landing {
   --bg-dark: var(--background-secondary);
-  --bg-dark-2: #26241f;
+  --bg-dark-2: #18223d;
 }
 .s4-landing *,
 .s4-landing *::before,
@@ -113,6 +113,9 @@
   gap: 12px;
 }
 .s4-landing .nav-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-family: var(--serif);
   font-size: 24px;
   font-weight: 400;
@@ -347,8 +350,6 @@
 .s4-landing .phone-app-icon {
   width: 22px;
   height: 22px;
-  background: var(--accent);
-  color: var(--on-accent);
   border-radius: 0;
   display: flex;
   align-items: center;
@@ -849,6 +850,9 @@
   justify-content: space-between;
 }
 .s4-landing .footer-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--serif);
   font-size: 18px;
   color: var(--text-muted);
@@ -1288,10 +1292,10 @@
   }
 }
 
-/* On the ink band the ink accent would vanish: use the dark theme's red. */
+/* On the ink band the ink accent would vanish: use a light blue. */
 .s4-landing .value-section {
-  --accent: #e0685d;
-  --accent-hover: #ea8a81;
+  --accent: #9dbcf3;
+  --accent-hover: #c0d4f7;
 }
 .dark .s4-landing .value-section {
   --accent: var(--accent-secondary);
@@ -1335,4 +1339,27 @@
   font-size: 12.5px;
   line-height: 1.55;
   color: var(--text-light-muted);
+}
+
+/* The owl mark: one image per theme, swapped by html.dark. */
+.s4-landing .nav-owl {
+  height: 28px;
+  width: auto;
+}
+.s4-landing .app-owl {
+  height: 18px;
+  width: auto;
+}
+.s4-landing .footer-owl {
+  height: 20px;
+  width: auto;
+}
+.s4-landing .logo-dark {
+  display: none;
+}
+.dark .s4-landing .logo-light {
+  display: none;
+}
+.dark .s4-landing .logo-dark {
+  display: inline-block;
 }

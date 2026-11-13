@@ -7,12 +7,13 @@ import { INTRO_STEPS, nextIntroStep, type IntroStep } from "@/lib/onboarding";
 import { ALL_TOPICS, SECTIONS_ENABLED, TOPIC_LABELS, useTopics } from "@/lib/preferences";
 import { cn } from "@/lib/utils";
 import { TermDemo } from "./TermDemo";
+import { Logo } from "@/components/ui/logo";
 
 const ghost = "label-ui h-10 px-4 text-text-secondary transition-colors hover:text-foreground";
 const primary = "btn-ink h-10 px-5";
 
 /**
- * The two-step intro: what samā4 does (with a try-it highlight), then topics.
+ * The two-step intro: what Samā4 does (with a try-it highlight), then topics.
  * `onFinish(topics)` gets the picked topics, or null when the reader skipped.
  */
 export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) => void }) {
@@ -67,9 +68,10 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
       transition={{ duration: 0.25 }}
     >
       <div className="mx-auto flex w-full max-w-[560px] flex-1 flex-col px-4 pb-8 pt-10 sm:px-6 sm:pt-[12vh]">
-        <div className="mb-8">
+        <div className="mb-8 flex items-center gap-3">
+          <Logo className="h-10" />
           <p className="font-editorial text-[34px] font-bold leading-none tracking-[-0.045em]">
-            samā4
+            Samā4
           </p>
           <div className="rule-thick mt-3" aria-hidden />
         </div>
@@ -92,7 +94,7 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
                   News, understood.
                 </h1>
                 <p className="mt-4 max-w-[44ch] text-[18px] leading-[1.45] text-text-secondary">
-                  Stories assume you already know the people, places and ideas in them. samā4
+                  Stories assume you already know the people, places and ideas in them. Samā4
                   explains them as you read.
                 </p>
                 <div className="mt-8">
