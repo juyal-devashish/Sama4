@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SHARE_IMAGE, storyMetadata } from "./seo";
+import { DEFAULT_SHARE_IMAGE, jsonLd, storyMetadata, storyStructuredData } from "./seo";
 import type { ArticleDetail } from "@/types";
 
 const story: ArticleDetail = {
@@ -7,7 +7,7 @@ const story: ArticleDetail = {
   title: "A headline",
   summary: "A short summary.",
   image_url: "https://example.com/a.jpg",
-  source: { name: "Example News" },
+  source: { name: "Example News", url: "https://example.com/story" },
   published_at: "2026-11-13T08:00:00Z",
   categories: ["world"],
   entities: [],
@@ -34,5 +34,30 @@ describe("storyMetadata", () => {
     expect(m.description).toBe("A headline, from Example News, explained on Samā4.");
     expect(m.openGraph).toMatchObject({ images: [DEFAULT_SHARE_IMAGE] });
     expect(m.twitter).toMatchObject({ card: "summary" });
+  });
+});
+
+describe("storyStructuredData", () => {
+  it("is a NewsArticle crediting the original publisher", () => {
+    const ld = storyStructuredData(story);
+    expect(ld).toMatchObject({
+      "@type": "NewsArticle",
+      headline: "A headline",
+      url: "https://www.sama4.online/article/abc",
+      datePublished: "2026-11-13T08:00:00Z",
+      publisher: { name: "Samā4" },
+      isBasedOn: {
+        url: "https://example.com/story",
+        publisher: { "@type": "Organization", name: "Example News" },
+      },
+    });
+  });
+});
+
+describe("jsonLd", () => {
+  it("escapes < so text can't end the script tag", () => {
+    const out = jsonLd({ headline: "</script><script>alert(1)</script>" });
+    expect(out).not.toContain("<");
+    expect(JSON.parse(out)).toEqual({ headline: "</script><script>alert(1)</script>" });
   });
 });

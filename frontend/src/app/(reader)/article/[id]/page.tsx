@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ReaderStory } from "@/components/reader/Reader";
 import { getStory } from "@/lib/story";
-import { storyMetadata } from "@/lib/seo";
+import { jsonLd, storyMetadata, storyStructuredData } from "@/lib/seo";
 
 type Props = { params: { id: string } };
 
@@ -18,5 +18,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ArticlePage({ params }: Props) {
   const article = await getStory(params.id);
   if (article === null) notFound();
-  return <ReaderStory articleId={params.id} initialArticle={article} />;
+  return (
+    <>
+      {article && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLd(storyStructuredData(article)) }}
+        />
+      )}
+      <ReaderStory articleId={params.id} initialArticle={article} />
+    </>
+  );
 }
