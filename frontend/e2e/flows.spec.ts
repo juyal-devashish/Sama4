@@ -181,7 +181,7 @@ test("a term with no explanation says so and offers a next step", async ({ page 
   await expect(page.getByText(/hasn't written an explanation for/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Open the story" })).toHaveAttribute(
     "href",
-    `/?article=${ARTICLE_ID}`,
+    `/article/${ARTICLE_ID}`,
   );
 });
 

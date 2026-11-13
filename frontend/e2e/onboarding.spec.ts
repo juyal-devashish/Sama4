@@ -36,7 +36,8 @@ test("Escape skips the intro and keeps every topic", async ({ page }) => {
   await page.keyboard.press("/"); // the hidden reader's search shortcut must not fire
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page).toHaveURL(/\/(\?.*)?$/);
+  // Still on Today (desktop opens the first story at its own URL).
+  await expect(page).toHaveURL(/\/(article\/[^/?]+)?(\?.*)?$/);
   expect(await page.evaluate(() => localStorage.getItem("sama4_categories"))).toBeNull();
 });
 

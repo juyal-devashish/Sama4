@@ -13,8 +13,12 @@ export const dynamic = "force-dynamic";
 /** How long the server keeps the feed before asking the backend again (seconds). */
 const FEED_REVALIDATE = 300;
 
-/** The Today feed, rendered on the server so the story list is in the HTML. */
-export default async function TodayPage() {
+/**
+ * The reader around / and /article/[id]. As a layout it stays mounted when the story
+ * changes, so the story list keeps its scroll position. Page 1 of the feed is fetched
+ * here so the list is in the server-rendered HTML.
+ */
+export default async function ReaderLayout({ children }: { children: React.ReactNode }) {
   // A slow or failing backend must not block the page; the client fetches instead.
   const initialFeed = await api
     .getFeed({ page: 1, limit: 10 }, { revalidate: FEED_REVALIDATE, timeoutMs: 4000 })
@@ -22,7 +26,7 @@ export default async function TodayPage() {
 
   return (
     <Suspense>
-      <Reader initialFeed={initialFeed} />
+      <Reader initialFeed={initialFeed}>{children}</Reader>
     </Suspense>
   );
 }

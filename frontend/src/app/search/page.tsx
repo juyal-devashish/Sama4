@@ -17,6 +17,7 @@ import {
 import { Page } from "@/components/shell/Page";
 import { StoryRow } from "@/components/reader/StoryList";
 import { EmptyState, ErrorState } from "@/components/ui/states";
+import { storyPath } from "@/lib/routes";
 
 export default function SearchPage() {
   const router = useRouter();
@@ -46,7 +47,7 @@ export default function SearchPage() {
 
   const open = (id: string) => {
     add(query);
-    router.push(`/?article=${id}`);
+    router.push(storyPath(id));
   };
 
   return (

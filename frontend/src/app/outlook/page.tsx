@@ -7,6 +7,7 @@ import { Page } from "@/components/shell/Page";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 import { CONFIDENCE_HELP, IMPACT_HELP } from "@/lib/outlook";
 import { formatTimeAgo } from "@/lib/utils";
+import { storyPath } from "@/lib/routes";
 
 function impactColor(score: number) {
   return score > 70 ? "var(--error)" : score > 40 ? "var(--entity-event)" : "var(--success)";
@@ -56,7 +57,7 @@ export default function OutlookPage() {
           {data.map((p, i) => (
             <li key={p.id}>
               <Link
-                href={`/?article=${p.article_id}`}
+                href={storyPath(p.article_id)}
                 className="group grid grid-cols-[40px_1fr_140px] items-start gap-6 py-6"
               >
                 <span className="kicker pt-1 text-[12px] tabular-nums">

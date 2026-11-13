@@ -6,7 +6,9 @@ Next.js 14 (App Router), React 18, TypeScript (strict), TanStack Query v5 and Ta
 
 ```
 src/
-  app/                 routes: / (reader), /article/[id], /article/[id]/reference,
+  app/                 routes: (reader)/ holds / and /article/[id] (a story's stable URL)
+                       under one layout, so the story list stays mounted;
+                       /article/[id]/reference,
                        /search, /saved, /outlook (predictions), /early-access
                        (product intro + waitlist), /settings
   components/
@@ -19,7 +21,9 @@ src/
     outlook/           prediction views
     ui/                small shared pieces (states, entity-badge)
   hooks/               one hook per server resource (useFeed, useArticle, useEntityContext …)
+  middleware.ts        308s old /?article=<id> links to /article/<id>
   lib/
+    routes.ts          reader URLs (storyPath, readerHref); link stories with these
     api.ts             the ONLY place that calls fetch; throws ApiError(status)
     queryKeys.ts       every React Query key
     highlight.ts       pure entity-highlighting logic (tested)

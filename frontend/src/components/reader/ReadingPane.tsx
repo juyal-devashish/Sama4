@@ -26,6 +26,7 @@ import { useDesktop, useIntroShowing } from "@/components/onboarding/useHintCont
 import { uniqueEntities } from "@/lib/highlight";
 import { ArticleBody, MatchedText, type SelectedTerm } from "./ArticleText";
 import type { ArticleDetail } from "@/types";
+import { storyPath } from "@/lib/routes";
 
 interface Props {
   articleId: string;
@@ -246,7 +247,7 @@ function Story({
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/article/${article.id}`);
+      await navigator.clipboard.writeText(`${window.location.origin}${storyPath(article.id)}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
