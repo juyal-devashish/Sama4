@@ -76,11 +76,6 @@ export const LANDING_MARKUP = `<nav>
     <p class="demo-caption">Demo with a sample story, not today&rsquo;s news.</p>
   </div>
 </section>
-<div class="trust-bar">
-  <div class="trust-inner">
-    <span class="trust-label">Trusted by researchers, analysts, and curious minds</span>
-  </div>
-</div>
 <section class="value-section reveal">
   <div class="value-inner">
     <div>
