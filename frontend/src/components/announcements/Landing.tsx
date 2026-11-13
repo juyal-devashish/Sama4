@@ -224,13 +224,13 @@ export function Landing() {
   return (
     <div className="scroll-thin flex-1 overflow-y-auto">
       {/* The original page's own top nav is hidden in the app (landing.css); this bar
-          uses the app's chrome so it's clear the sidebar is the navigation. */}
-      <header className="sticky top-0 z-[101] flex h-14 items-center gap-2 border-b bg-surface/90 px-4 backdrop-blur sm:px-6">
+          uses the app's chrome so it's clear the masthead is the navigation. */}
+      <header className="sticky top-0 z-[101] flex h-12 items-center gap-2 border-b border-border bg-surface/95 px-4 backdrop-blur sm:px-6">
         <Link
           href="/"
-          className="-ml-2 flex h-9 items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium text-text-secondary hover:bg-background-secondary hover:text-foreground"
+          className="label-ui flex h-9 items-center gap-1.5 text-text-secondary hover:text-foreground"
         >
-          <ArrowLeft size={16} aria-hidden /> Back to today&apos;s stories
+          <ArrowLeft size={13} aria-hidden /> Back to today&apos;s stories
         </Link>
         <nav aria-label="On this page" className="ml-auto hidden items-center gap-1 sm:flex">
           {[
@@ -242,7 +242,7 @@ export function Landing() {
               key={href}
               href={href}
               onClick={jump(href)}
-              className="flex h-9 items-center rounded-lg px-3 text-[13px] font-medium text-text-secondary hover:bg-background-secondary hover:text-foreground"
+              className="label-ui flex h-9 items-center px-3 text-text-secondary hover:text-foreground"
             >
               {label}
             </a>

@@ -7,12 +7,9 @@ import { INTRO_STEPS, nextIntroStep, type IntroStep } from "@/lib/onboarding";
 import { ALL_TOPICS, TOPIC_LABELS, useTopics } from "@/lib/preferences";
 import { cn } from "@/lib/utils";
 import { TermDemo } from "./TermDemo";
-import { Logo } from "@/components/ui/logo";
 
-const ghost =
-  "h-10 rounded-lg px-4 text-[14px] font-medium text-text-secondary transition-colors hover:bg-background-secondary hover:text-foreground";
-const primary =
-  "h-10 rounded-lg bg-accent-primary px-5 text-[14px] font-semibold text-on-accent transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40";
+const ghost = "label-ui h-10 px-4 text-text-secondary transition-colors hover:text-foreground";
+const primary = "btn-ink h-10 px-5";
 
 /**
  * The two-step intro: what samā4 does (with a try-it highlight), then topics.
@@ -66,7 +63,10 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
     >
       <div className="mx-auto flex w-full max-w-[560px] flex-1 flex-col px-4 pb-8 pt-10 sm:px-6 sm:pt-[12vh]">
         <div className="mb-8">
-          <Logo className="h-11" />
+          <p className="font-editorial text-[34px] font-bold leading-none tracking-[-0.045em]">
+            samā4
+          </p>
+          <div className="rule-thick mt-3" aria-hidden />
         </div>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
@@ -82,11 +82,11 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
                   id="intro-title"
                   ref={focusOnMount}
                   tabIndex={-1}
-                  className="font-display text-[30px] font-bold leading-[1.15] tracking-[-0.02em] focus-visible:outline-none"
+                  className="headline text-[40px] focus-visible:outline-none"
                 >
                   News, understood.
                 </h1>
-                <p className="mt-3 max-w-[44ch] text-[16px] leading-relaxed text-text-secondary">
+                <p className="mt-4 max-w-[44ch] text-[18px] leading-[1.45] text-text-secondary">
                   Stories assume you already know the people, places and ideas in them. samā4
                   explains them as you read.
                 </p>
@@ -100,11 +100,11 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
                   id="intro-title"
                   ref={focusOnMount}
                   tabIndex={-1}
-                  className="font-display text-[30px] font-bold leading-[1.15] tracking-[-0.02em] focus-visible:outline-none"
+                  className="headline text-[40px] focus-visible:outline-none"
                 >
                   What do you want to follow?
                 </h1>
-                <p className="mt-3 max-w-[44ch] text-[16px] leading-relaxed text-text-secondary">
+                <p className="mt-4 max-w-[44ch] text-[18px] leading-[1.45] text-text-secondary">
                   Pick a few, or keep them all. You can change this any time in Settings.
                 </p>
                 <div role="group" aria-label="Topics" className="mt-8 flex flex-wrap gap-2">
@@ -117,10 +117,10 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
                         aria-pressed={on}
                         onClick={() => toggle(t)}
                         className={cn(
-                          "inline-flex h-10 items-center gap-1.5 rounded-full border px-4 text-[14px] font-medium transition-colors",
+                          "label-ui inline-flex h-10 items-center gap-1.5 border px-4 transition-colors",
                           on
                             ? "border-accent-primary bg-accent-primary text-on-accent"
-                            : "text-text-secondary hover:border-accent-secondary hover:text-foreground",
+                            : "text-text-secondary hover:border-foreground hover:text-foreground",
                         )}
                       >
                         {on && <Check size={14} strokeWidth={2.4} aria-hidden="true" />}
@@ -129,7 +129,10 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
                     );
                   })}
                 </div>
-                <p aria-live="polite" className="mt-3 min-h-[20px] text-[13px] text-text-tertiary">
+                <p
+                  aria-live="polite"
+                  className="mt-3 min-h-[20px] font-ui text-[12px] text-text-tertiary"
+                >
                   {picked.length === 0 ? "Pick at least one topic." : ""}
                 </p>
               </>
@@ -138,7 +141,7 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
         </AnimatePresence>
       </div>
 
-      <div className="sticky bottom-0 border-t bg-background/95 backdrop-blur-sm">
+      <div className="sticky bottom-0 border-t border-border bg-background/95 backdrop-blur-sm">
         <div className="mx-auto flex w-full max-w-[560px] items-center gap-3 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-2">
             <span className="flex gap-1.5" aria-hidden="true">
@@ -146,13 +149,13 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
                 <span
                   key={s}
                   className={cn(
-                    "h-1.5 rounded-full transition-all",
+                    "h-1.5 transition-all",
                     i === index ? "w-5 bg-accent-primary" : "w-1.5 bg-border",
                   )}
                 />
               ))}
             </span>
-            <span className="text-[13px] text-text-tertiary">
+            <span className="label-ui text-text-tertiary">
               Step {index + 1} of {INTRO_STEPS.length}
             </span>
           </div>
