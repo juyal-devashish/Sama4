@@ -31,6 +31,25 @@ async def test_feed_lists_completed_articles_newest_first_with_entity_counts(cli
     assert str(old.id) == body["articles"][1]["id"]
 
 
+async def test_feed_puts_the_latest_scrape_on_top(client, db_session):
+    now = datetime.now(UTC)
+    async with db_session() as db:
+        # Stored days ago but published "recently" by its feed: still below tonight's run.
+        await make_article(db, title="Last week", published_at=now, created_at=now - timedelta(6))
+        await make_article(
+            db, title="Tonight, older", published_at=now - timedelta(hours=20), created_at=now
+        )
+        await make_article(
+            db, title="Tonight, newer", published_at=now - timedelta(hours=2), created_at=now
+        )
+        await db.commit()
+
+    body = (await client.get("/api/v1/feed")).json()
+
+    titles = [a["title"] for a in body["articles"]]
+    assert titles == ["Tonight, newer", "Tonight, older", "Last week"]
+
+
 async def test_feed_filters_by_category_and_paginates(client, db_session):
     async with db_session() as db:
         for i in range(3):
