@@ -130,12 +130,14 @@ test("publisher text and samā4-generated text are labelled", async ({ page }) =
   await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
   await page.goto(ARTICLE);
-  await expect(
-    page.getByRole("heading", { name: /In brief AI summary written by samā4/ }),
-  ).toBeVisible({
-    timeout: 10_000,
-  });
-  await expect(page.getByRole("heading", { name: /^From .+ The publisher's text/ })).toBeVisible();
+  // Each section is headed, and described by a note saying who wrote the text.
+  await expect(page.getByRole("region", { name: "In brief" })).toHaveAccessibleDescription(
+    /^AI summary written by samā4/,
+    { timeout: 10_000 },
+  );
+  await expect(page.getByRole("region", { name: /^From / })).toHaveAccessibleDescription(
+    /^The publisher's text/,
+  );
   await page.locator(".term").first().click();
   await expect(
     page.getByText("Written by samā4's AI from Wikipedia and this story."),

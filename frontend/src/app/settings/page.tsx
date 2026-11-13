@@ -69,7 +69,7 @@ export default function SettingsPage() {
               aria-checked={theme === value}
               onClick={() => setTheme(value)}
               className={cn(
-                "label-ui flex h-9 items-center gap-2 whitespace-nowrap px-3 transition-colors sm:px-3.5",
+                "label-ui flex h-8 items-center gap-2 whitespace-nowrap px-3 transition-colors sm:px-3.5",
                 theme === value
                   ? "bg-foreground text-background"
                   : "text-text-secondary hover:text-foreground",

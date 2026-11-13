@@ -393,11 +393,18 @@ function Story({
         )}
 
         {article.summary && (
-          <section aria-labelledby="summary-label" className="mt-10">
+          <section
+            aria-labelledby="summary-label"
+            aria-describedby="summary-note"
+            className="mt-10"
+          >
             <h2 id="summary-label" className="section-label">
               In brief
             </h2>
-            <p className="mt-2 font-ui text-[11.5px] leading-snug text-text-tertiary">
+            <p
+              id="summary-note"
+              className="mt-2 font-ui text-[11.5px] leading-snug text-text-tertiary"
+            >
               AI summary written by samā4 from the article. Check the original for detail.
             </p>
             <p className="drop-cap mt-4 text-[19.5px] leading-[1.55] text-foreground">
@@ -413,12 +420,16 @@ function Story({
 
         <section
           aria-labelledby="body-label"
+          aria-describedby="body-note"
           className="mt-12 text-[18px] leading-[1.7] text-foreground"
         >
           <h2 id="body-label" className="section-label">
             From {article.source.name}
           </h2>
-          <p className="mb-5 mt-2 font-ui text-[11.5px] leading-snug text-text-tertiary">
+          <p
+            id="body-note"
+            className="mb-5 mt-2 font-ui text-[11.5px] leading-snug text-text-tertiary"
+          >
             The publisher&apos;s text from its feed, unchanged. samā4 adds the highlights.
           </p>
           {article.content ? (

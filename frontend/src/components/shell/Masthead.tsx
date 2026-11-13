@@ -32,12 +32,13 @@ export function Masthead() {
 
   return (
     <header className="flex-shrink-0 bg-background px-4 sm:px-6 xl:px-10">
-      <div className="flex items-center justify-between gap-4 border-b border-border py-2">
+      <div className="flex items-center justify-center gap-4 border-b border-border py-2 md:justify-between">
         <p className="label-ui hidden truncate text-text-secondary md:block">
           The news, with the context built in
         </p>
-        <nav aria-label="Main" className="-mx-1 min-w-0 overflow-x-auto">
-          <ul className="flex items-center gap-1 sm:gap-2">
+        <nav aria-label="Main" className="min-w-0">
+          {/* Wraps onto a second line on phones rather than scrolling sideways. */}
+          <ul className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 sm:gap-x-2 md:justify-end">
             {NAV.map(({ href, label, match }) => {
               const active = match(pathname);
               const count = href === "/saved" && saved.length > 0 ? saved.length : null;
