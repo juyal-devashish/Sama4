@@ -124,22 +124,22 @@ export const LANDING_MARKUP = `<nav>
       <div class="step">
         <span class="step-num"></span>
         <div class="step-body">
-          <h3>Open any news article</h3>
-          <p>Samā4 works as a browser extension. Open any article from any source — Reuters, NYT, The Economist, Substack, or any site.</p>
+          <h3>Open today&rsquo;s edition</h3>
+          <p>Each night Samā4 reads the day&rsquo;s news from more than 20 outlets, picks the most consequential stories and writes a short, neutral summary of each.</p>
         </div>
       </div>
       <div class="step">
         <span class="step-num"></span>
         <div class="step-body">
-          <h3>AI identifies what you need to know</h3>
-          <p>Our model scans the article and surfaces context on every unfamiliar term, person, organization, and event — automatically.</p>
+          <h3>See what the story assumes</h3>
+          <p>People, places, organizations and ideas a reader might not know are highlighted in the summary and in the opening of the original article.</p>
         </div>
       </div>
       <div class="step">
         <span class="step-num"></span>
         <div class="step-body">
-          <h3>Read with full understanding</h3>
-          <p>Select any highlighted term (click it, or tab to it and press Enter) for a concise explanation. No context-switching, no tab-hopping. Just informed reading.</p>
+          <h3>Select a highlight to understand it</h3>
+          <p>Click a highlighted term, or tab to it and press Enter, for a short explanation beside the text. Ask a follow-up question, or open the original story at its publisher.</p>
         </div>
       </div>
     </div>
