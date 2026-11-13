@@ -3,12 +3,27 @@ import "@/styles/globals.css";
 import { Providers } from "./providers";
 import { AppShell } from "@/components/shell/AppShell";
 import { FIRST_VISIT_SCRIPT } from "@/lib/onboarding";
+import { DEFAULT_SHARE_IMAGE } from "@/lib/seo";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
+
+const DESCRIPTION =
+  "News with context built in. Select any highlighted name, place or idea to see what it is without leaving the story.";
 
 export const metadata: Metadata = {
+  // Relative URLs in metadata (share images, canonical links) resolve against this.
+  metadataBase: new URL(SITE_URL),
   // Each route sets its own title; this template brands it.
-  title: { default: "Samā4 · News, explained inline", template: "%s · Samā4" },
-  description:
-    "News with context built in. Select any highlighted name, place or idea to see what it is without leaving the story.",
+  title: { default: `${SITE_NAME} · News, explained inline`, template: `%s · ${SITE_NAME}` },
+  description: DESCRIPTION,
+  // Share cards for pages without their own (story pages set theirs in lib/seo.ts).
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} · News, explained inline`,
+    description: DESCRIPTION,
+    images: [DEFAULT_SHARE_IMAGE],
+  },
+  twitter: { card: "summary" },
 };
 
 // Applies the saved theme before first paint so there is no light flash in dark mode.
