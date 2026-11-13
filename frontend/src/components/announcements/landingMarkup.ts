@@ -96,7 +96,7 @@ export const LANDING_MARKUP = `<nav>
       <div class="value-card">
         <div class="value-card-icon">◉</div>
         <h3 class="value-card-title">Every source, one feed</h3>
-        <p class="value-card-desc">One feed from 12+ trusted sources, with the same story told twice shown once. No repeats, no missed angles.</p>
+        <p class="value-card-desc">One feed from more than 20 outlets, with the same story told twice shown once.</p>
       </div>
       <div class="value-card">
         <div class="value-card-icon">◎</div>
@@ -105,8 +105,8 @@ export const LANDING_MARKUP = `<nav>
       </div>
       <div class="value-card">
         <div class="value-card-icon">◈</div>
-        <h3 class="value-card-title">Voice briefings</h3>
-        <p class="value-card-desc">Hear your briefing and ask questions out loud, with replies that keep up with you.</p>
+        <h3 class="value-card-title">Written for newcomers</h3>
+        <p class="value-card-desc">Explanations assume no background, so you can follow a story you joined late.</p>
       </div>
       <div class="value-card">
         <div class="value-card-icon">⊕</div>
@@ -147,37 +147,60 @@ export const LANDING_MARKUP = `<nav>
 </section>
 <section class="features reveal" id="features">
   <div class="features-inner">
-    <p class="section-label">Capabilities</p>
+    <p class="section-label">Available now</p>
     <div class="features-grid">
       <div class="feature-item">
-        <div class="feature-icon">⌘</div>
-        <h3 class="feature-title">Browser Extension</h3>
-        <p class="feature-desc">Works natively in Chrome. One click to activate on any page you're reading.</p>
-      </div>
-      <div class="feature-item">
-        <div class="feature-icon">◈</div>
-        <h3 class="feature-title">Any Publication</h3>
-        <p class="feature-desc">Reuters, Bloomberg, NYT, Substack, newsletters — works across all major and independent sources.</p>
-      </div>
-      <div class="feature-item">
-        <div class="feature-icon">◎</div>
-        <h3 class="feature-title">Always Current</h3>
-        <p class="feature-desc">Context grounded in up-to-date knowledge, not a static database frozen in time.</p>
+        <div class="feature-icon">◉</div>
+        <h3 class="feature-title">Explanations beside the story</h3>
+        <p class="feature-desc">Select a highlighted name, place or idea for a short explanation, written from Wikipedia and the story itself.</p>
       </div>
       <div class="feature-item">
         <div class="feature-icon">⊕</div>
-        <h3 class="feature-title">Privacy-First</h3>
-        <p class="feature-desc">Your reading habits stay private. No tracking, no data selling, no surveillance.</p>
+        <h3 class="feature-title">Follow-up questions</h3>
+        <p class="feature-desc">Ask about any highlighted term and get an answer grounded in the story.</p>
       </div>
       <div class="feature-item">
-        <div class="feature-icon">◇</div>
-        <h3 class="feature-title">Depth Control</h3>
-        <p class="feature-desc">Choose your context level — brief summaries for scanning, deep explanations for learning.</p>
+        <div class="feature-icon">◎</div>
+        <h3 class="feature-title">How terms connect</h3>
+        <p class="feature-desc">See which people, organizations and places a term is tied to, and other stories that mention it.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">◈</div>
+        <h3 class="feature-title">A nightly edition</h3>
+        <p class="feature-desc">Each night Samā4 picks the day&rsquo;s most consequential stories from more than 20 outlets, with duplicates removed.</p>
       </div>
       <div class="feature-item">
         <div class="feature-icon">≋</div>
-        <h3 class="feature-title">Multi-Language</h3>
-        <p class="feature-desc">Read news in any language and get context in the language you think in.</p>
+        <h3 class="feature-title">References for every story</h3>
+        <p class="feature-desc">One page listing everyone and everything a story names, each with its explanation.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">◇</div>
+        <h3 class="feature-title">Private by default</h3>
+        <p class="feature-desc">No tracking. Saved stories and settings stay in your browser.</p>
+      </div>
+    </div>
+    <p class="section-label features-planned-label">Planned &middot; not available yet</p>
+    <div class="features-grid features-planned">
+      <div class="feature-item">
+        <div class="feature-icon">⌘</div>
+        <h3 class="feature-title">Browser extension</h3>
+        <p class="feature-desc">The same explanations on articles you read anywhere, not just in Samā4&rsquo;s own edition.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">◈</div>
+        <h3 class="feature-title">Voice briefings</h3>
+        <p class="feature-desc">Hear the day&rsquo;s stories and ask questions out loud.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">◇</div>
+        <h3 class="feature-title">Depth control</h3>
+        <p class="feature-desc">Choose a one-line gloss for scanning or a deeper explanation for learning.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">≋</div>
+        <h3 class="feature-title">Multi-language</h3>
+        <p class="feature-desc">Read a story in one language and get explanations in the language you think in.</p>
       </div>
     </div>
   </div>

@@ -664,6 +664,13 @@
   border-radius: var(--radius);
   overflow: hidden;
 }
+/* Planned features: four items, two per row, after their own label. */
+.s4-landing .features-planned {
+  grid-template-columns: repeat(2, 1fr);
+}
+.s4-landing .features-planned-label {
+  margin-top: 72px;
+}
 .s4-landing .feature-item {
   background: var(--bg-2);
   padding: 36px 28px;
