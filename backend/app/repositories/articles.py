@@ -32,7 +32,12 @@ class FeedRow:
 async def list_feed(
     db: AsyncSession, *, page: int, limit: int, category: str | None = None
 ) -> tuple[list[FeedRow], int]:
-    """Completed articles, newest first, with their entity counts. Returns (rows, total)."""
+    """Completed articles with their entity counts. Returns (rows, total).
+
+    Newest scrape first: the latest nightly run's stories (grouped by the UTC day they
+    were stored) sit on top, newest-published first within that day. Articles with no
+    publish date go last in their day instead of floating to the top.
+    """
     entity_counts = (
         select(ArticleEntity.article_id, func.count().label("n"))
         .group_by(ArticleEntity.article_id)
@@ -43,7 +48,11 @@ async def list_feed(
         .join(Source, Article.source_id == Source.id, isouter=True)
         .join(entity_counts, entity_counts.c.article_id == Article.id, isouter=True)
         .where(Article.processing_status == STATUS_COMPLETED)
-        .order_by(Article.published_at.desc())
+        .order_by(
+            func.date(Article.created_at).desc(),
+            Article.published_at.desc().nulls_last(),
+            Article.created_at.desc(),
+        )
     )
     if category:
         if IS_SQLITE:

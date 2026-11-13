@@ -48,7 +48,7 @@ export async function mockApi(page: Page) {
         })),
       ];
       const page = Number(url.searchParams.get("page") ?? 1);
-      const limit = Number(url.searchParams.get("limit") ?? 25);
+      const limit = Number(url.searchParams.get("limit") ?? 10);
       const articles = pool.slice((page - 1) * limit, page * limit);
       return json(route, {
         articles,

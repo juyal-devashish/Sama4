@@ -10,7 +10,7 @@ export function useFeed(params?: { page?: number; limit?: number; category?: str
 }
 
 /** Paginated feed for the story list ("Load more"). */
-export function useFeedPages(category: string, limit = 25) {
+export function useFeedPages(category: string, limit = 10) {
   return useInfiniteQuery({
     queryKey: queryKeys.feedPages(category, limit),
     queryFn: ({ pageParam }) => api.getFeed({ page: pageParam, limit, category }),

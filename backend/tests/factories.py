@@ -27,6 +27,7 @@ async def make_article(
     categories: list[str] | None = None,
     status: str = "completed",
     published_at: datetime | None = None,
+    created_at: datetime | None = None,
 ) -> Article:
     article = Article(
         source_id=source.id if source else None,
@@ -38,6 +39,8 @@ async def make_article(
         processing_status=status,
         published_at=published_at or datetime.now(UTC),
     )
+    if created_at is not None:
+        article.created_at = created_at
     db.add(article)
     await db.flush()
     return article

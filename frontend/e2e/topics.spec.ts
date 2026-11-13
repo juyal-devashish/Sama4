@@ -40,12 +40,12 @@ test("topic, chips, feed and open story stay in sync across Load more, switching
   page,
 }) => {
   await page.goto("/?topic=science");
-  await expectOnlyTopic(page, "science", 25);
+  await expectOnlyTopic(page, "science", 10);
   await page.getByRole("button", { name: "Load more stories" }).click();
   await expectOnlyTopic(page, "science", pool("science"));
 
   // Science keeps the page it loaded with "Load more"; World only ever loads one page.
-  const expected = (topic: string) => (topic === "science" ? pool("science") : 25);
+  const expected = (topic: string) => (topic === "science" ? pool("science") : 10);
   for (const topic of ["world", "science", "world"]) {
     const label = topic[0].toUpperCase() + topic.slice(1);
     await page.getByRole("button", { name: label, exact: true }).click();
@@ -77,7 +77,7 @@ test("a link to a hidden topic still shows it selected; an unknown topic shows A
     "aria-pressed",
     "true",
   );
-  await expectOnlyTopic(page, "world", 25);
+  await expectOnlyTopic(page, "world", 10);
 
   await page.goto("/?topic=nonsense");
   await expect(page.getByRole("button", { name: "All", exact: true })).toHaveAttribute(
