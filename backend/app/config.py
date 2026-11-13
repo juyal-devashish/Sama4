@@ -16,8 +16,14 @@ class Settings(BaseSettings):
     # Regex for extra allowed origins, e.g. every Vercel URL of the frontend project
     # (production aliases, git-branch and preview deployments). None = list only.
     cors_origin_regex: str | None = None
-    # Run the 30-minute ingestion job in-process. Tests and one-off scripts set False.
+    # Run the nightly ingestion job in-process. Tests and one-off scripts set False.
     scheduler_enabled: bool = True
+    # When the daily ingestion runs (local time in ingestion_timezone).
+    ingestion_hour: int = 3
+    ingestion_minute: int = 0
+    ingestion_timezone: str = "America/New_York"
+    # Most articles one ingestion run processes, spread across sources. 0 = no cap.
+    ingestion_max_articles: int = 10
 
     # Database
     database_url: str = "postgresql+asyncpg://sama4:sama4_dev@localhost:5432/sama4"

@@ -3,22 +3,24 @@
 import logging
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.cron import CronTrigger
 
 from app.container import Container
 from app.ingestion import jobs
 
 logger = logging.getLogger(__name__)
 
-INGESTION_INTERVAL_MINUTES = 30
-
 
 def build_scheduler(container: Container) -> AsyncIOScheduler:
     """Create (not start) the scheduler with all recurring jobs."""
+    s = container.settings
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
         jobs.run_ingestion,
-        trigger=IntervalTrigger(minutes=INGESTION_INTERVAL_MINUTES),
+        # Once a day, at night: the app has no readers yet, so keep Claude/Pinecone spend low.
+        trigger=CronTrigger(
+            hour=s.ingestion_hour, minute=s.ingestion_minute, timezone=s.ingestion_timezone
+        ),
         args=[container],
         id="news_ingestion",
         name="Fetch and process news articles",
