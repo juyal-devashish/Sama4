@@ -70,3 +70,15 @@ export const RUNNING_PREDICTION_STATES = [
   "simulating",
   "generating_report",
 ];
+
+/**
+ * Text for a meta description: whitespace collapsed, cut at a word boundary to at
+ * most `max` characters (search engines show about 160), with an ellipsis if cut.
+ */
+export function metaDescription(text: string, max = 160): string {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max - 1);
+  const space = cut.lastIndexOf(" ");
+  return `${(space > max / 2 ? cut.slice(0, space) : cut).replace(/[\s,;:.-]+$/, "")}…`;
+}

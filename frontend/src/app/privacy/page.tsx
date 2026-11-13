@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { Page } from "@/components/shell/Page";
 
-export const metadata = { title: "Privacy" };
+export const metadata = {
+  title: "Privacy",
+  description:
+    "How Samā4 handles your data, in plain terms: the waitlist, what stays on your device, error reports, and no tracking.",
+};
 
 const SECTIONS: { title: string; body: React.ReactNode }[] = [
   {

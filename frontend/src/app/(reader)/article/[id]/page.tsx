@@ -2,12 +2,19 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ReaderStory } from "@/components/reader/Reader";
 import { getStory } from "@/lib/story";
+import { metaDescription } from "@/lib/utils";
 
 type Props = { params: { id: string } };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await getStory(params.id);
-  return { title: article?.title ?? "Story" };
+  if (!article) return { title: "Story" };
+  return {
+    title: article.title,
+    description: metaDescription(
+      article.summary || `${article.title}, from ${article.source.name}, explained on Samā4.`,
+    ),
+  };
 }
 
 /**

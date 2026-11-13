@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
 import { getStory } from "@/lib/story";
+import { metaDescription } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const article = await getStory(params.id);
-  return { title: article ? `References: ${article.title}` : "References" };
+  if (!article) return { title: "References" };
+  return {
+    title: `References: ${article.title}`,
+    description: metaDescription(
+      `Who and what is named in "${article.title}" (${article.source.name}), with a short sourced explanation of each.`,
+    ),
+  };
 }
 
 export default function ReferenceLayout({ children }: { children: React.ReactNode }) {
