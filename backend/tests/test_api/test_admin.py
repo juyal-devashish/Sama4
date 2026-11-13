@@ -200,3 +200,27 @@ async def test_enrich_articles_backfills_image_excerpt_and_rebuilds_mentions(con
     assert rows[pic_only.id].image_url == "https://cdn.test/b.jpg"
     assert rows[pic_only.id].cleaned_content == "Full text already here."
     assert rows[gone.id].image_url is None
+
+
+async def test_startup_backfill_skips_finished_stories(container, db_session):
+    from app.clients.pages import PageContent
+
+    async with db_session() as db:
+        done = await make_article(db, title="Done", content=" ".join(["word"] * 150))
+        done.image_url = "https://cdn.test/done.jpg"
+        teaser = await make_article(db, title="Teaser", content="Short teaser.")
+        await db.commit()
+    container.pages.pages = {
+        teaser.url: PageContent(
+            image_url="https://cdn.test/t.jpg", text="A much longer opening. " * 20, word_count=400
+        )
+    }
+    container.llm.default = "Brief."
+
+    with patch(
+        "app.ingestion.ner.NERService.extract_entities_hybrid", new=AsyncMock(return_value=[])
+    ):
+        report = await jobs.enrich_articles(container, 10, only_unfinished=True)
+
+    assert (report.total, report.updated) == (1, 1)
+    assert container.pages.calls == [teaser.url]

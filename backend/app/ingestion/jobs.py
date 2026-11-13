@@ -94,14 +94,30 @@ class EnrichReport:
     failed: int = 0
 
 
-async def enrich_articles(container: Container, limit: int = 100) -> EnrichReport:
+# Fewer words than this means we only hold the feed's teaser, not the page's opening.
+TEASER_WORDS = 120
+
+
+def needs_enrichment(article: Article) -> bool:
+    words = len((article.cleaned_content or "").split())
+    return not article.image_url or words < TEASER_WORDS
+
+
+async def enrich_articles(
+    container: Container, limit: int = 100, *, only_unfinished: bool = False
+) -> EnrichReport:
     """Backfill the newest `limit` articles from their pages (image, excerpt, terms,
-    summary). Each article commits on its own, so one failure doesn't undo the rest."""
+    summary). Each article commits on its own, so one failure doesn't undo the rest.
+
+    `only_unfinished` skips stories that already have an image and an excerpt (the
+    startup backfill), so a redeploy doesn't redo finished work."""
     report = EnrichReport()
     pipeline = IngestionPipeline(container, async_session)
     try:
         async with async_session() as db:
             rows = await article_repo.list_recent_with_source(db, limit)
+            if only_unfinished:
+                rows = [(a, src) for a, src in rows if needs_enrichment(a)]
             report.total = len(rows)
             for article, source in rows:
                 try:

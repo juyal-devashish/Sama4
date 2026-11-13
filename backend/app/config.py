@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     ingestion_target_stories: int = 12
     ingestion_max_stories: int = 15
     ingestion_window_hours: int = 24
+    # On startup, backfill the newest N stories still missing a lead image or holding only
+    # the feed's teaser (see jobs.enrich_articles). Complete stories are skipped. 0 = off.
+    startup_enrich_limit: int = 100
 
     # Database
     database_url: str = "postgresql+asyncpg://sama4:sama4_dev@localhost:5432/sama4"

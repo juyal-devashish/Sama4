@@ -1,5 +1,6 @@
 """FastAPI entrypoint. `uvicorn app.main:app` serves `create_app()`."""
 
+import asyncio
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -58,8 +59,22 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         scheduler.start()
         logger.info("Scheduler started")
 
+    # Backfill stories stored before the page reader existed. Runs in the background so
+    # startup isn't delayed; finished stories are skipped, so redeploys are cheap.
+    backfill = None
+    if container.settings.startup_enrich_limit > 0:
+        from app.ingestion.jobs import enrich_articles
+
+        backfill = asyncio.create_task(
+            enrich_articles(
+                container, container.settings.startup_enrich_limit, only_unfinished=True
+            )
+        )
+
     yield
 
+    if backfill is not None and not backfill.done():
+        backfill.cancel()
     if scheduler is not None:
         scheduler.shutdown(wait=False)
     await container.aclose()

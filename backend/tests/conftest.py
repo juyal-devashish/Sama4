@@ -10,6 +10,7 @@ import os
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 os.environ["ENVIRONMENT"] = "test"
 os.environ["SCHEDULER_ENABLED"] = "false"
+os.environ["STARTUP_ENRICH_LIMIT"] = "0"
 os.environ["ANTHROPIC_API_KEY"] = ""
 os.environ["PINECONE_API_KEY"] = ""
 os.environ["REDIS_URL"] = ""
