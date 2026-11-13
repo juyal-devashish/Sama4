@@ -22,8 +22,12 @@ class Settings(BaseSettings):
     ingestion_hour: int = 3
     ingestion_minute: int = 0
     ingestion_timezone: str = "America/New_York"
-    # Most articles one ingestion run processes, spread across sources. 0 = no cap.
-    ingestion_max_articles: int = 10
+    # Story selection, modelled on a daily briefing: Claude ranks every item from the
+    # last `ingestion_window_hours` by consequence and keeps `ingestion_target_stories`
+    # (up to `ingestion_max_stories` when more clear the bar). Only those are processed.
+    ingestion_target_stories: int = 12
+    ingestion_max_stories: int = 15
+    ingestion_window_hours: int = 24
 
     # Database
     database_url: str = "postgresql+asyncpg://sama4:sama4_dev@localhost:5432/sama4"
