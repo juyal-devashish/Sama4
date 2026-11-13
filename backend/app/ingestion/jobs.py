@@ -86,6 +86,45 @@ async def regenerate_summaries(container: Container) -> tuple[int, int]:
 
 
 @dataclass
+class EnrichReport:
+    total: int = 0
+    updated: int = 0  # new excerpt, terms and summary (and image if missing)
+    image_only: int = 0  # only the lead image changed
+    unchanged: int = 0  # page unreachable, or nothing better on it
+    failed: int = 0
+
+
+async def enrich_articles(container: Container, limit: int = 100) -> EnrichReport:
+    """Backfill the newest `limit` articles from their pages (image, excerpt, terms,
+    summary). Each article commits on its own, so one failure doesn't undo the rest."""
+    report = EnrichReport()
+    pipeline = IngestionPipeline(container, async_session)
+    try:
+        async with async_session() as db:
+            rows = await article_repo.list_recent_with_source(db, limit)
+            report.total = len(rows)
+            for article, source in rows:
+                try:
+                    outcome = await pipeline.enrich(article, source, db)
+                    await db.commit()
+                except Exception:
+                    logger.error("Enrich failed for %s", article.url, exc_info=True)
+                    await db.rollback()
+                    report.failed += 1
+                    continue
+                if outcome == "updated":
+                    report.updated += 1
+                elif outcome == "image":
+                    report.image_only += 1
+                else:
+                    report.unchanged += 1
+    except Exception:
+        logger.error("Article enrichment failed", exc_info=True)
+    logger.info("Article enrichment done: %s", report)
+    return report
+
+
+@dataclass
 class MentionRepairReport:
     total: int = 0
     aligned: int = 0  # already correct, untouched

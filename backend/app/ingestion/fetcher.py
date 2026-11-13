@@ -5,9 +5,9 @@ from datetime import datetime
 import feedparser
 import httpx
 
-logger = logging.getLogger(__name__)
+from app.clients.pages import USER_AGENT
 
-USER_AGENT = "Mozilla/5.0 (compatible; sama4-news/1.0; +https://www.sama4.online)"
+logger = logging.getLogger(__name__)
 
 
 @dataclass

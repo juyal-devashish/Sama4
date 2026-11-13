@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, select, text
+from sqlalchemy import delete, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import IS_SQLITE
@@ -133,6 +133,26 @@ async def record_failure(
 
 async def list_all(db: AsyncSession) -> Sequence[Article]:
     return (await db.execute(select(Article))).scalars().all()
+
+
+async def list_recent_with_source(
+    db: AsyncSession, limit: int
+) -> list[tuple[Article, Source | None]]:
+    """The newest completed articles (as the feed orders them) with their sources."""
+    rows = await db.execute(
+        select(Article, Source)
+        .join(Source, Article.source_id == Source.id, isouter=True)
+        .where(Article.processing_status == STATUS_COMPLETED)
+        .order_by(Article.created_at.desc())
+        .limit(limit)
+    )
+    return [(a, s) for a, s in rows.all()]
+
+
+async def delete_mentions(db: AsyncSession, article_id: uuid.UUID) -> None:
+    """Remove an article's mentions (before re-annotating changed text)."""
+    await db.execute(delete(ArticleEntity).where(ArticleEntity.article_id == article_id))
+    await db.flush()
 
 
 async def list_mentions(
