@@ -6,8 +6,10 @@ Next.js 14 (App Router), React 18, TypeScript (strict), TanStack Query v5 and Ta
 
 ```
 src/
-  app/                 routes: / (reader), /article/[id], /article/[id]/reference,
-                       /search, /saved, /outlook (predictions), /early-access
+  app/                 routes: (reader)/ holds / and /article/[id] (a story's stable URL)
+                       under one layout, so the story list stays mounted;
+                       /article/[id]/reference,
+                       /search, /saved, /outlook (predictions), /about, /sources, /early-access
                        (product intro + waitlist), /settings
   components/
     shell/             AppShell, Sidebar (desktop rail, NAV), Masthead (nameplate; nav on phones), Page
@@ -19,7 +21,9 @@ src/
     outlook/           prediction views
     ui/                small shared pieces (states, entity-badge)
   hooks/               one hook per server resource (useFeed, useArticle, useEntityContext …)
+  middleware.ts        308s old /?article=<id> links to /article/<id>
   lib/
+    routes.ts          reader URLs (storyPath, readerHref); link stories with these
     api.ts             the ONLY place that calls fetch; throws ApiError(status)
     queryKeys.ts       every React Query key
     highlight.ts       pure entity-highlighting logic (tested)
@@ -33,6 +37,7 @@ src/
 ## Rules
 
 - **Data flow:** component → hook in `hooks/` → `api` in `lib/api.ts`. Components never call `fetch` or `api.*` directly, and never write inline query keys; use `queryKeys`.
+- **Server rendering:** a route's `page.tsx` (a server component) may call `api.*` with `{ revalidate, timeoutMs }` and pass the result to a hook as initial data (see `app/page.tsx` → `useFeedPages`). Catch failures so a down backend falls back to client fetching. The query client is created per request in `providers.tsx`; never share one at module level.
 - **Pure logic goes in `lib/`** with a `*.test.ts` next to it. Keep React components thin.
 - **API types** in `types/index.ts` must match the backend's Pydantic schemas. Change both together.
 - **Styling:** use Tailwind and the CSS variables in `globals.css`. Entity colors come from `entityColor(type)`; don't hard-code hex values in components.

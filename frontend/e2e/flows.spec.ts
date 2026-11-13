@@ -154,8 +154,11 @@ test("the old Announcements link lands on Early access, with a way back to readi
     "page",
   );
   await expect(page.getByRole("link", { name: "Back to today's stories" })).toBeVisible();
-  // One navigation: the page's own top nav is hidden inside the app.
-  await expect(page.locator(".s4-landing > nav")).toBeHidden();
+  // One on-page navigation, the in-app bar; the page's old nav and mobile menu are gone.
+  await expect(page.locator(".s4-landing nav, .s4-landing .mobile-menu")).toHaveCount(0);
+  // Narrow screens hide the bar's links with display:none, so assistive tech skips them too.
+  const wide = (page.viewportSize()?.width ?? 0) >= 640;
+  await expect(page.getByRole("navigation", { name: "On this page" })).toHaveCount(wide ? 1 : 0);
 });
 
 test("a term with no explanation says so and offers a next step", async ({ page }) => {
@@ -181,7 +184,7 @@ test("a term with no explanation says so and offers a next step", async ({ page 
   await expect(page.getByText(/hasn't written an explanation for/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Open the story" })).toHaveAttribute(
     "href",
-    `/?article=${ARTICLE_ID}`,
+    `/article/${ARTICLE_ID}`,
   );
 });
 
@@ -299,15 +302,13 @@ test("removing a saved story can be undone, back in its place", async ({ page })
   await expect(undo).toHaveCount(0);
 });
 
-test("early-access page: sample demo labelled, stats never show zero, one CTA wording", async ({
+test("early-access page: sample demo labelled, no unsourced stats, one CTA wording", async ({
   page,
 }) => {
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
   await page.goto("/early-access");
   await expect(page.getByText("Demo with a sample story, not today’s news.")).toBeVisible();
-  const stats = page.locator(".stat-number");
-  await expect(stats).toHaveCount(4);
-  for (const text of await stats.allTextContents()) expect(text).not.toMatch(/^0/);
+  await expect(page.getByText(/Uptime|Articles Processed|Latency/i)).toHaveCount(0);
   await expect(page.getByText(/Join Waitlist|Get Early Access/)).toHaveCount(0);
   await expect(page.getByText(/Mistral/)).toHaveCount(0);
 });

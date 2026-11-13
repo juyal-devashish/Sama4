@@ -26,15 +26,18 @@ import { useDesktop, useIntroShowing } from "@/components/onboarding/useHintCont
 import { uniqueEntities } from "@/lib/highlight";
 import { ArticleBody, MatchedText, type SelectedTerm } from "./ArticleText";
 import type { ArticleDetail } from "@/types";
+import { storyPath } from "@/lib/routes";
 
 interface Props {
   articleId: string;
+  /** The story as fetched on the server. */
+  initialArticle?: ArticleDetail;
   onBack: () => void;
   onOpenArticle: (id: string) => void;
 }
 
-export function ReadingPane({ articleId, onBack, onOpenArticle }: Props) {
-  const { data: article, isLoading, isError, refetch } = useArticle(articleId);
+export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }: Props) {
+  const { data: article, isLoading, isError, refetch } = useArticle(articleId, initialArticle);
   const [term, setTerm] = useState<SelectedTerm | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [progress, setProgress] = useState(0);
@@ -246,7 +249,7 @@ function Story({
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/article/${article.id}`);
+      await navigator.clipboard.writeText(`${window.location.origin}${storyPath(article.id)}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {

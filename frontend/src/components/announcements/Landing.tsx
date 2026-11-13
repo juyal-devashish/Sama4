@@ -112,22 +112,6 @@ export function Landing() {
         0.3,
       );
 
-    // ── Mobile menu ──
-    const burger = $<HTMLElement>("#hamburger");
-    const menu = $<HTMLElement>("#mobileMenu");
-    if (burger && menu) {
-      on(burger, "click", () => {
-        burger.classList.toggle("active");
-        menu.classList.toggle("open");
-      });
-      menu.querySelectorAll("a").forEach((a) =>
-        on(a, "click", () => {
-          burger.classList.remove("active");
-          menu.classList.remove("open");
-        }),
-      );
-    }
-
     // ── In-page anchors: scroll inside the app's content pane, keep the URL clean ──
     el.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) =>
       on(a, "click", (ev) => {
@@ -223,8 +207,8 @@ export function Landing() {
 
   return (
     <div className="scroll-thin flex-1 overflow-y-auto">
-      {/* The original page's own top nav is hidden in the app (landing.css); this bar
-          uses the app's chrome so it's clear the masthead is the navigation. */}
+      {/* The page's only navigation besides the app's sidebar. Below `sm` the on-page
+          links are display:none, which also hides them from assistive tech. */}
       <header className="sticky top-0 z-[101] flex h-12 items-center gap-2 border-b border-border bg-surface/95 px-4 backdrop-blur sm:px-6">
         <Link
           href="/"

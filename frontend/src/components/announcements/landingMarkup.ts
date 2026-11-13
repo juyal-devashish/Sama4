@@ -1,4 +1,218 @@
 // Markup of the original sama4.online waitlist page, ported once (static, trusted; edit here).
-// Behaviour (demo, count-up, reveal, menu, waitlist form) lives in Landing.tsx.
+// Behaviour (demo, reveal, waitlist form) lives in Landing.tsx; its in-app bar is the page's nav.
 // prettier-ignore
-export const LANDING_MARKUP = "<nav>\n  <div class=\"nav-left\">\n    <a href=\"/\" class=\"nav-logo\"><img src=\"/logo-owl.png\" alt=\"\" class=\"nav-owl logo-light\" /><img src=\"/logo-owl-dark.png\" alt=\"\" class=\"nav-owl logo-dark\" /><span>Samā4</span></a>\n    <span class=\"nav-tag\">Read News Smarter</span>\n  </div>\n  <ul class=\"nav-links\">\n    <li><a href=\"#how\">How it works</a></li>\n    <li><a href=\"#features\">Features</a></li>\n  </ul>\n  <div class=\"nav-right\">\n    <a href=\"#waitlist\" class=\"btn-primary\">Get early access →</a>\n    <button class=\"hamburger\" id=\"hamburger\" aria-label=\"Menu\">\n      <svg class=\"icon-open\" width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><line x1=\"3\" y1=\"6\" x2=\"21\" y2=\"6\"/><line x1=\"3\" y1=\"12\" x2=\"21\" y2=\"12\"/><line x1=\"3\" y1=\"18\" x2=\"21\" y2=\"18\"/></svg>\n      <svg class=\"icon-close\" width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/></svg>\n    </button>\n  </div>\n</nav>\n<div class=\"mobile-menu\" id=\"mobileMenu\">\n  <a href=\"#how\">How it works</a>\n  <a href=\"#features\">Features</a>\n  <a href=\"#waitlist\" class=\"btn-primary\">Get early access →</a>\n</div>\n<section class=\"hero\">\n  <div class=\"hero-content\">\n    <p class=\"hero-label\">Stay informed. Stay relevant. With Samā4.</p>\n    <h1 class=\"hero-title\">Your first <span class=\"accent\">AI</span> news app.</h1>\n    <p class=\"hero-sub\">\n      News assumes you already know the people, places and ideas in it. Samā4 spots\n      what a story takes for granted and explains it right beside the text, so you\n      go from confused to informed in seconds.\n    </p>\n    <div class=\"hero-actions\">\n      <a href=\"#waitlist\" class=\"btn-primary\">Get early access →</a>\n      <a href=\"#how\" class=\"btn-secondary\">See how it works</a>\n    </div>\n    <div class=\"hero-terminal\">\n      <span class=\"prompt\">&gt;</span> summarize AI regulation news from the last 24 hours\n    </div>\n    <div class=\"hero-badges\">\n      <span class=\"badge\">12+ Sources</span>\n      <span class=\"badge\">Entity Linking</span>\n      <span class=\"badge\">Knowledge Graph</span>\n      <span class=\"badge\">Voice Briefings</span>\n    </div>\n  </div>\n  <div class=\"hero-divider\"></div>\n  <div class=\"hero-demo\">\n    <div class=\"phone-frame\">\n      <div class=\"phone-notch\">\n        <span class=\"phone-notch-pill\"></span>\n      </div>\n      <div class=\"phone-statusbar\">\n        <span class=\"phone-statusbar-time\">9:41</span>\n        <span class=\"phone-statusbar-icons\">\n          <svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z\"/></svg>\n          <svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z\"/></svg>\n        </span>\n      </div>\n      <div class=\"phone-app-header\">\n        <span class=\"phone-app-icon\"><img src=\"/logo-owl.png\" alt=\"\" class=\"app-owl logo-light\" /><img src=\"/logo-owl-dark.png\" alt=\"\" class=\"app-owl logo-dark\" /></span>\n        <span class=\"phone-app-name\">Samā4</span>\n        <span class=\"phone-app-badge\" id=\"appBadge\" style=\"display:none\">Active</span>\n      </div>\n      <div class=\"phone-content\">\n        <div class=\"demo-source\">\n          <span class=\"demo-source-icon\">R</span>\n          <span class=\"demo-source-name\">Reuters</span>\n          <span class=\"demo-source-date\">Sample story</span>\n        </div>\n        <h2 class=\"demo-headline\">Fed Holds Rates Steady Amid Renewed Stagflation Fears</h2>\n        <p class=\"demo-article\" id=\"demoArticle\">\n          The <span class=\"demo-term\" data-type=\"Institution\" data-title=\"Federal Reserve\" data-desc=\"The central banking system of the United States, founded in 1913. Sets monetary policy and the federal funds rate, which influences borrowing costs globally.\">Federal Reserve</span> held its benchmark rate unchanged at 4.25–4.50%, as Chair <span class=\"demo-term\" data-type=\"Person\" data-title=\"Jerome Powell\" data-desc=\"Chair of the Federal Reserve since 2018. Appointed by President Trump, reappointed by President Biden. Leads the FOMC, which sets U.S. monetary policy.\">Jerome Powell</span> signaled the committee would remain data-dependent amid growing concerns about <span class=\"demo-term\" data-type=\"Economic Term\" data-title=\"Stagflation\" data-desc=\"A rare economic condition combining stagnant growth, high unemployment, and persistent inflation simultaneously. First seen during the 1970s oil crisis.\">stagflation</span>. The latest <span class=\"demo-term\" data-type=\"Indicator\" data-title=\"CPI (Consumer Price Index)\" data-desc=\"A measure of the average change in prices paid by urban consumers for a basket of goods and services. The most widely followed inflation indicator in the U.S.\">CPI report</span> showed prices rising 3.8% year-over-year, well above the Fed's <span class=\"demo-term\" data-type=\"Policy\" data-title=\"2% Inflation Target\" data-desc=\"The Federal Reserve's stated goal for annual inflation. Adopted formally in 2012, it serves as the benchmark for monetary policy decisions.\">2% target</span>.\n        </p>\n        <div class=\"context-card\" id=\"demoContextCard\"></div>\n      </div>\n      <div class=\"phone-bottombar\" id=\"demoStatus\">\n        <span class=\"spinner\"></span>\n        <span class=\"check\">✓</span>\n        <span id=\"statusText\">Scanning article…</span>\n      </div>\n      <div class=\"phone-home-indicator\"><span></span></div>\n    </div>\n    <p class=\"demo-caption\">Demo with a sample story, not today&rsquo;s news.</p>\n  </div>\n</section>\n<div class=\"trust-bar\">\n  <div class=\"trust-inner\">\n    <span class=\"trust-label\">Trusted by researchers, analysts, and curious minds</span>\n  </div>\n</div>\n<section class=\"stats-row reveal\">\n  <div class=\"stats-inner\">\n    <div class=\"stat-cell\">\n      <div class=\"stat-number\">12+</div>\n      <div class=\"stat-label\">Sources Aggregated</div>\n    </div>\n    <div class=\"stat-cell\">\n      <div class=\"stat-number\">&lt;200ms</div>\n      <div class=\"stat-label\">Latency</div>\n    </div>\n    <div class=\"stat-cell\">\n      <div class=\"stat-number\">50K+</div>\n      <div class=\"stat-label\">Articles Processed</div>\n    </div>\n    <div class=\"stat-cell\">\n      <div class=\"stat-number\">99.7%</div>\n      <div class=\"stat-label\">Uptime</div>\n    </div>\n  </div>\n</section>\n<section class=\"value-section reveal\">\n  <div class=\"value-inner\">\n    <div>\n      <p class=\"value-label\">Capabilities</p>\n      <h2 class=\"value-title\">Intelligence that reads the <span class=\"strike\">noise</span> <span class=\"highlight\">signal</span> so you don't.</h2>\n      <p class=\"value-sub\">\n        Samā4 gives you a personal AI news analyst that aggregates, deduplicates, and connects, delivering briefings, not clutter.\n      </p>\n      <div class=\"value-tags\">\n        <span class=\"value-tag\">Researchers</span>\n        <span class=\"value-tag\">Analysts</span>\n        <span class=\"value-tag\">Founders</span>\n        <span class=\"value-tag\">Journalists</span>\n        <span class=\"value-tag\">Curious Minds</span>\n      </div>\n    </div>\n    <div class=\"value-cards\">\n      <div class=\"value-card\">\n        <div class=\"value-card-icon\">◉</div>\n        <h3 class=\"value-card-title\">Every source, one feed</h3>\n        <p class=\"value-card-desc\">One feed from 12+ trusted sources, with the same story told twice shown once. No repeats, no missed angles.</p>\n      </div>\n      <div class=\"value-card\">\n        <div class=\"value-card-icon\">◎</div>\n        <h3 class=\"value-card-title\">Connections, not just headlines</h3>\n        <p class=\"value-card-desc\">See how the people, organizations and events in today&rsquo;s news connect across stories.</p>\n      </div>\n      <div class=\"value-card\">\n        <div class=\"value-card-icon\">◈</div>\n        <h3 class=\"value-card-title\">Voice briefings</h3>\n        <p class=\"value-card-desc\">Hear your briefing and ask questions out loud, with replies that keep up with you.</p>\n      </div>\n      <div class=\"value-card\">\n        <div class=\"value-card-icon\">⊕</div>\n        <h3 class=\"value-card-title\">Answers you can check</h3>\n        <p class=\"value-card-desc\">Ask about any story and get an answer grounded in the article and recent reporting.</p>\n      </div>\n      <p class=\"tech-note\">How it&rsquo;s built: MinHash de-duplication, spaCy and Wikidata entity linking, Pinecone and Redis retrieval, and Anthropic&rsquo;s Claude for explanations.</p>\n    </div>\n  </div>\n</section>\n<section class=\"how reveal\" id=\"how\">\n  <div class=\"how-inner\">\n    <p class=\"section-label\">How It Works</p>\n    <div class=\"steps\">\n      <div class=\"step\">\n        <span class=\"step-num\"></span>\n        <div class=\"step-body\">\n          <h3>Open any news article</h3>\n          <p>Samā4 works as a browser extension. Open any article from any source — Reuters, NYT, The Economist, Substack, or any site.</p>\n        </div>\n      </div>\n      <div class=\"step\">\n        <span class=\"step-num\"></span>\n        <div class=\"step-body\">\n          <h3>AI identifies what you need to know</h3>\n          <p>Our model scans the article and surfaces context on every unfamiliar term, person, organization, and event — automatically.</p>\n        </div>\n      </div>\n      <div class=\"step\">\n        <span class=\"step-num\"></span>\n        <div class=\"step-body\">\n          <h3>Read with full understanding</h3>\n          <p>Select any highlighted term (click it, or tab to it and press Enter) for a concise explanation. No context-switching, no tab-hopping. Just informed reading.</p>\n        </div>\n      </div>\n    </div>\n  </div>\n</section>\n<section class=\"features reveal\" id=\"features\">\n  <div class=\"features-inner\">\n    <p class=\"section-label\">Capabilities</p>\n    <div class=\"features-grid\">\n      <div class=\"feature-item\">\n        <div class=\"feature-icon\">⌘</div>\n        <h3 class=\"feature-title\">Browser Extension</h3>\n        <p class=\"feature-desc\">Works natively in Chrome. One click to activate on any page you're reading.</p>\n      </div>\n      <div class=\"feature-item\">\n        <div class=\"feature-icon\">◈</div>\n        <h3 class=\"feature-title\">Any Publication</h3>\n        <p class=\"feature-desc\">Reuters, Bloomberg, NYT, Substack, newsletters — works across all major and independent sources.</p>\n      </div>\n      <div class=\"feature-item\">\n        <div class=\"feature-icon\">◎</div>\n        <h3 class=\"feature-title\">Always Current</h3>\n        <p class=\"feature-desc\">Context grounded in up-to-date knowledge, not a static database frozen in time.</p>\n      </div>\n      <div class=\"feature-item\">\n        <div class=\"feature-icon\">⊕</div>\n        <h3 class=\"feature-title\">Privacy-First</h3>\n        <p class=\"feature-desc\">Your reading habits stay private. No tracking, no data selling, no surveillance.</p>\n      </div>\n      <div class=\"feature-item\">\n        <div class=\"feature-icon\">◇</div>\n        <h3 class=\"feature-title\">Depth Control</h3>\n        <p class=\"feature-desc\">Choose your context level — brief summaries for scanning, deep explanations for learning.</p>\n      </div>\n      <div class=\"feature-item\">\n        <div class=\"feature-icon\">≋</div>\n        <h3 class=\"feature-title\">Multi-Language</h3>\n        <p class=\"feature-desc\">Read news in any language and get context in the language you think in.</p>\n      </div>\n    </div>\n  </div>\n</section>\n<section class=\"cta-section\" id=\"waitlist\">\n  <h2 class=\"cta-title\">Get early access to Samā4.</h2>\n  <p class=\"cta-sub\">The news layer that thinks, connects, and briefs.</p>\n  <label class=\"waitlist-label\" for=\"waitlistEmail\">Your email address</label>\n  <form class=\"waitlist-form\" id=\"waitlistForm\" novalidate>\n    <input id=\"waitlistEmail\" name=\"email\" type=\"email\" placeholder=\"name@example.com\" required autocomplete=\"email\" aria-describedby=\"formError formNote\" />\n    <button type=\"submit\"><span class=\"btn-spinner\"></span>Get early access</button>\n  </form>\n  <p class=\"form-error\" id=\"formError\" role=\"alert\"></p>\n  <p class=\"form-note\" id=\"formNote\">We only use your email to tell you when early access opens. No spam, never sold. <a href=\"/privacy\">How Samā4 handles your data</a></p>\n  <p class=\"form-success\" id=\"formSuccess\" role=\"status\">✓ You're on the list. We'll email you when early access opens.</p>\n</section>\n<footer>\n  <span class=\"footer-logo\"><img src=\"/logo-owl.png\" alt=\"\" class=\"footer-owl logo-light\" /><img src=\"/logo-owl-dark.png\" alt=\"\" class=\"footer-owl logo-dark\" /><span>Samā4</span></span>\n  <ul class=\"footer-links\">\n    <li><a href=\"/privacy\">Privacy</a></li>\n    <li><a href=\"https://sama4.online\" target=\"_blank\" rel=\"noopener noreferrer\">sama4.online</a></li>\n  </ul>\n  <span class=\"footer-copy\">© 2026 Samā4</span>\n</footer>";
+export const LANDING_MARKUP = `<section class="hero">
+  <div class="hero-content">
+    <h1 class="hero-title">News, explained <span class="accent">inline</span>.</h1>
+    <p class="hero-sub">
+      Stories assume you already know the people, places and ideas in them. Samā4
+      highlights what a story takes for granted. Select a highlight and a short
+      explanation opens beside the text.
+    </p>
+    <div class="hero-actions">
+      <a href="#waitlist" class="btn-primary">Get early access →</a>
+      <a href="#how" class="btn-secondary">See how it works</a>
+    </div>
+  </div>
+  <div class="hero-divider"></div>
+  <div class="hero-demo">
+    <div class="phone-frame">
+      <div class="phone-notch">
+        <span class="phone-notch-pill"></span>
+      </div>
+      <div class="phone-statusbar">
+        <span class="phone-statusbar-time">9:41</span>
+        <span class="phone-statusbar-icons">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+        </span>
+      </div>
+      <div class="phone-app-header">
+        <span class="phone-app-icon"><img src="/logo-owl.png" alt="" class="app-owl logo-light" /><img src="/logo-owl-dark.png" alt="" class="app-owl logo-dark" /></span>
+        <span class="phone-app-name">Samā4</span>
+        <span class="phone-app-badge" id="appBadge" style="display:none">Active</span>
+      </div>
+      <div class="phone-content">
+        <div class="demo-source">
+          <span class="demo-source-icon">S</span>
+          <span class="demo-source-name">Sample Wire</span>
+          <span class="demo-source-date">Sample story</span>
+        </div>
+        <h2 class="demo-headline">Fed Holds Rates Steady Amid Renewed Stagflation Fears</h2>
+        <p class="demo-article" id="demoArticle">
+          The <span class="demo-term" data-type="Institution" data-title="Federal Reserve" data-desc="The central banking system of the United States, founded in 1913. Sets monetary policy and the federal funds rate, which influences borrowing costs globally.">Federal Reserve</span> held its benchmark rate unchanged at 4.25–4.50%, as Chair <span class="demo-term" data-type="Person" data-title="Jerome Powell" data-desc="Chair of the Federal Reserve since 2018. Appointed by President Trump, reappointed by President Biden. Leads the FOMC, which sets U.S. monetary policy.">Jerome Powell</span> signaled the committee would remain data-dependent amid growing concerns about <span class="demo-term" data-type="Economic Term" data-title="Stagflation" data-desc="A rare economic condition combining stagnant growth, high unemployment, and persistent inflation simultaneously. First seen during the 1970s oil crisis.">stagflation</span>. The latest <span class="demo-term" data-type="Indicator" data-title="CPI (Consumer Price Index)" data-desc="A measure of the average change in prices paid by urban consumers for a basket of goods and services. The most widely followed inflation indicator in the U.S.">CPI report</span> showed prices rising 3.8% year-over-year, well above the Fed's <span class="demo-term" data-type="Policy" data-title="2% Inflation Target" data-desc="The Federal Reserve's stated goal for annual inflation. Adopted formally in 2012, it serves as the benchmark for monetary policy decisions.">2% target</span>.
+        </p>
+        <div class="context-card" id="demoContextCard"></div>
+      </div>
+      <div class="phone-bottombar" id="demoStatus">
+        <span class="spinner"></span>
+        <span class="check">✓</span>
+        <span id="statusText">Scanning article…</span>
+      </div>
+      <div class="phone-home-indicator"><span></span></div>
+    </div>
+    <p class="demo-caption">Demo with a sample story, not today&rsquo;s news.</p>
+  </div>
+</section>
+<section class="value-section reveal">
+  <div class="value-inner">
+    <div>
+      <p class="value-label">Why Samā4</p>
+      <h2 class="value-title">Understand the story without opening five more tabs.</h2>
+      <p class="value-sub">
+        Samā4 gives you a personal AI news analyst that aggregates, deduplicates, and connects, delivering briefings, not clutter.
+      </p>
+      <div class="value-tags">
+        <span class="value-tag">Researchers</span>
+        <span class="value-tag">Analysts</span>
+        <span class="value-tag">Founders</span>
+        <span class="value-tag">Journalists</span>
+        <span class="value-tag">Curious Minds</span>
+      </div>
+    </div>
+    <div class="value-cards">
+      <div class="value-card">
+        <div class="value-card-icon">◉</div>
+        <h3 class="value-card-title">Every source, one feed</h3>
+        <p class="value-card-desc">One feed from more than 20 outlets, with the same story told twice shown once.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-card-icon">◎</div>
+        <h3 class="value-card-title">Connections, not just headlines</h3>
+        <p class="value-card-desc">See how the people, organizations and events in today&rsquo;s news connect across stories.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-card-icon">◈</div>
+        <h3 class="value-card-title">Written for newcomers</h3>
+        <p class="value-card-desc">Explanations assume no background, so you can follow a story you joined late.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-card-icon">⊕</div>
+        <h3 class="value-card-title">Answers you can check</h3>
+        <p class="value-card-desc">Ask about any story and get an answer grounded in the article and recent reporting.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="how reveal" id="how">
+  <div class="how-inner">
+    <p class="section-label">How It Works</p>
+    <div class="steps">
+      <div class="step">
+        <span class="step-num"></span>
+        <div class="step-body">
+          <h3>Open today&rsquo;s edition</h3>
+          <p>Each night Samā4 reads the day&rsquo;s news from more than 20 outlets, picks the most consequential stories and writes a short, neutral summary of each.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num"></span>
+        <div class="step-body">
+          <h3>See what the story assumes</h3>
+          <p>People, places, organizations and ideas a reader might not know are highlighted in the summary and in the opening of the original article.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num"></span>
+        <div class="step-body">
+          <h3>Select a highlight to understand it</h3>
+          <p>Click a highlighted term, or tab to it and press Enter, for a short explanation beside the text. Ask a follow-up question, or open the original story at its publisher.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="reader-shot reveal">
+  <div class="reader-shot-inner">
+    <p class="section-label">See it working</p>
+    <figure>
+      <img src="/images/reader-explained.webp" width="1400" height="925" loading="lazy" decoding="async" alt="The Samā4 reader: a story summary with names and ideas highlighted, and beside it a short explanation of the highlighted term “the Detroit Pistons”, with related terms and other stories that mention it." />
+      <figcaption>A real story in the reader, with one highlighted term explained in the margin. <a href="/">Open today&rsquo;s stories</a></figcaption>
+    </figure>
+  </div>
+</section>
+<section class="features reveal" id="features">
+  <div class="features-inner">
+    <p class="section-label">Available now</p>
+    <div class="features-grid">
+      <div class="feature-item">
+        <div class="feature-icon">◉</div>
+        <h3 class="feature-title">Explanations beside the story</h3>
+        <p class="feature-desc">Select a highlighted name, place or idea for a short explanation, written from Wikipedia and the story itself.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">⊕</div>
+        <h3 class="feature-title">Follow-up questions</h3>
+        <p class="feature-desc">Ask about any highlighted term and get an answer grounded in the story.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">◎</div>
+        <h3 class="feature-title">How terms connect</h3>
+        <p class="feature-desc">See which people, organizations and places a term is tied to, and other stories that mention it.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">◈</div>
+        <h3 class="feature-title">A nightly edition</h3>
+        <p class="feature-desc">Each night Samā4 picks the day&rsquo;s most consequential stories from more than 20 outlets, with duplicates removed.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">≋</div>
+        <h3 class="feature-title">References for every story</h3>
+        <p class="feature-desc">One page listing everyone and everything a story names, each with its explanation.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">◇</div>
+        <h3 class="feature-title">No tracking</h3>
+        <p class="feature-desc">No analytics, advertising scripts or tracking cookies. Saved stories, your theme and your topics stay in your browser. <a href="/privacy">Read the privacy page</a></p>
+      </div>
+    </div>
+    <p class="section-label features-planned-label">Planned &middot; not available yet</p>
+    <div class="features-grid features-planned">
+      <div class="feature-item">
+        <div class="feature-icon">⌘</div>
+        <h3 class="feature-title">Browser extension</h3>
+        <p class="feature-desc">The same explanations on articles you read anywhere, not just in Samā4&rsquo;s own edition.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">◈</div>
+        <h3 class="feature-title">Voice briefings</h3>
+        <p class="feature-desc">Hear the day&rsquo;s stories and ask questions out loud.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">◇</div>
+        <h3 class="feature-title">Depth control</h3>
+        <p class="feature-desc">Choose a one-line gloss for scanning or a deeper explanation for learning.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">≋</div>
+        <h3 class="feature-title">Multi-language</h3>
+        <p class="feature-desc">Read a story in one language and get explanations in the language you think in.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="cta-section" id="waitlist">
+  <h2 class="cta-title">Get early access to Samā4.</h2>
+  <p class="cta-sub">
+    The reader is free and open to everyone now. Early access means trying the
+    planned features first, starting with the browser extension and voice briefings.
+  </p>
+  <label class="waitlist-label" for="waitlistEmail">Your email address</label>
+  <form class="waitlist-form" id="waitlistForm" novalidate>
+    <input id="waitlistEmail" name="email" type="email" placeholder="name@example.com" required autocomplete="email" aria-describedby="formError formNote" />
+    <button type="submit"><span class="btn-spinner"></span>Get early access</button>
+  </form>
+  <p class="form-error" id="formError" role="alert"></p>
+  <p class="form-note" id="formNote">We only use your email to tell you when early access opens. No spam, never sold. <a href="/privacy">How Samā4 handles your data</a></p>
+  <p class="form-success" id="formSuccess" role="status">✓ You're on the list. We'll email you when early access opens.</p>
+</section>
+<footer>
+  <span class="footer-logo"><img src="/logo-owl.png" alt="" class="footer-owl logo-light" /><img src="/logo-owl-dark.png" alt="" class="footer-owl logo-dark" /><span>Samā4</span></span>
+  <ul class="footer-links">
+    <li><a href="/about">About</a></li>
+    <li><a href="/sources">Sources</a></li>
+    <li><a href="/privacy">Privacy</a></li>
+    <li><a href="https://sama4.online" target="_blank" rel="noopener noreferrer">sama4.online</a></li>
+  </ul>
+  <span class="footer-copy">© 2026 Samā4</span>
+</footer>`;

@@ -218,3 +218,21 @@ export interface TrendingPrediction {
 export interface WaitlistResponse {
   status: "joined" | "exists";
 }
+
+// ============ Sources (mirrors backend/app/schemas/source.py) ============
+
+export interface SourceFeed {
+  url: string;
+  category: string;
+  region: string;
+}
+
+export interface SourceOutlet {
+  name: string;
+  feeds: SourceFeed[];
+}
+
+export interface SourcesResponse {
+  outlets: SourceOutlet[];
+  feed_count: number;
+}

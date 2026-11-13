@@ -16,6 +16,7 @@ import {
   formatTimeAgo,
 } from "@/lib/utils";
 import type { ReferenceEntityContext } from "@/types";
+import { storyPath } from "@/lib/routes";
 
 export default function ReferencesPage() {
   const { id } = useParams<{ id: string }>();
@@ -24,7 +25,7 @@ export default function ReferencesPage() {
 
   const back = (
     <Link
-      href={`/?article=${id}`}
+      href={storyPath(id)}
       className="label-ui mb-6 inline-flex h-9 items-center gap-1.5 text-text-secondary hover:text-foreground"
     >
       <ArrowLeft size={13} /> Back to the story
@@ -102,7 +103,7 @@ export default function ReferencesPage() {
             <ul className="divide-y divide-divider">
               {data.related_articles.map((a) => (
                 <li key={a.id} className="py-3.5">
-                  <Link href={`/?article=${a.id}`} className="group block">
+                  <Link href={storyPath(a.id)} className="group block">
                     <span className="block font-editorial text-[17px] leading-[1.2] tracking-[-0.01em] group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">
                       {a.title}
                     </span>
@@ -165,7 +166,7 @@ function ReferenceRow({
         <p className="pb-2 pl-[216px] text-[15px] leading-relaxed text-text-secondary">
           Samā4 hasn&apos;t written an explanation for {entity.name} yet.{" "}
           <Link
-            href={`/?article=${storyId}`}
+            href={storyPath(storyId)}
             className="text-accent-secondary underline underline-offset-2"
           >
             Open the story

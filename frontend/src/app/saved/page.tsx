@@ -8,6 +8,7 @@ import { Page } from "@/components/shell/Page";
 import { EmptyState } from "@/components/ui/states";
 import { StoryImage } from "@/components/ui/story-image";
 import { formatTimeAgo } from "@/lib/utils";
+import { storyPath } from "@/lib/routes";
 
 export default function SavedPage() {
   const { saved, remove, restore } = useSavedStories();
@@ -52,7 +53,7 @@ export default function SavedPage() {
         <ul className="divide-y divide-divider border-b border-border">
           {saved.map((s) => (
             <li key={s.id} className="group flex items-start gap-5 py-6">
-              <Link href={`/?article=${s.id}`} className="flex min-w-0 flex-1 gap-5">
+              <Link href={storyPath(s.id)} className="flex min-w-0 flex-1 gap-5">
                 <div className="min-w-0 flex-1">
                   <p className="flex items-baseline gap-3">
                     <span className="kicker">{s.source}</span>

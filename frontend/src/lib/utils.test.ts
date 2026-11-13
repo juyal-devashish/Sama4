@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { entityColor, entityKind, formatTimeAgo } from "./utils";
+import { entityColor, entityKind, formatTimeAgo, metaDescription } from "./utils";
 
 describe("entityKind", () => {
   it.each([
@@ -30,5 +30,21 @@ describe("formatTimeAgo", () => {
     expect(formatTimeAgo("2026-11-11T11:15:00Z")).toBe("45m ago");
     expect(formatTimeAgo("2026-11-11T07:00:00Z")).toBe("5h ago");
     expect(formatTimeAgo("2026-11-08T12:00:00Z")).toBe("3d ago");
+  });
+});
+
+describe("metaDescription", () => {
+  it("keeps short text, collapsing whitespace", () => {
+    expect(metaDescription("  A short\n summary. ")).toBe("A short summary.");
+  });
+
+  it("cuts long text at a word boundary with an ellipsis", () => {
+    const out = metaDescription("one two three four five six", 16);
+    expect(out).toBe("one two three…");
+    expect(out.length).toBeLessThanOrEqual(16);
+  });
+
+  it("drops trailing punctuation before the ellipsis", () => {
+    expect(metaDescription("alpha beta, gamma delta", 13)).toBe("alpha beta…");
   });
 });
