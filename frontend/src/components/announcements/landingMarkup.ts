@@ -175,8 +175,8 @@ export const LANDING_MARKUP = `<nav>
       </div>
       <div class="feature-item">
         <div class="feature-icon">◇</div>
-        <h3 class="feature-title">Private by default</h3>
-        <p class="feature-desc">No tracking. Saved stories and settings stay in your browser.</p>
+        <h3 class="feature-title">No tracking</h3>
+        <p class="feature-desc">No analytics, advertising scripts or tracking cookies. Saved stories, your theme and your topics stay in your browser. <a href="/privacy">How Samā4 handles your data</a></p>
       </div>
     </div>
     <p class="section-label features-planned-label">Planned &middot; not available yet</p>

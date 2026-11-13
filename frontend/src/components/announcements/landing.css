@@ -779,7 +779,8 @@
   color: var(--text-muted);
   font-family: var(--sans);
 }
-.s4-landing .form-note a {
+.s4-landing .form-note a,
+.s4-landing .feature-desc a {
   color: var(--text);
   text-decoration: underline;
   text-underline-offset: 2px;
