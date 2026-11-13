@@ -79,8 +79,8 @@ export const LANDING_MARKUP = `<nav>
 <section class="value-section reveal">
   <div class="value-inner">
     <div>
-      <p class="value-label">Capabilities</p>
-      <h2 class="value-title">Intelligence that reads the <span class="strike">noise</span> <span class="highlight">signal</span> so you don't.</h2>
+      <p class="value-label">Why Samā4</p>
+      <h2 class="value-title">Understand the story without opening five more tabs.</h2>
       <p class="value-sub">
         Samā4 gives you a personal AI news analyst that aggregates, deduplicates, and connects, delivering briefings, not clutter.
       </p>

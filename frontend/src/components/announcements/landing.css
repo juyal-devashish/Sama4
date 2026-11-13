@@ -539,13 +539,6 @@
   line-height: 1.1;
   margin-bottom: 20px;
 }
-.s4-landing .value-title .strike {
-  text-decoration: line-through;
-  color: rgba(245, 245, 243, 0.25);
-}
-.s4-landing .value-title .highlight {
-  color: var(--accent);
-}
 .s4-landing .value-sub {
   font-size: 16px;
   font-weight: 300;
