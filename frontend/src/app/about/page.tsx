@@ -26,10 +26,13 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <>
         <p>
-          Stories come from publishers&apos; public RSS feeds. Near-duplicate stories are merged
-          with MinHash. Names, places and ideas are found with spaCy and linked to Wikidata and
-          Wikipedia. Pinecone and Redis handle retrieval and caching, and Anthropic&apos;s Claude
-          writes the summaries and explanations.
+          Stories come from publishers&apos; public RSS feeds (see{" "}
+          <Link href="/sources" className={LINK}>
+            every source
+          </Link>
+          ). Near-duplicate stories are merged with MinHash. Names, places and ideas are found with
+          spaCy and linked to Wikidata and Wikipedia. Pinecone and Redis handle retrieval and
+          caching, and Anthropic&apos;s Claude writes the summaries and explanations.
         </p>
         <p>
           The web app is Next.js; the API and the nightly pipeline are Python (FastAPI). How your

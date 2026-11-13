@@ -210,6 +210,7 @@ export const LANDING_MARKUP = `<section class="hero">
   <span class="footer-logo"><img src="/logo-owl.png" alt="" class="footer-owl logo-light" /><img src="/logo-owl-dark.png" alt="" class="footer-owl logo-dark" /><span>Samā4</span></span>
   <ul class="footer-links">
     <li><a href="/about">About</a></li>
+    <li><a href="/sources">Sources</a></li>
     <li><a href="/privacy">Privacy</a></li>
     <li><a href="https://sama4.online" target="_blank" rel="noopener noreferrer">sama4.online</a></li>
   </ul>

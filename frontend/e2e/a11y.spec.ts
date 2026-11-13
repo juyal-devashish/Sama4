@@ -11,6 +11,7 @@ const routes = [
   "/settings",
   "/privacy",
   "/about",
+  "/sources",
 ];
 const themes = ["light", "dark"] as const;
 

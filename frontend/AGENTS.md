@@ -9,7 +9,7 @@ src/
   app/                 routes: (reader)/ holds / and /article/[id] (a story's stable URL)
                        under one layout, so the story list stays mounted;
                        /article/[id]/reference,
-                       /search, /saved, /outlook (predictions), /about, /early-access
+                       /search, /saved, /outlook (predictions), /about, /sources, /early-access
                        (product intro + waitlist), /settings
   components/
     shell/             AppShell, Sidebar (desktop rail, NAV), Masthead (nameplate; nav on phones), Page
