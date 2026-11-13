@@ -25,25 +25,15 @@ export const LANDING_MARKUP = `<nav>
 </div>
 <section class="hero">
   <div class="hero-content">
-    <p class="hero-label">Stay informed. Stay relevant. With Samā4.</p>
-    <h1 class="hero-title">Your first <span class="accent">AI</span> news app.</h1>
+    <h1 class="hero-title">News, explained <span class="accent">inline</span>.</h1>
     <p class="hero-sub">
-      News assumes you already know the people, places and ideas in it. Samā4 spots
-      what a story takes for granted and explains it right beside the text, so you
-      go from confused to informed in seconds.
+      Stories assume you already know the people, places and ideas in them. Samā4
+      highlights what a story takes for granted. Select a highlight and a short
+      explanation opens beside the text.
     </p>
     <div class="hero-actions">
       <a href="#waitlist" class="btn-primary">Get early access →</a>
       <a href="#how" class="btn-secondary">See how it works</a>
-    </div>
-    <div class="hero-terminal">
-      <span class="prompt">&gt;</span> summarize AI regulation news from the last 24 hours
-    </div>
-    <div class="hero-badges">
-      <span class="badge">12+ Sources</span>
-      <span class="badge">Entity Linking</span>
-      <span class="badge">Knowledge Graph</span>
-      <span class="badge">Voice Briefings</span>
     </div>
   </div>
   <div class="hero-divider"></div>

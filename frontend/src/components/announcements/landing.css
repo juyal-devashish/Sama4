@@ -219,30 +219,9 @@
   background: var(--border);
   margin: 40px 0;
 }
-.s4-landing .hero-terminal {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--text-muted);
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 0;
-  padding: 14px 18px;
-  margin-bottom: 32px;
-}
-.s4-landing .hero-terminal .prompt {
-  color: var(--accent);
-}
 .s4-landing .hero-content {
   opacity: 0;
   animation: s4-fadeUp 0.7s ease forwards 0.2s;
-}
-.s4-landing .hero-label {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 24px;
 }
 .s4-landing .hero-title {
   font-family: var(--serif);
@@ -268,20 +247,6 @@
   display: flex;
   gap: 12px;
   margin-bottom: 32px;
-}
-.s4-landing .hero-badges {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.s4-landing .badge {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-  padding: 6px 12px;
-  border-radius: 0;
-  letter-spacing: 0.02em;
 }
 .s4-landing .hero-demo {
   opacity: 0;
