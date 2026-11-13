@@ -6,6 +6,7 @@ import { Bookmark, X } from "lucide-react";
 import { useSavedStories, type SavedStory } from "@/lib/preferences";
 import { Page } from "@/components/shell/Page";
 import { EmptyState } from "@/components/ui/states";
+import { StoryImage } from "@/components/ui/story-image";
 import { formatTimeAgo } from "@/lib/utils";
 
 export default function SavedPage() {
@@ -68,15 +69,12 @@ export default function SavedPage() {
                     </p>
                   )}
                 </div>
-                {s.image_url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={s.image_url}
-                    onError={(e) => (e.currentTarget.style.display = "none")}
-                    alt=""
-                    className="h-24 w-36 flex-shrink-0 bg-background-secondary object-cover"
-                  />
-                )}
+                <StoryImage
+                  src={s.image_url}
+                  source={s.source}
+                  loading="lazy"
+                  className="h-24 w-36 text-[14px]"
+                />
               </Link>
               <button
                 type="button"

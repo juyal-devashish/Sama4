@@ -243,3 +243,31 @@ async def test_stories_older_than_the_window_are_not_candidates(container):
     pipeline = _ranked_pipeline(container, _feed_of(SOURCES, 2, age=timedelta(hours=30)))
     assert await pipeline.run() == 0
     assert not any("Candidates" in c["prompt"] for c in container.llm.calls)
+
+
+async def test_pipeline_reads_the_article_page_for_image_excerpt_and_reading_time(container):
+    from app.clients.pages import PageContent
+
+    container.llm.default = "Claude summary."
+    page_text = "Ada Lovelace wrote the first published algorithm.\n\nIt ran on paper only."
+    container.pages.pages["https://news.test/story-1"] = PageContent(
+        image_url="https://cdn.test/lead.jpg", text=page_text, word_count=1000
+    )
+    fetched = [_fetched(1), _fetched(2)]
+    fetched[1].image_url = "https://cdn.test/feed-thumb.jpg"
+    pipeline = _pipeline(container, fetched)
+
+    assert await pipeline.run() == 2
+
+    async with async_session() as db:
+        rows = {a.url: a for a in (await db.execute(select(Article))).scalars()}
+    one, two = rows["https://news.test/story-1"], rows["https://news.test/story-2"]
+    assert (one.image_url, one.cleaned_content, one.reading_time_minutes) == (
+        "https://cdn.test/lead.jpg",
+        page_text,
+        4,
+    )
+    # Unreadable page: the feed's teaser and image stay.
+    assert two.image_url == "https://cdn.test/feed-thumb.jpg"
+    assert two.cleaned_content == BODIES[1]
+    assert container.pages.calls == ["https://news.test/story-1", "https://news.test/story-2"]

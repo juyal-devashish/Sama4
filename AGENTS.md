@@ -7,7 +7,7 @@ Instructions for AI coding agents (and humans) changing this repo. Read this fil
 
 ## What the product is
 
-Samā4 is a news reader that explains unfamiliar people, organizations, places and concepts **inline**. A nightly pipeline (03:00 New York) pulls the last 24 hours of RSS news from US, Indian, world and tech outlets, has Claude pick the 12-15 most consequential stories (`backend/app/ingestion/ranker.py`), finds the terms a reader probably doesn't know, and summarizes each article with Claude. In the app, tapping a highlighted term opens a short, sourced explanation.
+Samā4 is a news reader that explains unfamiliar people, organizations, places and concepts **inline**. A nightly pipeline (03:00 New York) pulls the last 24 hours of RSS news from US, Indian, world and tech outlets, has Claude pick the 12-15 most consequential stories (`backend/app/ingestion/ranker.py`), reads each picked article's page for its lead image and opening (up to 300 words), finds the terms a reader probably doesn't know, and writes a brief of at most 60 words with Claude. In the app, tapping a highlighted term opens a short, sourced explanation.
 
 ## Repo map
 
@@ -33,7 +33,7 @@ Makefile        Every dev command. `make help`
 ## Rules
 
 1. **Keep `make check` green.** CI (`.github/workflows/ci.yml`) runs the same steps; backend tests also run against Postgres there.
-2. **Tests never touch the network.** External clients (Claude, Pinecone, Redis, Wikimedia, MiroFish) are faked in `backend/tests/fakes.py`. The frontend unit-tests pure logic in `src/lib/*.test.ts`.
+2. **Tests never touch the network.** External clients (Claude, Pinecone, Redis, Wikimedia, MiroFish, article pages) are faked in `backend/tests/fakes.py`. The frontend unit-tests pure logic in `src/lib/*.test.ts`.
 3. **Respect the layering** described in each package's AGENTS.md. Don't call external APIs or write SQL from routers or components.
 4. **Don't import from `experiments/`.** To bring Samvād in, port its code into `backend/` and `frontend/` following their layering.
 5. **Small commits, conventional messages**: `feat(scope): …`, `fix(scope): …`, `refactor(scope): …`, `chore(scope): …`, `docs: …`.
@@ -47,4 +47,4 @@ Makefile        Every dev command. `make help`
 - **The LLM is Claude** (`claude-opus-5-5`), called only through `backend/app/clients/llm.py`. Claude has no embeddings API, so embeddings come from **Pinecone Inference** (`llama-text-embed-v2`, 1024-d, index `sama4-articles-v2`).
 - **MiroFish** (the prediction engine) is a separate service and is **off in production** (`MIROFISH_ENABLED=false`). Prediction endpoints fall back to Claude.
 - **Domains:** the app is served at `www.sama4.online` (Vercel project `frontend`; `sama4.online` redirects to it). DNS is at Namecheap with Mail Settings set to "No Email Service". The `_vercel` TXT record verifies the domain for this project; don't remove it.
-- **Admin endpoints** (`/api/v1/admin/*`) need the `X-Admin-Secret` header. `POST /api/v1/admin/summaries/regenerate` rewrites every summary after a prompt change. `POST /api/v1/admin/mentions/repair` fixes stored highlight offsets (dry run by default; `?dry_run=false` to write, `&delete_unlocatable=true` also deletes mentions whose text isn't in the article).
+- **Admin endpoints** (`/api/v1/admin/*`) need the `X-Admin-Secret` header. `POST /api/v1/admin/summaries/regenerate` rewrites every summary after a prompt change. `POST /api/v1/admin/articles/enrich?limit=100` re-reads the newest stories' pages (image, excerpt, terms, brief). `POST /api/v1/admin/mentions/repair` fixes stored highlight offsets (dry run by default; `?dry_run=false` to write, `&delete_unlocatable=true` also deletes mentions whose text isn't in the article).

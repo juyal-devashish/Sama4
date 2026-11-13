@@ -2,7 +2,7 @@
 
 import logging
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, status
 from pydantic import BaseModel
 
 from app.api.deps import AdminOnly, ContainerDep, DbSession
@@ -43,6 +43,18 @@ async def regenerate_summaries(background_tasks: BackgroundTasks, c: ContainerDe
     background_tasks.add_task(jobs.regenerate_summaries, c)
     return AdminResponse(
         message="Summary regeneration started in the background.", status="accepted"
+    )
+
+
+@router.post("/articles/enrich", response_model=AdminResponse, status_code=status.HTTP_202_ACCEPTED)
+async def enrich_articles(
+    background_tasks: BackgroundTasks, c: ContainerDep, limit: int = Query(100, ge=1, le=1000)
+) -> AdminResponse:
+    """Re-read the newest `limit` articles' pages: lead image, 300-word excerpt, terms and
+    summary. Runs in the background; results are in the logs."""
+    background_tasks.add_task(jobs.enrich_articles, c, limit)
+    return AdminResponse(
+        message=f"Enriching the newest {limit} articles in the background.", status="accepted"
     )
 
 

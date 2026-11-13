@@ -3,6 +3,7 @@
 import { forwardRef } from "react";
 import { Newspaper } from "lucide-react";
 import type { ArticleCard } from "@/types";
+import { StoryImage } from "@/components/ui/story-image";
 import { cn, formatLongDate, formatTimeAgo } from "@/lib/utils";
 import { TOPIC_LABELS } from "@/lib/preferences";
 import { EmptyState, ErrorState } from "@/components/ui/states";
@@ -86,19 +87,12 @@ export const StoryRow = forwardRef<
           </p>
         )}
       </div>
-      {story.image_url && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={story.image_url}
-          onError={(e) => (e.currentTarget.style.display = "none")}
-          alt=""
-          loading="lazy"
-          className={cn(
-            "flex-shrink-0 bg-background-secondary object-cover",
-            dense ? "h-14 w-14" : "h-[72px] w-[72px]",
-          )}
-        />
-      )}
+      <StoryImage
+        src={story.image_url}
+        source={story.source.name}
+        loading="lazy"
+        className={dense ? "h-14 w-14 text-[10px]" : "h-[72px] w-[72px] text-[12px]"}
+      />
     </button>
   );
 });

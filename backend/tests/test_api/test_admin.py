@@ -140,3 +140,63 @@ async def test_repair_mentions_requires_admin_secret(client):
         "/api/v1/admin/mentions/repair", headers={"X-Admin-Secret": "nope"}
     )
     assert response.status_code == 403
+
+
+async def test_enrich_endpoint_schedules_job(client, container):
+    with patch.object(jobs, "enrich_articles", new=AsyncMock()) as enrich:
+        response = await client.post("/api/v1/admin/articles/enrich?limit=20", headers=ADMIN)
+    assert response.status_code == 202
+    enrich.assert_awaited_once_with(container, 20)
+
+
+async def test_enrich_articles_backfills_image_excerpt_and_rebuilds_mentions(container, db_session):
+    from unittest.mock import AsyncMock as Mock
+
+    from app.clients.pages import PageContent
+    from app.ingestion.ner import ExtractedEntity
+
+    async with db_session() as db:
+        teaser = await make_article(db, title="Teaser", content="Nvidia rose.")
+        await make_entity(db, name="Nvidia", article=teaser, start=0)
+        pic_only = await make_article(db, title="Pic only", content="Full text already here.")
+        gone = await make_article(db, title="Gone", content="Page is down.")
+        await db.commit()
+    long_text = "Shares of Nvidia rose sharply on Tuesday after earnings beat forecasts."
+    container.pages.pages = {
+        teaser.url: PageContent(image_url="https://cdn.test/a.jpg", text=long_text, word_count=750),
+        pic_only.url: PageContent(image_url="https://cdn.test/b.jpg", text="", word_count=0),
+    }
+    container.llm.default = "New brief."
+    found = ExtractedEntity(
+        text="Nvidia",
+        type="ORG",
+        start=10,
+        end=16,
+        in_title=False,
+        mention_count=1,
+        priority="high",
+    )
+    with patch(
+        "app.ingestion.ner.NERService.extract_entities_hybrid", new=Mock(return_value=[found])
+    ):
+        report = await jobs.enrich_articles(container, limit=10)
+
+    assert (report.total, report.updated, report.image_only, report.unchanged) == (3, 1, 1, 1)
+    async with db_session() as db:
+        rows = {a.id: a for a in (await db.execute(select(Article))).scalars()}
+        mentions = (
+            (await db.execute(select(ArticleEntity).where(ArticleEntity.article_id == teaser.id)))
+            .scalars()
+            .all()
+        )
+    t = rows[teaser.id]
+    assert (t.cleaned_content, t.image_url, t.summary, t.reading_time_minutes) == (
+        long_text,
+        "https://cdn.test/a.jpg",
+        "New brief.",
+        3,
+    )
+    assert [(m.mention_text, m.start_position) for m in mentions] == [("Nvidia", 10)]
+    assert rows[pic_only.id].image_url == "https://cdn.test/b.jpg"
+    assert rows[pic_only.id].cleaned_content == "Full text already here."
+    assert rows[gone.id].image_url is None

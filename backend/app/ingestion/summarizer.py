@@ -1,15 +1,16 @@
 import logging
+import re
 
 from app.clients.llm import LLMClient
 
 logger = logging.getLogger(__name__)
 
 SUMMARY_SYSTEM = """You write the summary shown on a news card in Samā4, a news reader app. \
-The input is the headline plus whatever text the publisher's RSS feed provided: sometimes the full article, \
-often only a headline-length teaser or the first paragraph. Readers see only your output, \
+The input is the headline plus the opening of the publisher's article (up to about 300 words), \
+or only a short teaser when the page could not be read. Readers see only your output, \
 and they know it is a short summary of a news report.
 
-Write 2-3 plain sentences: first what happened, then why it matters. Say why it matters \
+Write 2-3 plain sentences, 60 words at most: first what happened, then why it matters. Say why it matters \
 only when the text states or plainly shows the consequence (who is affected, what changes, \
 what comes next); never supply a significance the text doesn't support. Attribute claims \
 to the report where they are allegations ("the report says...", "according to the \
@@ -23,6 +24,20 @@ SUMMARY_PROMPT = """<headline>{title}</headline>
 <article>
 {article_text}
 </article>"""
+
+
+MAX_SUMMARY_WORDS = 60
+_SENTENCE_END = re.compile(r"[.!?][\"'”’)]?(?=\s|$)")
+
+
+def cap_words(text: str, limit: int = MAX_SUMMARY_WORDS) -> str:
+    """Trim to `limit` words, ending on a whole sentence when one fits."""
+    words = text.split()
+    if len(words) <= limit:
+        return text.strip()
+    cut = " ".join(words[:limit])
+    ends = list(_SENTENCE_END.finditer(cut))
+    return cut[: ends[-1].end()] if ends else cut.rstrip(",;:") + "…"
 
 
 class SummarizerService:
@@ -47,4 +62,4 @@ class SummarizerService:
 
         prompt = SUMMARY_PROMPT.format(title=title, article_text=truncated)
 
-        return await self.llm.generate(prompt, effort="low", system=SUMMARY_SYSTEM)
+        return cap_words(await self.llm.generate(prompt, effort="low", system=SUMMARY_SYSTEM))
