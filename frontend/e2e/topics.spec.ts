@@ -2,6 +2,9 @@ import { expect, test, type Page } from "@playwright/test";
 import fixtures from "./fixtures/api.json";
 import { mockApi } from "./mock-api";
 
+// Topic sections are temporarily off (SECTIONS_ENABLED in src/lib/preferences.ts).
+// Drop this line when they come back.
+test.skip(true, "topic sections are disabled");
 test.skip(({ viewport }) => (viewport?.width ?? 0) < 1024, "list and pane swap on small screens");
 
 const titles = (page: Page) => page.locator('section[aria-label="Stories"] li h2');

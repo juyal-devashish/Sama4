@@ -157,15 +157,8 @@ describe("eligibleHint", () => {
   it("holds the later tips until enough stories have been read", () => {
     const base = { hintsSeen: ["select-term", "ask-follow-up"] as OnboardingState["hintsSeen"] };
     const reading = ctx({ articleWithTerms: true });
-    expect(eligibleHint(withStories(2, base), reading)).toBeNull();
-    expect(eligibleHint(withStories(3, base), reading)).toBe("keyboard-shortcuts");
-    expect(eligibleHint(withStories(3, base), { ...reading, desktop: false })).toBeNull();
-
-    const shortcutsSeen = {
-      hintsSeen: [...base.hintsSeen, "keyboard-shortcuts"] as OnboardingState["hintsSeen"],
-    };
-    expect(eligibleHint(withStories(4, shortcutsSeen), reading)).toBeNull();
-    expect(eligibleHint(withStories(5, shortcutsSeen), reading)).toBe("save-story");
+    expect(eligibleHint(withStories(4, base), reading)).toBeNull();
+    expect(eligibleHint(withStories(5, base), reading)).toBe("save-story");
   });
 
   it("shows nothing once every hint is seen", () => {

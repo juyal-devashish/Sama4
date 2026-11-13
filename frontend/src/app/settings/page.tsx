@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { Monitor, Moon, Sun } from "lucide-react";
-import { ALL_TOPICS, TOPIC_LABELS, useTheme, useTopics, type ThemeChoice } from "@/lib/preferences";
+import {
+  ALL_TOPICS,
+  SECTIONS_ENABLED,
+  TOPIC_LABELS,
+  useTheme,
+  useTopics,
+  type ThemeChoice,
+} from "@/lib/preferences";
 import { Page } from "@/components/shell/Page";
 import { cn } from "@/lib/utils";
 
@@ -10,14 +17,6 @@ const THEMES: { value: ThemeChoice; label: string; icon: typeof Sun }[] = [
   { value: "light", label: "Light", icon: Sun },
   { value: "dark", label: "Dark", icon: Moon },
   { value: "system", label: "Match system", icon: Monitor },
-];
-
-const SHORTCUTS: [string, string][] = [
-  ["J", "Next story"],
-  ["K", "Previous story"],
-  ["S", "Save or unsave the open story"],
-  ["Esc", "Close an explanation"],
-  ["/", "Search"],
 ];
 
 function Section({
@@ -89,44 +88,31 @@ export default function SettingsPage() {
         </div>
       </Section>
 
-      <Section title="Topics" description="Shown as filters above Today's stories.">
-        <div className="flex flex-wrap gap-2">
-          {ALL_TOPICS.map((t) => {
-            const on = topics.includes(t);
-            return (
-              <button
-                key={t}
-                type="button"
-                aria-pressed={on}
-                onClick={() => toggleTopic(t)}
-                className={cn(
-                  "label-ui h-9 border px-3.5 transition-colors",
-                  on
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border text-text-secondary hover:border-foreground hover:text-foreground",
-                )}
-              >
-                {TOPIC_LABELS[t]}
-              </button>
-            );
-          })}
-        </div>
-      </Section>
-
-      <Section title="Keyboard shortcuts">
-        <dl className="grid max-w-[420px] grid-cols-[64px_1fr] gap-y-2.5 text-[15px]">
-          {SHORTCUTS.map(([key, what]) => (
-            <div key={key} className="contents">
-              <dt>
-                <kbd className="inline-flex h-6 min-w-[24px] items-center justify-center border border-foreground px-1.5 text-[12px]">
-                  {key}
-                </kbd>
-              </dt>
-              <dd className="text-text-secondary">{what}</dd>
-            </div>
-          ))}
-        </dl>
-      </Section>
+      {SECTIONS_ENABLED && (
+        <Section title="Topics" description="Shown as filters above Today's stories.">
+          <div className="flex flex-wrap gap-2">
+            {ALL_TOPICS.map((t) => {
+              const on = topics.includes(t);
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => toggleTopic(t)}
+                  className={cn(
+                    "label-ui h-9 border px-3.5 transition-colors",
+                    on
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border text-text-secondary hover:border-foreground hover:text-foreground",
+                  )}
+                >
+                  {TOPIC_LABELS[t]}
+                </button>
+              );
+            })}
+          </div>
+        </Section>
+      )}
 
       <Section title="About">
         <p className="max-w-[56ch] text-[16px] leading-relaxed text-text-secondary">

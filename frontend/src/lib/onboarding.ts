@@ -9,21 +9,19 @@
 export const ONBOARDING_VERSION = 1;
 
 /** In-app hints, in priority order: when several are eligible, the first one wins. */
-export const HINTS = ["select-term", "ask-follow-up", "keyboard-shortcuts", "save-story"] as const;
+export const HINTS = ["select-term", "ask-follow-up", "save-story"] as const;
 export type HintId = (typeof HINTS)[number];
 
 /** How many dismissals retire a hint for good. The core interaction gets a few chances. */
 const DISMISS_LIMIT: Record<HintId, number> = {
   "select-term": 3,
   "ask-follow-up": 1,
-  "keyboard-shortcuts": 1,
   "save-story": 1,
 };
 
 /** Stories a reader must have opened before the later tips appear. */
-export const STORIES_BEFORE_SHORTCUTS = 3;
 export const STORIES_BEFORE_SAVE = 5;
-const STORIES_TRACKED = Math.max(STORIES_BEFORE_SHORTCUTS, STORIES_BEFORE_SAVE);
+const STORIES_TRACKED = STORIES_BEFORE_SAVE;
 
 export interface OnboardingState {
   version: number;
@@ -157,7 +155,7 @@ export interface HintContext {
   articleWithTerms: boolean;
   /** The explanation panel for a term is open. */
   contextPanelOpen: boolean;
-  /** Wide enough for keyboard use (shortcut tips are pointless on a phone). */
+  /** Wide enough for the three-pane reader. */
   desktop: boolean;
   /** The splash or intro is showing; no hints over it. */
   introShowing: boolean;
@@ -173,7 +171,6 @@ export function eligibleHint(state: OnboardingState, ctx: HintContext): HintId |
     "select-term": ctx.articleWithTerms && !ctx.contextPanelOpen,
     // Only after they've found highlights, and only while the panel is in view.
     "ask-follow-up": ctx.contextPanelOpen && seen("select-term"),
-    "keyboard-shortcuts": ctx.desktop && read >= STORIES_BEFORE_SHORTCUTS,
     "save-story": ctx.articleWithTerms && !ctx.contextPanelOpen && read >= STORIES_BEFORE_SAVE,
   };
   return HINTS.find((h) => !seen(h) && rules[h]) ?? null;

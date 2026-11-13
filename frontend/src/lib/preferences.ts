@@ -36,6 +36,12 @@ export function useTheme() {
 
 // ---------- Topics ----------
 
+/**
+ * Topic sections (filter chips, the Settings list, the intro's topic step).
+ * Temporarily off: Today is one feed of every story, newest first. Flip to bring them back.
+ */
+export const SECTIONS_ENABLED = false;
+
 export const ALL_TOPICS = ["general", "tech", "business", "science", "world"] as const;
 export type Topic = (typeof ALL_TOPICS)[number];
 

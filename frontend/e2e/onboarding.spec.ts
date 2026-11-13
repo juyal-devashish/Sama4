@@ -5,9 +5,7 @@ import { ARTICLE_ID, mockApi } from "./mock-api";
 const intro = (page: import("@playwright/test").Page) =>
   page.getByRole("dialog", { name: /news, understood/i });
 
-test("first visit: splash, try a highlight, pick topics, then the reader; never again", async ({
-  page,
-}) => {
+test("first visit: splash, try a highlight, then the reader; never again", async ({ page }) => {
   await mockApi(page);
   await page.goto("/");
   // The splash is up from the first frame, and the app is hidden under it.
@@ -19,21 +17,11 @@ test("first visit: splash, try a highlight, pick topics, then the reader; never 
   await term.click();
   await expect(term).toHaveAttribute("aria-expanded", "true");
   await expect(page.getByText(/lends money to countries/)).toBeVisible();
-  await page.getByRole("button", { name: "Continue" }).click();
-
-  await expect(page.getByRole("heading", { name: /what do you want to follow/i })).toBeFocused();
-  for (const t of ["General", "Business", "Science", "World"]) {
-    await page.getByRole("button", { name: t, exact: true }).click();
-  }
-  await page.getByRole("button", { name: "Tech", exact: true }).click(); // none left
-  await expect(page.getByText("Pick at least one topic.")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Start reading" })).toBeDisabled();
-  await page.getByRole("button", { name: "Tech", exact: true }).click();
+  // Topic sections are off, so the welcome is the only step.
   await page.getByRole("button", { name: "Start reading" }).click();
 
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator("[data-app-shell]")).toBeVisible();
-  expect(await page.evaluate(() => localStorage.getItem("sama4_categories"))).toBe('["tech"]');
 
   await page.goto("/");
   await expect(page.locator("[data-app-shell]")).toBeVisible();
@@ -78,11 +66,8 @@ for (const theme of ["light", "dark"] as const) {
             (v) => `${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes[0]?.target.join(" ")}`,
           ),
         );
-    let summary = await axe();
+    const summary = await axe();
     expect(summary, summary.join("\n")).toEqual([]);
-    await page.getByRole("button", { name: "Continue" }).click();
-    await page.waitForTimeout(500);
-    summary = await axe();
-    expect(summary, summary.join("\n")).toEqual([]);
+    // The topics step returns with SECTIONS_ENABLED; check it here again then.
   });
 }

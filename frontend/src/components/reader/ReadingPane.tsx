@@ -17,7 +17,6 @@ import { useArticle } from "@/hooks/useArticle";
 import { useOnboarding, useSavedStories, TOPIC_LABELS } from "@/lib/preferences";
 import { eligibleHint } from "@/lib/onboarding";
 import { cn, formatTimeAgo } from "@/lib/utils";
-import { isTypingTarget } from "@/components/shell/AppShell";
 import { ErrorState } from "@/components/ui/states";
 import { ContextPanel, KeyTerms } from "@/components/context/ContextPanel";
 import { OutlookSection } from "@/components/outlook/OutlookSection";
@@ -253,15 +252,6 @@ function Story({
       /* clipboard blocked; nothing to do */
     }
   };
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey || isTypingTarget(e.target)) return;
-      if (e.key === "s") save();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  });
 
   const select = (e: { id: string; text: string; type: string }) =>
     onSelectTerm({ id: e.id, name: e.text, type: e.type });

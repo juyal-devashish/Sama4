@@ -59,36 +59,34 @@ test("reader toolbar controls stay inside the viewport", async ({ page }) => {
   }
 });
 
-test.describe("keyboard shortcuts", () => {
+test.describe("saving", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) < 1024, "list and pane swap on small screens");
 
-  test.beforeEach(async ({ page }) => {
+  test("Save toggles and the story shows up in Saved", async ({ page }) => {
     await mockApi(page);
     await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
     await page.goto(ARTICLE);
-    await expect(page.getByRole("button", { name: /^save/i })).toBeVisible({ timeout: 10_000 });
-  });
-
-  test("J and K move between stories", async ({ page }) => {
-    const first = new URL(page.url()).searchParams.get("article");
-    await page.keyboard.press("j");
-    await expect.poll(() => new URL(page.url()).searchParams.get("article")).not.toBe(first);
-    await page.keyboard.press("k");
-    await expect.poll(() => new URL(page.url()).searchParams.get("article")).toBe(first);
-  });
-
-  test("S toggles save and the story shows up in Saved", async ({ page }) => {
     const save = page.getByRole("button", { name: /^save/i });
+    await expect(save).toBeVisible({ timeout: 10_000 });
     await expect(save).toHaveAttribute("aria-pressed", "false");
-    await page.keyboard.press("s");
+    await save.click();
     await expect(save).toHaveAttribute("aria-pressed", "true");
     await page.goto("/saved");
     await expect(page.getByText(fixtures.feed.articles[0].title).first()).toBeVisible();
   });
 
-  test("/ opens search", async ({ page }) => {
-    await page.keyboard.press("/");
-    await expect(page).toHaveURL(/\/search/);
+  test("letter keys no longer act as shortcuts", async ({ page }) => {
+    await mockApi(page);
+    await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+    await page.goto(ARTICLE);
+    await expect(page.getByRole("button", { name: /^save/i })).toBeVisible({ timeout: 10_000 });
+    const url = page.url();
+    for (const key of ["j", "k", "s", "/"]) await page.keyboard.press(key);
+    await expect(page.getByRole("button", { name: /^save/i })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    expect(page.url()).toBe(url);
   });
 });
 
