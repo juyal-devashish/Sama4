@@ -1,12 +1,15 @@
 <div align="center">
 
-<img src="frontend/public/sama4-logo.jpg" alt="Samā4 logo" width="88" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="frontend/public/logo-owl-dark.png" />
+  <img src="frontend/public/logo-owl.png" alt="Samā4 owl logo" width="88" />
+</picture>
 
 # Samā4
 
 **News, understood.** A news reader that explains the people, places and ideas in a story, right beside the story.
 
-[**Live app →**](https://www.sama4.online) &nbsp;·&nbsp; [Announcements & waitlist](https://www.sama4.online/announcements) &nbsp;·&nbsp; [Architecture](#architecture) &nbsp;·&nbsp; [Engineering highlights](#engineering-highlights) &nbsp;·&nbsp; [Run it locally](#run-it-locally)
+[**Live app →**](https://www.sama4.online) &nbsp;·&nbsp; [Early access & waitlist](https://www.sama4.online/early-access) &nbsp;·&nbsp; [Architecture](#architecture) &nbsp;·&nbsp; [Engineering highlights](#engineering-highlights) &nbsp;·&nbsp; [Run it locally](#run-it-locally)
 
 ![CI](https://github.com/juyal-devashish/Sama4/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
