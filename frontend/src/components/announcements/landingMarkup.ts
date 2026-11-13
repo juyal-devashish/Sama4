@@ -1,5 +1,5 @@
 // Markup of the original sama4.online waitlist page, ported once (static, trusted; edit here).
-// Behaviour (demo, count-up, reveal, menu, waitlist form) lives in Landing.tsx.
+// Behaviour (demo, reveal, menu, waitlist form) lives in Landing.tsx.
 // prettier-ignore
 export const LANDING_MARKUP = `<nav>
   <div class="nav-left">
@@ -81,26 +81,6 @@ export const LANDING_MARKUP = `<nav>
     <span class="trust-label">Trusted by researchers, analysts, and curious minds</span>
   </div>
 </div>
-<section class="stats-row reveal">
-  <div class="stats-inner">
-    <div class="stat-cell">
-      <div class="stat-number">12+</div>
-      <div class="stat-label">Sources Aggregated</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-number">&lt;200ms</div>
-      <div class="stat-label">Latency</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-number">50K+</div>
-      <div class="stat-label">Articles Processed</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-number">99.7%</div>
-      <div class="stat-label">Uptime</div>
-    </div>
-  </div>
-</section>
 <section class="value-section reveal">
   <div class="value-inner">
     <div>
