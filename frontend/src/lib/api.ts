@@ -95,8 +95,8 @@ export const api = {
     );
   },
 
-  getArticle(articleId: string) {
-    return fetchAPI<ArticleDetail>(apiPath(`/articles/${articleId}`));
+  getArticle(articleId: string, server?: ServerFetchOptions) {
+    return fetchAPI<ArticleDetail>(apiPath(`/articles/${articleId}`), server);
   },
 
   getReferencePage(articleId: string) {

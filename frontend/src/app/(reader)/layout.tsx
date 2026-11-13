@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { Reader } from "@/components/reader/Reader";
 import { api } from "@/lib/api";
 
@@ -24,9 +23,7 @@ export default async function ReaderLayout({ children }: { children: React.React
     .getFeed({ page: 1, limit: 10 }, { revalidate: FEED_REVALIDATE, timeoutMs: 4000 })
     .catch(() => undefined);
 
-  return (
-    <Suspense>
-      <Reader initialFeed={initialFeed}>{children}</Reader>
-    </Suspense>
-  );
+  // No Suspense boundary: the page waits for its data before the first byte, so the
+  // story is inline in the HTML and a missing story gets a real 404 status.
+  return <Reader initialFeed={initialFeed}>{children}</Reader>;
 }
