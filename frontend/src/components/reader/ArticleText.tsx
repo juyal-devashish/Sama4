@@ -73,17 +73,20 @@ function renderSegments(
   );
 }
 
-/** Full article body. Entities carry character offsets into `content`. */
+/** Article text. Entities carry character offsets into `content`. */
 export function ArticleBody({
   content,
   entities,
   activeId,
   onSelect,
+  dropCap = false,
 }: {
   content: string;
   entities: EntityInArticle[];
   activeId?: string;
   onSelect: (e: EntityInArticle) => void;
+  /** Open the first paragraph with a drop cap, like the start of a printed story. */
+  dropCap?: boolean;
 }) {
   const spans = bodySpans(content, entities);
 
@@ -91,8 +94,8 @@ export function ArticleBody({
 
   return (
     <div className="space-y-6">
-      {paragraphs.map(([from, to]) => (
-        <p key={from}>
+      {paragraphs.map(([from, to], i) => (
+        <p key={from} className={dropCap && i === 0 ? "drop-cap" : undefined}>
           {renderSegments(segmentRange(content, from, to, spans), activeId, onSelect)}
         </p>
       ))}

@@ -134,7 +134,7 @@ test("publisher text and samā4-generated text are labelled", async ({ page }) =
     { timeout: 10_000 },
   );
   await expect(page.getByRole("region", { name: /^From / })).toHaveAccessibleDescription(
-    /^The publisher's text/,
+    /^The opening of the article as published/,
   );
   await page.locator(".term").first().click();
   await expect(
