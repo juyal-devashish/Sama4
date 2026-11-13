@@ -5,7 +5,8 @@ import { AppShell } from "@/components/shell/AppShell";
 import { FIRST_VISIT_SCRIPT } from "@/lib/onboarding";
 
 export const metadata: Metadata = {
-  title: "Samā4",
+  // Each route sets its own title; this template brands it.
+  title: { default: "Samā4 · News, explained inline", template: "%s · Samā4" },
   description:
     "News with context built in. Select any highlighted name, place or idea to see what it is without leaving the story.",
 };

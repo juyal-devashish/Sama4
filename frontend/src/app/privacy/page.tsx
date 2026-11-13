@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Page } from "@/components/shell/Page";
 
-export const metadata = { title: "Privacy · Samā4" };
+export const metadata = { title: "Privacy" };
 
 const SECTIONS: { title: string; body: React.ReactNode }[] = [
   {
