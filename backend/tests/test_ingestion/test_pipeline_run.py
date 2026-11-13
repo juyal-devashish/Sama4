@@ -167,36 +167,79 @@ async def test_pipeline_skips_mentions_whose_offsets_miss_the_text(container):
         assert span.lower() == m.mention_text.lower()
 
 
-async def test_max_articles_caps_the_run_and_spreads_it_over_sources(container):
-    sources = [
-        {"name": f"Feed {n}", "url": f"https://feeds.test/{n}", "category": "tech"}
-        for n in range(3)
-    ]
-    pipeline = IngestionPipeline(container, async_session, sources=sources, max_articles=4)
-    pipeline.ner.extract_entities_hybrid = AsyncMock(return_value=[])
-    # Disable dedup: these synthetic stories are deliberately similar.
-    pipeline.dedup.is_duplicate = lambda _fetched: False
-
+def _feed_of(sources: list[dict], per_feed: int, age: timedelta = timedelta(hours=1)):
     def feed(source: dict) -> list[FetchedArticle]:
         return [
             FetchedArticle(
                 title=f"{source['name']} story {i}",
                 url=f"{source['url']}/story-{i}",
                 raw_content=f"<p>Body {i} from {source['name']}.</p>",
-                published_at=datetime.now(UTC),
+                published_at=datetime.now(UTC) - age,
                 author=None,
                 image_url=None,
                 source_name=source["name"],
-                category="tech",
+                category=source["category"],
             )
-            for i in range(5)
+            for i in range(per_feed)
         ]
 
+    return feed
+
+
+SOURCES = [
+    {"name": f"Feed {n}", "url": f"https://feeds.test/{n}", "category": "tech", "region": "us"}
+    for n in range(3)
+]
+
+
+def _ranked_pipeline(container, feed, max_stories: int = 3) -> IngestionPipeline:
+    pipeline = IngestionPipeline(
+        container, async_session, sources=SOURCES, max_stories=max_stories, target_stories=2
+    )
+    pipeline.ner.extract_entities_hybrid = AsyncMock(return_value=[])
+    # Disable dedup: these synthetic stories are deliberately similar.
+    pipeline.dedup.is_duplicate = lambda _fetched: False
     pipeline.fetcher.fetch_feed = AsyncMock(side_effect=feed)
+    return pipeline
 
-    assert await pipeline.run() == 4
 
+async def _stored_urls() -> list[str]:
     async with async_session() as db:
-        urls = (await db.execute(select(Article.url))).scalars().all()
-    per_feed = {n: sum(u.startswith(f"https://feeds.test/{n}/") for u in urls) for n in range(3)}
-    assert per_feed == {0: 2, 1: 1, 2: 1}  # ceil(4/3), ceil(2/2), ceil(1/1)
+        return sorted((await db.execute(select(Article.url))).scalars().all())
+
+
+async def test_only_the_ranked_picks_are_processed(container):
+    # Candidates are numbered in feed order: feed 0 stories 0-2 are ids 0-2, feed 1 is 3-5...
+    container.llm.replies = {
+        "Candidates (9)": '{"stories": [{"id": 4, "also": [1], "offbeat": false, "why": "x"},'
+        ' {"id": 8, "also": [], "offbeat": true, "why": "y"},'
+        ' {"id": 1, "also": [], "offbeat": false, "why": "dup of 4"},'
+        ' {"id": 99, "also": [], "why": "invented"}], "note": ""}'
+    }
+    pipeline = _ranked_pipeline(container, _feed_of(SOURCES, 3))
+
+    assert await pipeline.run() == 2
+
+    assert await _stored_urls() == [
+        "https://feeds.test/1/story-1",
+        "https://feeds.test/2/story-2",
+    ]
+    rank_calls = [c for c in container.llm.calls if "Candidates (9)" in c["prompt"]]
+    assert len(rank_calls) == 1 and rank_calls[0]["effort"] == "medium"
+
+
+async def test_unusable_ranking_falls_back_to_newest_across_feeds(container):
+    container.llm.default = "not json"
+    pipeline = _ranked_pipeline(container, _feed_of(SOURCES, 3))
+
+    assert await pipeline.run() == 2  # the target, one per feed in turn
+    assert [u.rsplit("/", 1)[0] for u in await _stored_urls()] == [
+        "https://feeds.test/0",
+        "https://feeds.test/1",
+    ]
+
+
+async def test_stories_older_than_the_window_are_not_candidates(container):
+    pipeline = _ranked_pipeline(container, _feed_of(SOURCES, 2, age=timedelta(hours=30)))
+    assert await pipeline.run() == 0
+    assert not any("Candidates" in c["prompt"] for c in container.llm.calls)

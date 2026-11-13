@@ -43,7 +43,7 @@ flowchart LR
 
     subgraph Backend["Backend: FastAPI on Railway"]
         direction TB
-        SCHED[Scheduler<br/>nightly, 10 stories] --> PIPE
+        SCHED[Scheduler<br/>nightly, top 12-15 stories] --> PIPE
         subgraph PIPE[Ingestion pipeline]
             direction LR
             F[Fetch] --> D[Dedup<br/>MinHash + fuzzy titles] --> C[Clean] --> N[Find terms<br/>spaCy + Claude] --> L[Link<br/>Wikidata] --> S[Summarize<br/>Claude] --> E[Embed<br/>Pinecone]
@@ -116,7 +116,7 @@ backend/        FastAPI API + ingestion pipeline           → backend/AGENTS.md
   app/services/     business logic (entity context, predictions)
   app/repositories/ all database queries
   app/clients/      Claude, Pinecone, Redis, Wikimedia, MiroFish
-  app/ingestion/    fetch → dedup → clean → find terms → link → summarize → embed
+  app/ingestion/    fetch → dedup → rank → clean → find terms → link → summarize → embed
 frontend/       Next.js desktop reader                     → frontend/AGENTS.md
 experiments/    Samvād voice companion (planned feature) and early prototypes
 docs/           design prompts and product notes

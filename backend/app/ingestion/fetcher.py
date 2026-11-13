@@ -7,6 +7,8 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
+USER_AGENT = "Mozilla/5.0 (compatible; sama4-news/1.0; +https://www.sama4.online)"
+
 
 @dataclass
 class FetchedArticle:
@@ -35,7 +37,9 @@ class FetcherService:
             List of fetched articles.
         """
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(
+                timeout=30.0, follow_redirects=True, headers={"User-Agent": USER_AGENT}
+            ) as client:
                 response = await client.get(source["url"])
                 response.raise_for_status()
         except httpx.HTTPError:
@@ -54,6 +58,8 @@ class FetcherService:
             image_url = None
             if hasattr(entry, "media_content") and entry.media_content:
                 image_url = entry.media_content[0].get("url")
+            elif getattr(entry, "media_thumbnail", None):
+                image_url = entry.media_thumbnail[0].get("url")
             elif hasattr(entry, "enclosures") and entry.enclosures:
                 image_url = entry.enclosures[0].get("href")
 

@@ -31,8 +31,13 @@ AUTO_SIMULATIONS_PER_RUN = 5
 async def run_ingestion(container: Container) -> int:
     """Fetch and process all news sources once; then auto-simulate if enabled."""
     try:
+        s = container.settings
         count = await IngestionPipeline(
-            container, async_session, max_articles=container.settings.ingestion_max_articles
+            container,
+            async_session,
+            max_stories=s.ingestion_max_stories,
+            target_stories=s.ingestion_target_stories,
+            window_hours=s.ingestion_window_hours,
         ).run()
     except Exception:
         logger.error("Ingestion job failed", exc_info=True)

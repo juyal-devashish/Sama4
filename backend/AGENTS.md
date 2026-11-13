@@ -16,7 +16,9 @@ app/
   repositories/    ALL SQL. Plain async functions taking `db` first
   clients/         one module per external system: llm (Claude), vectors (Pinecone),
                    cache (Redis), wikimedia, mirofish. No business rules, no SQL
-  ingestion/       pipeline steps (fetch → dedup → clean → NER → link → summarize → embed)
+  ingestion/       pipeline steps (fetch → dedup → rank → clean → NER → link → summarize → embed)
+    sources.py     the RSS feeds, each tagged with a region for the ranker
+    ranker.py      Claude picks the day's 12-15 stories before anything costly runs
     pipeline.py    IngestionPipeline(container, session_factory)
     jobs.py        run_ingestion / regenerate_summaries / … used by scheduler + admin
   models/          SQLAlchemy ORM models
