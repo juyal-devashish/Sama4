@@ -1,6 +1,6 @@
 """Hybrid NER: spaCy structural entities + LLM knowledge-gap detection.
 
-The core insight: spaCy finds *what exists* (named entities), but samā4 needs
+The core insight: spaCy finds *what exists* (named entities), but Samā4 needs
 to find *what the reader doesn't know* (knowledge gaps). A Gen-Z reader doesn't
 need "United States" explained — they need "quantitative tightening" or
 "Article 50" or "Christine Lagarde" explained.

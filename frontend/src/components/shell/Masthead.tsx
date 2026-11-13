@@ -4,14 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSavedStories, useTheme } from "@/lib/preferences";
-
-const NAV = [
-  { href: "/", label: "Today", match: (p: string) => p === "/" || p.startsWith("/article") },
-  { href: "/search", label: "Search", match: (p: string) => p.startsWith("/search") },
-  { href: "/saved", label: "Saved", match: (p: string) => p.startsWith("/saved") },
-  { href: "/outlook", label: "Outlook", match: (p: string) => p.startsWith("/outlook") },
-  { href: "/settings", label: "Settings", match: (p: string) => p.startsWith("/settings") },
-];
+import { Logo } from "@/components/ui/logo";
+import { NAV } from "./Sidebar";
 
 function weekday(date = new Date()) {
   return date.toLocaleDateString(undefined, { weekday: "long" });
@@ -22,8 +16,9 @@ function shortDate(date = new Date()) {
 }
 
 /**
- * The broadsheet header on every page: a thin row of navigation, the samā4 nameplate
- * between the edition and the date, and a heavy ink rule underneath.
+ * The broadsheet header on every page: the Samā4 nameplate between the edition and the
+ * date, and a heavy ink rule underneath. On phones it also carries the row of navigation;
+ * from 768px that moves to the Sidebar and the logo sits at the top of it.
  */
 export function Masthead() {
   const pathname = usePathname() ?? "/";
@@ -32,13 +27,10 @@ export function Masthead() {
 
   return (
     <header className="flex-shrink-0 bg-background px-4 sm:px-6 xl:px-10">
-      <div className="flex items-center justify-center gap-4 border-b border-border py-2 md:justify-between">
-        <p className="label-ui hidden truncate text-text-secondary md:block">
-          The news, with the context built in
-        </p>
+      <div className="flex items-center justify-center gap-4 border-b border-border py-2 md:hidden">
         <nav aria-label="Main" className="min-w-0">
           {/* Wraps onto a second line on phones rather than scrolling sideways. */}
-          <ul className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 sm:gap-x-2 md:justify-end">
+          <ul className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 sm:gap-x-2">
             {NAV.map(({ href, label, match }) => {
               const active = match(pathname);
               const count = href === "/saved" && saved.length > 0 ? saved.length : null;
@@ -91,10 +83,14 @@ export function Masthead() {
         </p>
         <Link
           href="/"
-          aria-label="samā4, go to Today"
-          className="col-start-2 font-editorial text-[40px] font-bold leading-none tracking-[-0.045em] sm:text-[48px]"
+          aria-label="Samā4, go to Today"
+          className="col-start-2 flex items-center gap-3 font-editorial text-[40px] font-bold leading-none tracking-[-0.045em] sm:text-[48px]"
         >
-          samā4
+          {/* Phones only: from 768px the owl heads the Sidebar. */}
+          <span className="md:hidden">
+            <Logo className="h-10 sm:h-12" />
+          </span>
+          Samā4
         </Link>
         <p
           className="label-ui hidden text-right leading-[1.6] text-text-secondary sm:block"

@@ -17,9 +17,10 @@ module.exports = {
     },
     extend: {
       screens: {
-        // Context margin sits beside the article instead of over it.
-        wide: "1400px",
-        // Sidebar shows labels.
+        // Context margin sits beside the article instead of over it
+        // (1400px of reader plus the 72px nav rail).
+        wide: "1480px",
+        // The nav rail shows labels.
         xwide: "1720px",
       },
       // Broadsheet type: a serif for anything you read, a small sans for anything you operate.

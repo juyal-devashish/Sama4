@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 TEASER_CHARS = 240
 
-RANK_SYSTEM = """You are the front-page editor of samā4, a news reader. From a list of \
+RANK_SYSTEM = """You are the front-page editor of Samā4, a news reader. From a list of \
 candidate stories published in the last 24 hours, choose today's edition.
 
 How to choose:

@@ -145,7 +145,7 @@ export interface PredictionSummary {
 }
 
 /** "simulation": MiroFish simulated agent_count agents. "language_model": nothing was
- *  simulated; samā4's AI wrote the outlook and its viewpoints directly. */
+ *  simulated; Samā4's AI wrote the outlook and its viewpoints directly. */
 export type PredictionMethod = "simulation" | "language_model";
 
 export interface PredictionDetail {

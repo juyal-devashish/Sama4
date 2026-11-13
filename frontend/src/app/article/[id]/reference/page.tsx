@@ -163,7 +163,7 @@ function ReferenceRow({
       </button>
       {open && !explained && (
         <p className="pb-2 pl-[216px] text-[15px] leading-relaxed text-text-secondary">
-          samā4 hasn&apos;t written an explanation for {entity.name} yet.{" "}
+          Samā4 hasn&apos;t written an explanation for {entity.name} yet.{" "}
           <Link
             href={`/?article=${storyId}`}
             className="text-accent-secondary underline underline-offset-2"

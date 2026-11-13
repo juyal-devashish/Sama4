@@ -1,5 +1,5 @@
 /**
- * Typed client for the samā4 backend. All network calls go through here.
+ * Typed client for the Samā4 backend. All network calls go through here.
  * Request/response types live in src/types/index.ts and mirror backend/app/schemas/.
  */
 import type {

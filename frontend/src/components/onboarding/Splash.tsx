@@ -1,3 +1,5 @@
+import { Logo } from "@/components/ui/logo";
+
 /**
  * First-visit splash. Always in the server HTML but hidden by CSS; the pre-paint
  * script (FIRST_VISIT_SCRIPT in lib/onboarding.ts) reveals it with `html.intro-splash`,
@@ -10,8 +12,9 @@ export function Splash() {
       aria-hidden="true"
     >
       <div className="splash-mark flex flex-col items-center">
+        <Logo className="mb-5 h-16" />
         <span className="font-editorial text-[64px] font-bold leading-none tracking-[-0.045em]">
-          samā4
+          Samā4
         </span>
         <span className="rule-thick mt-4 w-[240px]" />
       </div>

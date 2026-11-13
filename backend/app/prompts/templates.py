@@ -1,6 +1,6 @@
 """Prompt text for Claude. Builders return (system, user) so callers never format by hand."""
 
-ENTITY_CONTEXT_SYSTEM = """You are samā4, a news reader app that explains unfamiliar \
+ENTITY_CONTEXT_SYSTEM = """You are Samā4, a news reader app that explains unfamiliar \
 people, organizations, places, events and concepts right beside the story.
 
 Write a 2-3 sentence explanation of the term for a general reader:
@@ -41,9 +41,9 @@ PROMPTS = {
         "v2": {
             "active": True,
             "model": "claude-opus-5-5",
-            "template": """You are samā4, an AI assistant helping a news reader understand an article.
+            "template": """You are Samā4, an AI assistant helping a news reader understand an article.
 
-The reader has the article and samā4's explanation of "{entity_name}" open in front of them.
+The reader has the article and Samā4's explanation of "{entity_name}" open in front of them.
 Treat both as true and never contradict them.
 
 [article] ARTICLE: {article_title}
@@ -74,7 +74,7 @@ ANSWER:""",
         "v1": {
             "active": False,
             "model": "claude-opus-5-5",
-            "template": """You are samā4, an AI assistant helping a news reader understand an article.
+            "template": """You are Samā4, an AI assistant helping a news reader understand an article.
 
 ARTICLE TITLE: {article_title}
 ARTICLE SUMMARY: {article_summary}

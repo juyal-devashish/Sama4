@@ -392,7 +392,7 @@ function Story({
               id="summary-note"
               className="mt-1 font-ui text-[11.5px] leading-snug text-text-tertiary"
             >
-              AI summary written by samā4 from the article. Check the original for detail.
+              AI summary written by Samā4 from the article. Check the original for detail.
             </p>
             <p className="mt-3 text-[17px] leading-[1.6] text-foreground">
               <MatchedText
@@ -417,7 +417,7 @@ function Story({
             id="body-note"
             className="mb-5 mt-1 font-ui text-[11.5px] leading-snug text-text-tertiary"
           >
-            The opening of the article as published, up to 300 words. samā4 adds the highlights.
+            The opening of the article as published, up to 300 words. Samā4 adds the highlights.
           </p>
           {article.content ? (
             <ArticleBody

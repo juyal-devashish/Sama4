@@ -4,62 +4,62 @@
 
 @layer base {
   :root {
-    /* samā4 colour system, light: newsprint paper, ink, one red. */
-    --background: #f4f0e8;
-    --background-secondary: #ebe5d9;
-    --surface: #f4f0e8;
+    /* Samā4 colour system, light: cool white, navy ink and one clear blue. */
+    --background: #f7f9fc;
+    --background-secondary: #edf1f8;
+    --surface: #f7f9fc;
 
-    --foreground: #171716;
-    --text-secondary: #5f5d56;
-    --text-tertiary: #67645c;
+    --foreground: #0f1a36;
+    --text-secondary: #4a5470;
+    --text-tertiary: #56607a;
 
-    --border: #b8b3a8;
-    --divider: #d3cdc1;
+    --border: #c5cfe0;
+    --divider: #dce3ee;
 
-    --accent-primary: #171716;
-    --accent-secondary: #a52b22;
-    --on-accent: #f4f0e8;
+    --accent-primary: #0f1a36;
+    --accent-secondary: #2c58c0;
+    --on-accent: #f7f9fc;
 
-    --entity-highlight: #ebe2d0;
-    --entity-highlight-hover: #e2d6be;
-    --entity-highlight-active: #d8c7a4;
+    --entity-highlight: #e3ebf9;
+    --entity-highlight-hover: #d4e0f6;
+    --entity-highlight-active: #bccff0;
 
-    /* Print inks: distinct from each other and from the red accent. */
-    --entity-person: #2c4f80;
+    /* Distinct from each other and from the blue accent. */
+    --entity-person: #1f5a8f;
     --entity-organization: #6b3d78;
     --entity-event: #8f5c0e;
     --entity-concept: #3d6b2c;
     --entity-location: #1f6675;
 
     --success: #3d6b2c;
-    --error: #a52b22;
+    --error: #b4232a;
 
-    --scrim: rgba(23, 23, 22, 0.32);
-    --shadow-panel: 0 14px 36px -16px rgba(23, 23, 22, 0.4);
+    --scrim: rgba(15, 26, 54, 0.32);
+    --shadow-panel: 0 14px 36px -16px rgba(15, 26, 54, 0.4);
 
     color-scheme: light;
   }
 
   .dark {
-    /* samā4 colour system, dark: the same paper and ink, inverted. */
-    --background: #141412;
-    --background-secondary: #1d1c19;
-    --surface: #141412;
+    /* Samā4 colour system, dark: deep navy with a light blue accent. */
+    --background: #0b1120;
+    --background-secondary: #121a2e;
+    --surface: #0b1120;
 
-    --foreground: #ece7dc;
-    --text-secondary: #a39f94;
-    --text-tertiary: #928e84;
+    --foreground: #e6ebf5;
+    --text-secondary: #a3adc4;
+    --text-tertiary: #929db6;
 
-    --border: #47443d;
-    --divider: #33312c;
+    --border: #2c3754;
+    --divider: #1e2842;
 
-    --accent-primary: #ece7dc;
-    --accent-secondary: #e0685d;
-    --on-accent: #141412;
+    --accent-primary: #e6ebf5;
+    --accent-secondary: #82aaf0;
+    --on-accent: #0b1120;
 
-    --entity-highlight: #26241f;
-    --entity-highlight-hover: #322e27;
-    --entity-highlight-active: #4a4230;
+    --entity-highlight: #17223d;
+    --entity-highlight-hover: #1f2d50;
+    --entity-highlight-active: #2c3f6e;
 
     --entity-person: #8fb0dc;
     --entity-organization: #c49ed4;
@@ -68,7 +68,7 @@
     --entity-location: #6fc0ce;
 
     --success: #98c47a;
-    --error: #e0685d;
+    --error: #f07a7a;
 
     --scrim: rgba(0, 0, 0, 0.55);
     --shadow-panel: 0 14px 36px -16px rgba(0, 0, 0, 0.8);
@@ -175,7 +175,7 @@
     letter-spacing: 0.13em;
     text-transform: uppercase;
   }
-  /* The red section line above a headline ("MODELS & TOOLS"). */
+  /* The blue section line above a headline ("MODELS & TOOLS"). */
   .kicker {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 10px;
@@ -255,7 +255,7 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
-  /* A red initial on the first paragraph of a story. */
+  /* A blue initial on the first paragraph of a story. */
   .drop-cap::first-letter {
     float: left;
     font-family: Georgia, "Times New Roman", serif;

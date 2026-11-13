@@ -178,7 +178,7 @@ class ContextService:
         prediction = await prediction_repo.latest_completed_for_article(db, article.id)
         if prediction and prediction.prediction_summary:
             outlook_block = (
-                "\n[outlook] samā4's AI-GENERATED OUTLOOK (a projection, not fact):\n"
+                "\n[outlook] Samā4's AI-GENERATED OUTLOOK (a projection, not fact):\n"
                 f"{prediction.prediction_summary}\n"
             )
 
@@ -197,7 +197,7 @@ class ContextService:
         if explanation:
             sources.append(
                 ContextSource(
-                    type="explanation", title=f"samā4's explanation of {entity.canonical_name}"
+                    type="explanation", title=f"Samā4's explanation of {entity.canonical_name}"
                 )
             )
         if wikipedia_extract:
@@ -205,7 +205,7 @@ class ContextService:
                 ContextSource(type="wikipedia", title="Wikipedia", url=entity.wikipedia_url)
             )
         if outlook_block:
-            sources.append(ContextSource(type="outlook", title="samā4's AI outlook"))
+            sources.append(ContextSource(type="outlook", title="Samā4's AI outlook"))
 
         return ExplainResponse(
             entity=entity_info(entity),

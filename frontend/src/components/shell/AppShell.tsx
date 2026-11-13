@@ -1,6 +1,7 @@
 "use client";
 
 import { Masthead } from "./Masthead";
+import { Sidebar } from "./Sidebar";
 import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
 import { Splash } from "@/components/onboarding/Splash";
 import { useTheme } from "@/lib/preferences";
@@ -21,9 +22,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <div data-app-shell className="flex h-screen flex-col overflow-hidden bg-background">
-        <Masthead />
-        <main className="flex min-h-0 min-w-0 flex-1 overflow-hidden">{children}</main>
+      <div data-app-shell className="flex h-screen overflow-hidden bg-background">
+        <Sidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Masthead />
+          <main className="flex min-h-0 min-w-0 flex-1 overflow-hidden">{children}</main>
+        </div>
       </div>
       <Splash />
       <OnboardingGate />

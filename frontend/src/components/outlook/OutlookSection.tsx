@@ -146,7 +146,7 @@ export function OutlookSection({
               ? "You cancelled the outlook. You can run it again whenever you like."
               : prediction?.status === "failed"
                 ? "The last outlook for this story didn't finish. You can run it again."
-                : "samā4 can simulate how the people and groups in this story are likely to react, and what that could lead to. It takes a few minutes."}
+                : "Samā4 can simulate how the people and groups in this story are likely to react, and what that could lead to. It takes a few minutes."}
           </p>
           <PrimaryButton
             className="mt-4"

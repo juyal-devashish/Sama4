@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Page } from "@/components/shell/Page";
 
-export const metadata = { title: "Privacy · samā4" };
+export const metadata = { title: "Privacy · Samā4" };
 
 const SECTIONS: { title: string; body: React.ReactNode }[] = [
   {
@@ -34,7 +34,7 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
           Saved stories
         </Link>
         , your theme, your topics and whether you&apos;ve seen the welcome screen are kept in your
-        browser&apos;s local storage. They aren&apos;t sent to samā4. Clearing this site&apos;s data
+        browser&apos;s local storage. They aren&apos;t sent to Samā4. Clearing this site&apos;s data
         in your browser removes them.
       </p>
     ),
@@ -44,8 +44,8 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <p>
         When you open an explanation, ask a follow-up question or run an outlook, the term, your
-        question and the story text are sent to samā4&apos;s server and to Anthropic&apos;s Claude,
-        which writes the answer. samā4 doesn&apos;t save your questions to its database. Outlooks
+        question and the story text are sent to Samā4&apos;s server and to Anthropic&apos;s Claude,
+        which writes the answer. Samā4 doesn&apos;t save your questions to its database. Outlooks
         are saved and shown to other readers, but they contain no information about you.
       </p>
     ),
@@ -54,7 +54,7 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
     title: "No tracking",
     body: (
       <p>
-        samā4 has no analytics or advertising scripts and sets no tracking cookies. We don&apos;t
+        Samā4 has no analytics or advertising scripts and sets no tracking cookies. We don&apos;t
         build a profile of what you read.
       </p>
     ),
@@ -79,7 +79,7 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <p>
         Stories come from publishers&apos; public news feeds. Every story links to the original
-        article; summaries, explanations and outlooks are written by samā4&apos;s AI and labelled as
+        article; summaries, explanations and outlooks are written by Samā4&apos;s AI and labelled as
         such.
       </p>
     ),
@@ -90,7 +90,7 @@ export default function PrivacyPage() {
   return (
     <Page
       title="Privacy"
-      description="How samā4 handles your data, in plain terms. This describes what the app does today. Last updated 12 November 2026."
+      description="How Samā4 handles your data, in plain terms. This describes what the app does today. Last updated 12 November 2026."
     >
       <div className="max-w-[62ch] space-y-9">
         {SECTIONS.map((s) => (

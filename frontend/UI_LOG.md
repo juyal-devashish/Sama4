@@ -104,7 +104,7 @@ Worked through Devashish's checklist one item at a time, one PR each.
 
 **P2**
 
-- #28 Announcements → Early access (/announcements redirects), one navigation, click/keyboard copy, "samā4" spelling.
+- #28 Announcements → Early access (/announcements redirects), one navigation, click/keyboard copy, "Samā4" spelling.
 - #30 Waitlist: real label, inline accessible errors, data-use note, /privacy page. Found and fixed a production bug:
   waitlist error/success messages never appeared (re-render replaced the static markup's nodes).
 - #29 Search filters (topic, source, date) + "newest first".
