@@ -33,6 +33,7 @@ src/
 ## Rules
 
 - **Data flow:** component → hook in `hooks/` → `api` in `lib/api.ts`. Components never call `fetch` or `api.*` directly, and never write inline query keys; use `queryKeys`.
+- **Server rendering:** a route's `page.tsx` (a server component) may call `api.*` with `{ revalidate, timeoutMs }` and pass the result to a hook as initial data (see `app/page.tsx` → `useFeedPages`). Catch failures so a down backend falls back to client fetching. The query client is created per request in `providers.tsx`; never share one at module level.
 - **Pure logic goes in `lib/`** with a `*.test.ts` next to it. Keep React components thin.
 - **API types** in `types/index.ts` must match the backend's Pydantic schemas. Change both together.
 - **Styling:** use Tailwind and the CSS variables in `globals.css`. Entity colors come from `entityColor(type)`; don't hard-code hex values in components.

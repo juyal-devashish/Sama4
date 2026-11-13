@@ -51,9 +51,19 @@ export function apiPath(
   return `/api/v1${path}${query ? `?${query}` : ""}`;
 }
 
+/**
+ * Options for calls made from server components. `revalidate` caches the response
+ * in Next's data cache for that many seconds; `timeoutMs` aborts a slow backend so
+ * server rendering never hangs on it (the client then fetches as usual).
+ */
+export interface ServerFetchOptions {
+  revalidate?: number;
+  timeoutMs?: number;
+}
+
 async function fetchAPI<T>(
   path: string,
-  init?: { method?: "GET" | "POST"; body?: unknown },
+  init?: { method?: "GET" | "POST"; body?: unknown } & ServerFetchOptions,
 ): Promise<T> {
   let res: Response;
   try {
@@ -61,6 +71,8 @@ async function fetchAPI<T>(
       method: init?.method ?? "GET",
       headers: init?.body !== undefined ? { "Content-Type": "application/json" } : undefined,
       body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
+      signal: init?.timeoutMs ? AbortSignal.timeout(init.timeoutMs) : undefined,
+      ...(init?.revalidate !== undefined ? { next: { revalidate: init.revalidate } } : {}),
     });
   } catch (err) {
     throw new ApiError(0, path, `Network error: ${(err as Error).message}`);
@@ -72,10 +84,14 @@ async function fetchAPI<T>(
 }
 
 export const api = {
-  getFeed(params?: { page?: number; limit?: number; category?: string }) {
+  getFeed(
+    params?: { page?: number; limit?: number; category?: string },
+    server?: ServerFetchOptions,
+  ) {
     const category = params?.category === "all" ? undefined : params?.category;
     return fetchAPI<FeedResponse>(
       apiPath("/feed", { page: params?.page, limit: params?.limit, category }),
+      server,
     );
   },
 

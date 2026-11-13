@@ -7,11 +7,15 @@ import { useFeedPages } from "@/hooks/useFeed";
 import { ALL_TOPICS, SECTIONS_ENABLED, useTopics } from "@/lib/preferences";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/states";
+import type { FeedResponse } from "@/types";
 import { StoryList } from "./StoryList";
 import { ReadingPane } from "./ReadingPane";
 
-/** Today: story list on the left, the selected story on the right. State lives in the URL. */
-export function Reader() {
+/**
+ * Today: story list on the left, the selected story on the right. State lives in the URL.
+ * `initialFeed` is page 1 of the unfiltered feed, fetched on the server.
+ */
+export function Reader({ initialFeed }: { initialFeed?: FeedResponse }) {
   const router = useRouter();
   const params = useSearchParams();
   const articleId = params.get("article") ?? undefined;
@@ -21,7 +25,7 @@ export function Reader() {
   const topic = (ALL_TOPICS as readonly string[]).includes(rawTopic) ? rawTopic : "all";
   const [topics] = useTopics();
 
-  const feed = useFeedPages(topic);
+  const feed = useFeedPages(topic, 10, topic === "all" ? initialFeed : undefined);
   const stories = useMemo(() => feed.data?.pages.flatMap((p) => p.articles) ?? [], [feed.data]);
 
   const go = useCallback(
