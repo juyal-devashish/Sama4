@@ -113,7 +113,6 @@ export const LANDING_MARKUP = `<nav>
         <h3 class="value-card-title">Answers you can check</h3>
         <p class="value-card-desc">Ask about any story and get an answer grounded in the article and recent reporting.</p>
       </div>
-      <p class="tech-note">How it&rsquo;s built: MinHash de-duplication, spaCy and Wikidata entity linking, Pinecone and Redis retrieval, and Anthropic&rsquo;s Claude for explanations.</p>
     </div>
   </div>
 </section>
@@ -223,6 +222,7 @@ export const LANDING_MARKUP = `<nav>
 <footer>
   <span class="footer-logo"><img src="/logo-owl.png" alt="" class="footer-owl logo-light" /><img src="/logo-owl-dark.png" alt="" class="footer-owl logo-dark" /><span>Samā4</span></span>
   <ul class="footer-links">
+    <li><a href="/about">About</a></li>
     <li><a href="/privacy">Privacy</a></li>
     <li><a href="https://sama4.online" target="_blank" rel="noopener noreferrer">sama4.online</a></li>
   </ul>

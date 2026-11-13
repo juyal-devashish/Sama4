@@ -1203,15 +1203,6 @@
   font-size: 12.5px;
   color: var(--text-muted);
 }
-.s4-landing .tech-note {
-  grid-column: 1 / -1;
-  padding: 16px 24px;
-  background: var(--bg-dark-2);
-  font-family: var(--sans);
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: var(--text-light-muted);
-}
 
 /* The owl mark: one image per theme, swapped by html.dark. */
 .s4-landing .nav-owl {

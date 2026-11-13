@@ -11,7 +11,7 @@ const PAGE_SIZE = 100; // the feed API's maximum
 const MAX_PAGES = 50; // 5,000 stories, well under the 50,000-URL sitemap limit
 
 /** Public pages. /saved and /settings are per-browser, so they're left out. */
-const STATIC_PATHS = ["/", "/early-access", "/outlook", "/search", "/privacy"];
+const STATIC_PATHS = ["/", "/early-access", "/outlook", "/search", "/about", "/privacy"];
 
 async function allStories(): Promise<ArticleCard[]> {
   const stories: ArticleCard[] = [];
