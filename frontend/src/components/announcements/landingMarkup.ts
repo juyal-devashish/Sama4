@@ -207,7 +207,10 @@ export const LANDING_MARKUP = `<nav>
 </section>
 <section class="cta-section" id="waitlist">
   <h2 class="cta-title">Get early access to Samā4.</h2>
-  <p class="cta-sub">The news layer that thinks, connects, and briefs.</p>
+  <p class="cta-sub">
+    The reader is free and open to everyone now. Early access means trying the
+    planned features first, starting with the browser extension and voice briefings.
+  </p>
   <label class="waitlist-label" for="waitlistEmail">Your email address</label>
   <form class="waitlist-form" id="waitlistForm" novalidate>
     <input id="waitlistEmail" name="email" type="email" placeholder="name@example.com" required autocomplete="email" aria-describedby="formError formNote" />
