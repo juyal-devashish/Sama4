@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 
 from app.clients.cache import Cache
 from app.clients.mirofish import MirofishClient
+from app.clients.pages import PageContent
 from app.config import Settings
 from app.container import Container
 
@@ -63,6 +64,18 @@ class FakeWikimedia:
         pass
 
 
+@dataclass
+class FakePages:
+    """Article pages by URL. Unknown URLs behave like an unreachable page (None)."""
+
+    pages: dict[str, PageContent] = field(default_factory=dict)
+    calls: list[str] = field(default_factory=list)
+
+    async def fetch(self, url: str) -> PageContent | None:
+        self.calls.append(url)
+        return self.pages.get(url)
+
+
 class MemoryCache(Cache):
     """Cache backed by a dict (exercises cache hits without Redis)."""
 
@@ -93,4 +106,5 @@ def make_container(settings: Settings | None = None) -> Container:
         cache=MemoryCache(),
         wikimedia=FakeWikimedia(),  # type: ignore[arg-type]
         mirofish=MirofishClient("http://mirofish.invalid", 1, enabled=False),
+        pages=FakePages(),  # type: ignore[arg-type]
     )

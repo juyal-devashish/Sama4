@@ -1,6 +1,6 @@
 """Process-wide container of external clients.
 
-Every external system (Claude, Pinecone, Redis, Wikimedia, MiroFish) is built
+Every external system (Claude, Pinecone, Redis, Wikimedia, MiroFish, article pages) is built
 once here from Settings and shared. Request handlers get it through
 `app.api.deps`; background jobs (scheduler, admin tasks) call `get_container()`.
 
@@ -14,6 +14,7 @@ from functools import lru_cache
 from app.clients.cache import Cache
 from app.clients.llm import LLMClient
 from app.clients.mirofish import MirofishClient
+from app.clients.pages import PageFetcher
 from app.clients.vectors import VectorStore
 from app.clients.wikimedia import WikimediaClient
 from app.config import Settings, settings
@@ -27,6 +28,7 @@ class Container:
     cache: Cache
     wikimedia: WikimediaClient
     mirofish: MirofishClient
+    pages: PageFetcher
 
     @classmethod
     def from_settings(cls, s: Settings) -> "Container":
@@ -45,6 +47,7 @@ class Container:
             mirofish=MirofishClient(
                 s.mirofish_url, s.mirofish_simulation_timeout, s.mirofish_enabled
             ),
+            pages=PageFetcher(),
         )
 
     async def aclose(self) -> None:

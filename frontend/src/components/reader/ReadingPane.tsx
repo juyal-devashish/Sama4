@@ -18,6 +18,7 @@ import { useOnboarding, useSavedStories, TOPIC_LABELS } from "@/lib/preferences"
 import { eligibleHint } from "@/lib/onboarding";
 import { cn, formatTimeAgo } from "@/lib/utils";
 import { ErrorState } from "@/components/ui/states";
+import { StoryImage } from "@/components/ui/story-image";
 import { ContextPanel, KeyTerms } from "@/components/context/ContextPanel";
 import { OutlookSection } from "@/components/outlook/OutlookSection";
 import { TermHint } from "@/components/onboarding/TermHint";
@@ -372,32 +373,28 @@ function Story({
           </a>
         )}
 
-        {article.image_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={article.image_url}
-            onError={(e) => (e.currentTarget.style.display = "none")}
-            alt=""
-            className="mt-8 aspect-[16/9] w-full bg-background-secondary object-cover"
-          />
-        )}
+        <StoryImage
+          src={article.image_url}
+          source={article.source.name}
+          className="mt-8 aspect-[16/9] w-full text-[64px]"
+        />
 
         {article.summary && (
           <section
             aria-labelledby="summary-label"
             aria-describedby="summary-note"
-            className="mt-10"
+            className="mt-10 border-y border-border py-6"
           >
             <h2 id="summary-label" className="section-label">
               In brief
             </h2>
             <p
               id="summary-note"
-              className="mt-2 font-ui text-[11.5px] leading-snug text-text-tertiary"
+              className="mt-1 font-ui text-[11.5px] leading-snug text-text-tertiary"
             >
               AI summary written by samā4 from the article. Check the original for detail.
             </p>
-            <p className="drop-cap mt-4 text-[19.5px] leading-[1.55] text-foreground">
+            <p className="mt-3 text-[17px] leading-[1.6] text-foreground">
               <MatchedText
                 text={article.summary}
                 entities={article.entities}
@@ -411,16 +408,16 @@ function Story({
         <section
           aria-labelledby="body-label"
           aria-describedby="body-note"
-          className="mt-12 text-[18px] leading-[1.7] text-foreground"
+          className="mt-10 text-[19px] leading-[1.7] text-foreground"
         >
           <h2 id="body-label" className="section-label">
             From {article.source.name}
           </h2>
           <p
             id="body-note"
-            className="mb-5 mt-2 font-ui text-[11.5px] leading-snug text-text-tertiary"
+            className="mb-5 mt-1 font-ui text-[11.5px] leading-snug text-text-tertiary"
           >
-            The publisher&apos;s text from its feed, unchanged. samā4 adds the highlights.
+            The opening of the article as published, up to 300 words. samā4 adds the highlights.
           </p>
           {article.content ? (
             <ArticleBody
@@ -428,25 +425,24 @@ function Story({
               entities={article.entities}
               activeId={term?.id}
               onSelect={select}
+              dropCap
             />
           ) : (
             <p className="text-[16px] text-text-secondary">
-              Only the summary is available for this story.
-              {article.source.url && (
-                <>
-                  {" "}
-                  <a
-                    href={article.source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-accent-secondary underline underline-offset-2"
-                  >
-                    Visit {article.source.name}
-                  </a>{" "}
-                  for the full text.
-                </>
-              )}
+              Only the brief is available for this story.
             </p>
+          )}
+          {article.source.url && (
+            <a
+              href={article.source.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-ui mt-6 inline-flex items-center gap-1 font-ui text-[13px] text-text-secondary hover:text-foreground"
+            >
+              Continue reading at {article.source.name}
+              <ArrowUpRight size={13} aria-hidden />
+              <span className="sr-only">(opens in a new tab)</span>
+            </a>
           )}
         </section>
 

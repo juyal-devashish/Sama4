@@ -1,4 +1,4 @@
-"""Ingestion pipeline: fetch -> pick -> clean -> NER -> link -> summarize -> embed -> store.
+"""Ingestion pipeline: fetch -> pick -> read page -> NER -> link -> summarize -> embed -> store.
 
 A run fetches every feed, keeps the fresh items not stored yet (published in the last
 `window_hours`, deduplicated), and asks the ranker to pick the day's stories. Only the
@@ -12,6 +12,7 @@ from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.clients.pages import PageContent, excerpt
 from app.container import Container
 from app.ingestion.cleaner import CleanerService
 from app.ingestion.dedup import DeduplicationService
@@ -56,6 +57,7 @@ class IngestionPipeline:
         self.max_stories = max_stories
         self.window = timedelta(hours=window_hours) if window_hours > 0 else None
         self.vectors = container.vectors
+        self.pages = container.pages
         self.fetcher = FetcherService()
         self.dedup = DeduplicationService()
         self.cleaner = CleanerService()
@@ -168,21 +170,40 @@ class IngestionPipeline:
                 logger.error("Could not record failure for %s", fetched.url, exc_info=True)
             return 0
 
+    def _text_and_image(
+        self, fetched_text: str, fetched_image: str | None, page: PageContent | None
+    ) -> tuple[str, str | None, int]:
+        """The excerpt to store, the lead image and the reading time of the full article.
+
+        The page's opening paragraphs win when they say more than the feed's teaser; the
+        page's lead image wins over the feed's (usually a small thumbnail).
+        """
+        feed_text = excerpt([fetched_text]) if fetched_text else ""
+        text = feed_text
+        if page and len(page.text.split()) > len(feed_text.split()):
+            text = page.text
+        image = (page.image_url if page else None) or fetched_image
+        full_words = max(page.word_count if page else 0, len(fetched_text.split()))
+        return text, image, max(1, round(full_words / 250))
+
     async def _process_article(
         self, fetched: FetchedArticle, source: Source, category: str, db: AsyncSession
     ) -> None:
-        cleaned = self.cleaner.clean(fetched.raw_content)
+        page = await self.pages.fetch(fetched.url)
+        cleaned, image, minutes = self._text_and_image(
+            self.cleaner.clean(fetched.raw_content), fetched.image_url, page
+        )
         article = Article(
             source_id=source.id,
             url=fetched.url,
             title=fetched.title,
             raw_content=fetched.raw_content,
-            image_url=fetched.image_url,
+            image_url=image,
             author=fetched.author,
             published_at=fetched.published_at,
             cleaned_content=cleaned,
             content_hash=self.cleaner.compute_hash(cleaned),
-            reading_time_minutes=self.cleaner.estimate_reading_time(cleaned),
+            reading_time_minutes=minutes,
             categories=[category],
             processing_status="processing",
         )
@@ -190,54 +211,84 @@ class IngestionPipeline:
         await db.flush()
 
         try:
-            extracted = await self.ner.extract_entities_hybrid(
-                cleaned, fetched.title, categories=[category]
-            )
-            for linked in await self.linker.link_entities(extracted):
-                # The reader highlights cleaned_content[start:end]; never store a miss.
-                if not is_aligned(cleaned, linked.text, linked.start, linked.end):
-                    logger.warning(
-                        "Skipping misaligned mention %r at %d:%d in %s",
-                        linked.text,
-                        linked.start,
-                        linked.end,
-                        article.url,
-                    )
-                    continue
-                entity = await entity_repo.get_or_create(
-                    db,
-                    name=linked.text,
-                    entity_type=linked.type,
-                    wikidata_id=linked.wikidata_id,
-                    wikipedia_url=linked.wikipedia_url,
-                    short_context=linked.description,
-                )
-                entity.popularity_score = (entity.popularity_score or 0) + 1
-                db.add(
-                    ArticleEntity(
-                        article_id=article.id,
-                        entity_id=entity.id,
-                        mention_text=linked.text,
-                        start_position=linked.start,
-                        end_position=linked.end,
-                        priority=linked.priority,
-                        in_title=linked.in_title,
-                    )
-                )
-
-            if cleaned:
-                article.summary = await self.summarizer.summarize(cleaned, title=article.title)
-
-            await self.vectors.upsert_article(
-                article_id=article.id,
-                title=article.title,
-                summary=article.summary or "",
-                source=source.name,
-                categories=article.categories or [],
-                published_at=article.published_at.isoformat() if article.published_at else None,
-            )
+            await self._annotate(article, source, db)
             article.processing_status = article_repo.STATUS_COMPLETED
         except Exception:
             # The caller's savepoint rolls this row back and stores a "failed" row instead.
             logger.error("Pipeline failed for article: %s", article.url, exc_info=True)
             raise
+
+    async def enrich(self, article: Article, source: Source | None, db: AsyncSession) -> str:
+        """Backfill a stored article from its page: lead image, excerpt, terms, summary.
+
+        Returns "updated", "image" (only the image changed) or "unchanged". When the text
+        changes, its mentions are rebuilt, since their offsets point into the old text.
+        """
+        page = await self.pages.fetch(article.url)
+        if page is None:
+            return "unchanged"
+        current = article.cleaned_content or ""
+        text, image, minutes = self._text_and_image(current, article.image_url, page)
+        image_changed = bool(image) and image != article.image_url
+        if image_changed:
+            article.image_url = image
+        if text == current or not page.text:
+            return "image" if image_changed else "unchanged"
+
+        article.cleaned_content = text
+        article.content_hash = self.cleaner.compute_hash(text)
+        article.reading_time_minutes = minutes
+        await article_repo.delete_mentions(db, article.id)
+        await self._annotate(article, source, db)
+        return "updated"
+
+    async def _annotate(self, article: Article, source: Source | None, db: AsyncSession) -> None:
+        """Find and link the terms, summarize and embed. Raises on failure."""
+        cleaned = article.cleaned_content or ""
+        categories = article.categories or []
+        extracted = await self.ner.extract_entities_hybrid(
+            cleaned, article.title, categories=categories
+        )
+        for linked in await self.linker.link_entities(extracted):
+            # The reader highlights cleaned_content[start:end]; never store a miss.
+            if not is_aligned(cleaned, linked.text, linked.start, linked.end):
+                logger.warning(
+                    "Skipping misaligned mention %r at %d:%d in %s",
+                    linked.text,
+                    linked.start,
+                    linked.end,
+                    article.url,
+                )
+                continue
+            entity = await entity_repo.get_or_create(
+                db,
+                name=linked.text,
+                entity_type=linked.type,
+                wikidata_id=linked.wikidata_id,
+                wikipedia_url=linked.wikipedia_url,
+                short_context=linked.description,
+            )
+            entity.popularity_score = (entity.popularity_score or 0) + 1
+            db.add(
+                ArticleEntity(
+                    article_id=article.id,
+                    entity_id=entity.id,
+                    mention_text=linked.text,
+                    start_position=linked.start,
+                    end_position=linked.end,
+                    priority=linked.priority,
+                    in_title=linked.in_title,
+                )
+            )
+
+        if cleaned:
+            article.summary = await self.summarizer.summarize(cleaned, title=article.title)
+
+        await self.vectors.upsert_article(
+            article_id=article.id,
+            title=article.title,
+            summary=article.summary or "",
+            source=source.name if source else "",
+            categories=categories,
+            published_at=article.published_at.isoformat() if article.published_at else None,
+        )
