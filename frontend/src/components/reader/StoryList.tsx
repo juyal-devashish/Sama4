@@ -4,7 +4,8 @@ import { forwardRef } from "react";
 import { Newspaper } from "lucide-react";
 import type { ArticleCard } from "@/types";
 import { StoryImage } from "@/components/ui/story-image";
-import { cn, formatLongDate, formatTimeAgo } from "@/lib/utils";
+import { cn, formatLongDate } from "@/lib/utils";
+import { PublishedTime } from "@/components/ui/published-time";
 import { TOPIC_LABELS } from "@/lib/preferences";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 
@@ -69,9 +70,10 @@ export const StoryRow = forwardRef<
       <div className="min-w-0 flex-1">
         <div className="mb-1.5 flex items-baseline gap-2">
           <span className="kicker truncate">{story.source.name}</span>
-          <span className="label-ui flex-shrink-0 text-text-tertiary" suppressHydrationWarning>
-            {formatTimeAgo(story.published_at)}
-          </span>
+          <PublishedTime
+            at={story.published_at}
+            className="label-ui flex-shrink-0 text-text-tertiary"
+          />
         </div>
         <h2
           className={cn(

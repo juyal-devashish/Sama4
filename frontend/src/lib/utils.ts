@@ -21,6 +21,20 @@ export function formatTimeAgo(dateStr?: string): string {
   });
 }
 
+/** "Nov 11, 2026, 7:00 AM": the exact time behind a relative "5h ago". */
+export function formatExactTime(dateStr?: string): string {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export function formatLongDate(date = new Date()): string {
   return date.toLocaleDateString(undefined, {
     weekday: "long",

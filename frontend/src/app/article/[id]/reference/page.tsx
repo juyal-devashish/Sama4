@@ -7,14 +7,8 @@ import { ArrowLeft, ArrowUpRight, ChevronDown } from "lucide-react";
 import { useReferencePage } from "@/hooks/useReferencePage";
 import { Page } from "@/components/shell/Page";
 import { ErrorState } from "@/components/ui/states";
-import {
-  ENTITY_LABELS,
-  ENTITY_TYPES,
-  cn,
-  entityColor,
-  entityKind,
-  formatTimeAgo,
-} from "@/lib/utils";
+import { ENTITY_LABELS, ENTITY_TYPES, cn, entityColor, entityKind } from "@/lib/utils";
+import { PublishedTime } from "@/components/ui/published-time";
 import type { ReferenceEntityContext } from "@/types";
 import { storyPath } from "@/lib/routes";
 
@@ -109,7 +103,7 @@ export default function ReferencesPage() {
                     </span>
                     <span className="label-ui mt-1.5 flex gap-3 text-text-tertiary">
                       <span className="font-bold text-accent-secondary">{a.source}</span>
-                      <span suppressHydrationWarning>{formatTimeAgo(a.published_at)}</span>
+                      <PublishedTime at={a.published_at} />
                     </span>
                   </Link>
                 </li>

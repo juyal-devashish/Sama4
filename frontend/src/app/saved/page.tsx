@@ -8,6 +8,7 @@ import { Page } from "@/components/shell/Page";
 import { EmptyState } from "@/components/ui/states";
 import { StoryImage } from "@/components/ui/story-image";
 import { formatTimeAgo } from "@/lib/utils";
+import { PublishedTime } from "@/components/ui/published-time";
 import { storyPath } from "@/lib/routes";
 
 export default function SavedPage() {
@@ -57,6 +58,7 @@ export default function SavedPage() {
                 <div className="min-w-0 flex-1">
                   <p className="flex items-baseline gap-3">
                     <span className="kicker">{s.source}</span>
+                    <PublishedTime at={s.published_at} className="label-ui text-text-tertiary" />
                     <span className="label-ui text-text-tertiary" suppressHydrationWarning>
                       Saved {formatTimeAgo(s.saved_at).toLowerCase()}
                     </span>

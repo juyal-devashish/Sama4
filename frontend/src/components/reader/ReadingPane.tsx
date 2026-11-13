@@ -16,7 +16,8 @@ import {
 import { useArticle } from "@/hooks/useArticle";
 import { useOnboarding, useSavedStories, TOPIC_LABELS } from "@/lib/preferences";
 import { eligibleHint } from "@/lib/onboarding";
-import { cn, formatTimeAgo } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { PublishedTime } from "@/components/ui/published-time";
 import { ErrorState } from "@/components/ui/states";
 import { StoryImage } from "@/components/ui/story-image";
 import { ContextPanel, KeyTerms } from "@/components/context/ContextPanel";
@@ -345,9 +346,7 @@ function Story({
           {article.published_at && (
             <>
               <span aria-hidden>·</span>
-              <time dateTime={article.published_at} suppressHydrationWarning>
-                {formatTimeAgo(article.published_at)}
-              </time>
+              <PublishedTime at={article.published_at} />
             </>
           )}
           {article.reading_time_minutes ? (
