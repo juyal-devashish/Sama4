@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="frontend/public/sama4-logo.jpg" alt="samā4 logo" width="88" />
+<img src="frontend/public/sama4-logo.jpg" alt="Samā4 logo" width="88" />
 
-# samā4
+# Samā4
 
 **News, understood.** A news reader that explains the people, places and ideas in a story, right beside the story.
 
@@ -17,13 +17,13 @@
 
 </div>
 
-![samā4 reader: story list, article with highlighted terms, and an explanation panel](docs/images/reader.png)
+![Samā4 reader: story list, article with highlighted terms, and an explanation panel](docs/images/reader.png)
 
 ## The problem
 
 News assumes you already know the backstory. A single headline can lean on a person, a court case, an acronym and a decade of policy at once. Readers who don't know them either open five tabs, paste paragraphs into a chatbot, or give up. Publishers lose younger readers right there.
 
-## What samā4 does
+## What Samā4 does
 
 | | |
 |---|---|

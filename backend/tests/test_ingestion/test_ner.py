@@ -54,7 +54,7 @@ def _build_service_with_mock(spans: list) -> NERService:
 
 
 class TestLabelMapping:
-    """spaCy label → samā4 entity type mapping."""
+    """spaCy label → Samā4 entity type mapping."""
 
     def test_person_maps_to_person(self):
         assert ENTITY_TYPE_MAP["PERSON"] == "PERSON"

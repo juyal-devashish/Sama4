@@ -69,7 +69,7 @@ def create_app(s: Settings = settings) -> FastAPI:
     _configure_logging(s)
     _init_sentry(s)
     app = FastAPI(
-        title="samā4 API",
+        title="Samā4 API",
         description="AI-powered contextual news intelligence platform",
         version="0.1.0",
         lifespan=lifespan,

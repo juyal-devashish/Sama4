@@ -22,7 +22,7 @@ describe("basisNote", () => {
       /90-word text .* Reuters\. That's a short excerpt/,
     );
     expect(basisNote("Reuters", 900, false)).not.toMatch(/short excerpt/);
-    expect(basisNote("Reuters", 0, true)).toMatch(/only on samā4's summary/);
+    expect(basisNote("Reuters", 0, true)).toMatch(/only on Samā4's summary/);
   });
 });
 

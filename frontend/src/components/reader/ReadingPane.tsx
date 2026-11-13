@@ -395,7 +395,7 @@ function Story({
               id="summary-note"
               className="mt-2 font-ui text-[11.5px] leading-snug text-text-tertiary"
             >
-              AI summary written by samā4 from the article. Check the original for detail.
+              AI summary written by Samā4 from the article. Check the original for detail.
             </p>
             <p className="drop-cap mt-4 text-[19.5px] leading-[1.55] text-foreground">
               <MatchedText
@@ -420,7 +420,7 @@ function Story({
             id="body-note"
             className="mb-5 mt-2 font-ui text-[11.5px] leading-snug text-text-tertiary"
           >
-            The publisher&apos;s text from its feed, unchanged. samā4 adds the highlights.
+            The publisher&apos;s text from its feed, unchanged. Samā4 adds the highlights.
           </p>
           {article.content ? (
             <ArticleBody

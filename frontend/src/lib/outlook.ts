@@ -2,7 +2,7 @@ import type { PredictionMethod } from "@/types";
 
 /** Shown wherever an outlook appears: it is a projection, not reporting. */
 export const OUTLOOK_DISCLAIMER =
-  "AI-generated projection by samā4. These are estimates of what could happen, not reporting or confirmed events.";
+  "AI-generated projection by Samā4. These are estimates of what could happen, not reporting or confirmed events.";
 
 export const CONFIDENCE_HELP =
   "The model's own rating of its main projection. It is not a measured probability and has not been checked against outcomes.";
@@ -14,7 +14,7 @@ export const REACTION_HELP =
   "Estimated by the model. Not a poll, survey or measurement of real people.";
 
 export const PERSONA_HELP =
-  "Fictional people written by samā4's AI to stand for different stakeholders. They are not real people, and their words are not real quotes.";
+  "Fictional people written by Samā4's AI to stand for different stakeholders. They are not real people, and their words are not real quotes.";
 
 /** What the "how it was made" figure means for this outlook. */
 export function methodSummary(
@@ -33,16 +33,16 @@ export function methodSummary(
   return {
     label: "Viewpoints written",
     value: String(viewpoints),
-    help: "No crowd simulation ran for this story. samā4's AI wrote these viewpoints directly from the story.",
+    help: "No crowd simulation ran for this story. Samā4's AI wrote these viewpoints directly from the story.",
   };
 }
 
 /** What the outlook was based on, and a warning when that was thin. */
 export function basisNote(publisher: string, words: number, summaryOnly: boolean): string {
   if (summaryOnly || words === 0) {
-    return `Based only on samā4's summary of the story; the full text from ${publisher} wasn't available. Treat it as a rough sketch.`;
+    return `Based only on Samā4's summary of the story; the full text from ${publisher} wasn't available. Treat it as a rough sketch.`;
   }
-  const base = `Based only on the ${words}-word text samā4 has from ${publisher}.`;
+  const base = `Based only on the ${words}-word text Samā4 has from ${publisher}.`;
   return words < 250
     ? `${base} That's a short excerpt, so treat this outlook as a rough sketch.`
     : base;

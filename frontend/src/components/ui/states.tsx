@@ -76,8 +76,8 @@ export function ErrorState({ what, onRetry }: { what: string; onRetry?: () => vo
         }
       >
         {online
-          ? "samā4 couldn't reach its server. This is usually brief; try again in a moment."
-          : `Reconnect to the internet and samā4 will load ${what} again by itself.`}
+          ? "Samā4 couldn't reach its server. This is usually brief; try again in a moment."
+          : `Reconnect to the internet and Samā4 will load ${what} again by itself.`}
       </EmptyState>
     </div>
   );

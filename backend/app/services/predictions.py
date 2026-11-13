@@ -167,7 +167,7 @@ class PredictionService:
 
             content = article.cleaned_content or article.raw_content or article.summary or ""
             metadata = {
-                "source": "samā4 news platform",
+                "source": "Samā4 news platform",
                 "published_at": str(article.published_at) if article.published_at else "",
                 "categories": ", ".join(article.categories) if article.categories else "",
             }

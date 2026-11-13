@@ -43,8 +43,8 @@ test("a finished outlook is labelled as an AI projection and explains its figure
   const outlook = page.locator("#outlook");
   await expect(outlook.getByText("Other artists may follow.")).toBeVisible({ timeout: 10_000 });
 
-  await expect(outlook.getByText(/AI-generated projection by samā4/)).toBeVisible();
-  await expect(outlook.getByText(/Based only on the \d+-word text samā4 has from/)).toBeVisible();
+  await expect(outlook.getByText(/AI-generated projection by Samā4/)).toBeVisible();
+  await expect(outlook.getByText(/Based only on the \d+-word text Samā4 has from/)).toBeVisible();
   await expect(outlook.getByText(/not a measured probability/)).toBeVisible();
   await expect(outlook.getByText(/it does not say how important or true/)).toBeVisible();
   // The fallback simulated nothing: never show "500 simulated".

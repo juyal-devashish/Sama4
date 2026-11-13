@@ -124,13 +124,13 @@ test("follow-up answers show the sources they used", async ({ page }) => {
   await expect(page.getByText("[article]")).toHaveCount(0); // raw tags never shown
 });
 
-test("publisher text and samā4-generated text are labelled", async ({ page }) => {
+test("publisher text and Samā4-generated text are labelled", async ({ page }) => {
   await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
   await page.goto(ARTICLE);
   // Each section is headed, and described by a note saying who wrote the text.
   await expect(page.getByRole("region", { name: "In brief" })).toHaveAccessibleDescription(
-    /^AI summary written by samā4/,
+    /^AI summary written by Samā4/,
     { timeout: 10_000 },
   );
   await expect(page.getByRole("region", { name: /^From / })).toHaveAccessibleDescription(
@@ -138,7 +138,7 @@ test("publisher text and samā4-generated text are labelled", async ({ page }) =
   );
   await page.locator(".term").first().click();
   await expect(
-    page.getByText("Written by samā4's AI from Wikipedia and this story."),
+    page.getByText("Written by Samā4's AI from Wikipedia and this story."),
   ).toBeVisible();
 });
 
@@ -156,7 +156,6 @@ test("the old Announcements link lands on Early access, with a way back to readi
   await expect(page.getByRole("link", { name: "Back to today's stories" })).toBeVisible();
   // One navigation: the page's own top nav is hidden inside the app.
   await expect(page.locator(".s4-landing > nav")).toBeHidden();
-  await expect(page.getByText(/Samā4/)).toHaveCount(0);
 });
 
 test("a term with no explanation says so and offers a next step", async ({ page }) => {
@@ -237,7 +236,7 @@ test("waitlist email has a real label and accessible inline errors", async ({ pa
   await expect(page.locator("#formError[role=alert]")).toHaveText(/not on the list yet/);
   expect(posted).toBe(1);
 
-  await expect(page.getByRole("link", { name: "How samā4 handles your data" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "How Samā4 handles your data" })).toHaveAttribute(
     "href",
     "/privacy",
   );

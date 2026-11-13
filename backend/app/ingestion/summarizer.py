@@ -4,7 +4,7 @@ from app.clients.llm import LLMClient
 
 logger = logging.getLogger(__name__)
 
-SUMMARY_SYSTEM = """You write the summary shown on a news card in samā4, a news reader app. \
+SUMMARY_SYSTEM = """You write the summary shown on a news card in Samā4, a news reader app. \
 The input is the headline plus whatever text the publisher's RSS feed provided: sometimes the full article, \
 often only a headline-length teaser or the first paragraph. Readers see only your output, \
 and they know it is a short summary of a news report.

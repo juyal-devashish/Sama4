@@ -89,13 +89,13 @@ export function ContextPanel({
                   {data.context.text}
                 </p>
                 <p className="mt-2 font-ui text-[11.5px] text-text-tertiary">
-                  Written by samā4&apos;s AI from Wikipedia and this story.
+                  Written by Samā4&apos;s AI from Wikipedia and this story.
                 </p>
               </>
             ) : (
               <div className="mt-4 text-[15px] leading-relaxed text-text-secondary">
                 <p>
-                  samā4 couldn&apos;t write an explanation for this term right now.
+                  Samā4 couldn&apos;t write an explanation for this term right now.
                   {data.entity.wikipedia_url
                     ? " Wikipedia has background on it below."
                     : " You can still ask a question about it below."}
