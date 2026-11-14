@@ -25,6 +25,12 @@ Each line holds the term, its type, the story passage around it, what the linker
 | `confidence` | the labeller's confidence: high / medium / low |
 | `labelled_by` | `claude-first-pass` for now |
 | `human_verified` | flip to `true` as a person checks each label |
+| `entity_type` (optional) | the correct type, when the app's `entity_type` is wrong |
+| `term` (optional) | the correct span, when the app highlighted too much or too little |
+| `exclude` (optional) | `true` drops the item from scoring (e.g. a mention from paywall boilerplate) |
+
+The item's own `term` and `entity_type` record what the app produced, so a correction
+goes in `gold` and the app's mistake stays measurable.
 
 **The first-pass labels were written by Claude** from the passage, and every gold URL was
 checked to exist on Wikipedia (redirects resolved to canonical titles). They need a human

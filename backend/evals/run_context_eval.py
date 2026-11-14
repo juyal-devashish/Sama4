@@ -79,7 +79,7 @@ def linker_score(
     total = correct = 0
     for item in items:
         gold = item.get("gold") or {}
-        if gold.get("labelled_by") is None:
+        if gold.get("labelled_by") is None or gold.get("exclude"):
             continue
         total += 1
         expected = gold.get("wikipedia_url")
@@ -255,7 +255,11 @@ def main() -> None:
     if args.judge:
         if not os.environ.get("ANTHROPIC_API_KEY"):
             raise SystemExit("--judge needs ANTHROPIC_API_KEY")
-        labelled = [i for i in items if (i.get("gold") or {}).get("labelled_by")]
+        labelled = [
+            i
+            for i in items
+            if (i.get("gold") or {}).get("labelled_by") and not i["gold"].get("exclude")
+        ]
         explanations = asyncio.run(fetch_explanations(args.api, labelled))
         verdicts = dict(
             zip(
