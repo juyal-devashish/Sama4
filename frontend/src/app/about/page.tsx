@@ -5,10 +5,12 @@ import { Page } from "@/components/shell/Page";
 export const metadata: Metadata = {
   title: "About",
   alternates: { canonical: "/about" },
-  description: "What Samā4 is and how it's built: the news pipeline, entity linking and Claude.",
+  description:
+    "What Samā4 is, who makes it and how it's built: the news pipeline, entity linking and Claude.",
 };
 
 const LINK = "text-accent-secondary underline underline-offset-2";
+const CONTACT_EMAIL = "djuyal23@gmail.com";
 
 const SECTIONS: { title: string; body: React.ReactNode }[] = [
   {
@@ -18,6 +20,19 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
         A news reader that explains the people, places, organizations and ideas a story takes for
         granted, right beside the text. Each night it picks the day&apos;s most consequential
         stories from more than 20 outlets and highlights what a reader might not know.
+      </p>
+    ),
+  },
+  {
+    title: "Who makes it",
+    body: (
+      <p>
+        Samā4 is made by Devashish Juyal and Shreyas Methi. Questions, corrections and publisher
+        requests go to{" "}
+        <a href={`mailto:${CONTACT_EMAIL}`} className={LINK}>
+          {CONTACT_EMAIL}
+        </a>
+        .
       </p>
     ),
   },
@@ -49,7 +64,7 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
 
 export default function AboutPage() {
   return (
-    <Page title="About" description="What Samā4 is and how it's built.">
+    <Page title="About" description="What Samā4 is, who makes it and how it's built.">
       <div className="max-w-[62ch] space-y-9">
         {SECTIONS.map((s) => (
           <section key={s.title}>
