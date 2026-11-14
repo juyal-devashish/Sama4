@@ -4,9 +4,15 @@ Checked 2026-11-13 against the 21 outlets the pipeline read then.
 
 > **Update, 2026-11-13:** the feed list is now ten outlets: PBS NewsHour, NYT, BBC, Al
 > Jazeera, The Economist, The Hindu, Indian Express, Bloomberg, Financial Times and MIT
-> Technology Review (14 feeds). Eight are reviewed below. **PBS NewsHour and The
-> Economist are new and haven't been reviewed yet.** Rows for outlets no longer read are
-> kept for reference. Each outlet's terms of use, RSS terms where they exist, and robots.txt were read
+> Technology Review (14 feeds). All ten are reviewed below (PBS NewsHour and The
+> Economist were added the same day). Rows for outlets no longer read are kept for
+> reference.
+>
+> **What the app does now:** every outlet's terms allow only what its feed carries, so
+> each feed is set to `excerpt_words: 0` in `sources.py`. The pipeline never fetches
+> their article pages; the reader shows the feed's own text and image, unaltered, with
+> a link to the original. Item c (text to Claude for summaries and explanations) is
+> unchanged and is still a decision for the makers. Each outlet's terms of use, RSS terms where they exist, and robots.txt were read
 directly. **This is a reading of the terms, not legal advice.** Re-check before any
 commercial launch, and whenever a feed is added.
 
@@ -76,6 +82,8 @@ Verdicts: ✓ allowed · ✓* allowed with conditions · ✗ not allowed · ? un
 | The Verge (Penske) | ✓* | ✗ | ✗ | high | pmc.com/terms-of-use §19 | **Now owned by Penske Media, not Vox.** Feeds used "as provided", unedited, with a direct link and attribution. No AI access or grounding. |
 | MIT Technology Review | ✓* | ✗ | ✗ | high | technologyreview.com/terms-of-service | Personal or non-commercial use. No scrapers. Bans use to "enhance … AI services". |
 | Wired | ✓* | ✗ | ✗ | high | condenast.com/user-agreement | Same as Ars Technica. |
+| PBS NewsHour | ✓ | ? | ? | medium | pbs.org/about/about-pbs/terms-of-use; newshour RSS page | No RSS terms; feeds offered openly. §1 bars commercial use; no scraping or AI clause. Many items are AP wire copy (AP's copyright). Max excerpt: the feed text. |
+| The Economist | ✓* | ✗ | ✗ | high | economistgroup.com/terms-of-use (1 Jul 2026) | Terms cover RSS: personal, non-commercial use; no displaying "all or any part" without permission; scraping banned; "use artificial intelligence tools … for the purposes of generating text" banned. Max excerpt: none beyond the feed's one-line standfirst. |
 | Rest of World | ✓ | ? | ? | medium | no terms page found (404s); ethics page | **No Creative Commons licence found**; treat as all rights reserved. robots.txt blocks AI agents. |
 | ScienceDaily | ✓* | ✗ | ? | medium | sciencedaily.com/terms.htm | Feed free for commercial and non-commercial use if unmodified, credited and linked. **"No Science Daily content may be entered into a database"**, and keep about 40 items or fewer. No AI clause (terms from 2007). |
 

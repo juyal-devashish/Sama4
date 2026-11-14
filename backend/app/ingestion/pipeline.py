@@ -21,7 +21,7 @@ from app.ingestion.fetcher import FetchedArticle, FetcherService
 from app.ingestion.linker import EntityLinker
 from app.ingestion.ner import NERService, is_aligned
 from app.ingestion.ranker import Candidate, StoryRanker
-from app.ingestion.sources import NEWS_SOURCES
+from app.ingestion.sources import NEWS_SOURCES, excerpt_limit
 from app.ingestion.summarizer import SummarizerService
 from app.models.article import Article
 from app.models.entity import ArticleEntity
@@ -58,6 +58,7 @@ class IngestionPipeline:
         self.sources = allowed_sources(
             sources if sources is not None else NEWS_SOURCES, self.blocked
         )
+        self.by_feed_url = {s["url"]: s for s in self.sources}
         self.max_stories = max_stories
         self.window = timedelta(hours=window_hours) if window_hours > 0 else None
         self.vectors = container.vectors
@@ -157,7 +158,7 @@ class IngestionPipeline:
                 if existing is not None:  # retrying: replace the "failed" row
                     await db.delete(existing)
                     await db.flush()
-                await self._process_article(fetched, source, category, db)
+                await self._process_article(fetched, source, category, db, excerpt_limit(src))
             return 1
         except Exception as exc:
             logger.error("Failed to process article: %s", fetched.url, exc_info=True)
@@ -178,24 +179,38 @@ class IngestionPipeline:
 
     def _text_and_image(
         self, fetched_text: str, fetched_image: str | None, page: PageContent | None
-    ) -> tuple[str, str | None, int]:
+    ) -> tuple[str, str | None, int | None]:
         """The excerpt to store, the lead image and the reading time of the full article.
 
         The page's opening paragraphs win when they say more than the feed's teaser; the
-        page's lead image wins over the feed's (usually a small thumbnail).
+        page's lead image wins over the feed's (usually a small thumbnail). Without the
+        page the article's length is unknown, so there's no reading time.
         """
         feed_text = excerpt([fetched_text]) if fetched_text else ""
         text = feed_text
         if page and len(page.text.split()) > len(feed_text.split()):
             text = page.text
         image = (page.image_url if page else None) or fetched_image
-        full_words = max(page.word_count if page else 0, len(fetched_text.split()))
+        if page is None:
+            return text, image, None
+        full_words = max(page.word_count, len(fetched_text.split()))
         return text, image, max(1, round(full_words / 250))
 
+    async def _read_page(self, url: str, max_words: int) -> PageContent | None:
+        """The article page, only when the outlet's terms allow showing its text."""
+        if max_words <= 0:
+            return None
+        return await self.pages.fetch(url, max_words)
+
     async def _process_article(
-        self, fetched: FetchedArticle, source: Source, category: str, db: AsyncSession
+        self,
+        fetched: FetchedArticle,
+        source: Source,
+        category: str,
+        db: AsyncSession,
+        max_words: int = 0,
     ) -> None:
-        page = await self.pages.fetch(fetched.url)
+        page = await self._read_page(fetched.url, max_words)
         cleaned, image, minutes = self._text_and_image(
             self.cleaner.clean(fetched.raw_content), fetched.image_url, page
         )
@@ -230,7 +245,8 @@ class IngestionPipeline:
         Returns "updated", "image" (only the image changed) or "unchanged". When the text
         changes, its mentions are rebuilt, since their offsets point into the old text.
         """
-        page = await self.pages.fetch(article.url)
+        config = self.by_feed_url.get(source.feed_url) if source else None
+        page = await self._read_page(article.url, excerpt_limit(config))
         if page is None:
             return "unchanged"
         current = article.cleaned_content or ""

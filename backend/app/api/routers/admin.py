@@ -52,8 +52,9 @@ async def regenerate_summaries(background_tasks: BackgroundTasks, c: ContainerDe
 async def enrich_articles(
     background_tasks: BackgroundTasks, c: ContainerDep, limit: int = Query(100, ge=1, le=1000)
 ) -> AdminResponse:
-    """Re-read the newest `limit` articles' pages: lead image, 300-word excerpt, terms and
-    summary. Runs in the background; results are in the logs."""
+    """Re-read the newest `limit` articles' pages, for outlets whose terms allow it
+    (`excerpt_words` in sources.py): lead image, excerpt, terms and summary. Others are
+    left alone. Runs in the background; results are in the logs."""
     background_tasks.add_task(jobs.enrich_articles, c, limit)
     return AdminResponse(
         message=f"Enriching the newest {limit} articles in the background.", status="accepted"

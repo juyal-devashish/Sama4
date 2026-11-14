@@ -13,7 +13,13 @@ from app.models.article import Article
 from app.models.entity import ArticleEntity, Entity
 from app.repositories.articles import FAILED_RETRY_AFTER
 
-SOURCE = {"name": "Test Feed", "url": "https://feeds.test/rss", "category": "tech"}
+# excerpt_words > 0: this feed's terms allow reading the page (most real feeds' don't).
+SOURCE = {
+    "name": "Test Feed",
+    "url": "https://feeds.test/rss",
+    "category": "tech",
+    "excerpt_words": 300,
+}
 
 
 TITLES = ["Lovelace notes resurface", "Rates rise again"]
@@ -283,3 +289,26 @@ async def test_blocked_publishers_feeds_and_items_are_skipped(container):
 
     assert await pipeline.run() == 0  # the item's URL is on news.test
     assert pipeline_with_blocked_feed.sources == [SOURCE]
+
+
+async def test_feed_only_outlets_never_have_their_pages_read(container):
+    from app.clients.pages import PageContent
+
+    container.llm.default = "Claude summary."
+    container.pages.pages["https://news.test/story-1"] = PageContent(
+        image_url="https://cdn.test/lead.jpg", text="Page text. " * 50, word_count=1000
+    )
+    fetched = [_fetched(1)]
+    fetched[0].image_url = "https://cdn.test/feed.jpg"
+    pipeline = _pipeline(container, fetched)
+    feed_only = {**SOURCE, "excerpt_words": 0}
+    pipeline.sources = [feed_only]
+
+    assert await pipeline.run() == 1
+
+    async with async_session() as db:
+        article = (await db.execute(select(Article))).scalar_one()
+    assert container.pages.calls == []
+    assert article.cleaned_content == BODIES[0]  # the feed's own text
+    assert article.image_url == "https://cdn.test/feed.jpg"
+    assert article.reading_time_minutes is None  # length unknown without the page

@@ -419,7 +419,7 @@ function Story({
             id="body-note"
             className="mb-5 mt-1 font-ui text-[11.5px] leading-snug text-text-tertiary"
           >
-            The opening of the article as published, up to 300 words. Samā4 adds the highlights.
+            As published by {article.source.name}. Samā4 adds the highlights.
           </p>
           {article.content ? (
             <ArticleBody

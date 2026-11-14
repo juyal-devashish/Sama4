@@ -134,7 +134,7 @@ test("publisher text and Samā4-generated text are labelled", async ({ page }) =
     { timeout: 10_000 },
   );
   await expect(page.getByRole("region", { name: /^From / })).toHaveAccessibleDescription(
-    /^The opening of the article as published/,
+    /^As published by .+\. Samā4 adds the highlights\.$/,
   );
   await page.locator(".term").first().click();
   // Names its sources (none in these fixtures) and the date it was written.
