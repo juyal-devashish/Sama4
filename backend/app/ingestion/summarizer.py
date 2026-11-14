@@ -10,7 +10,7 @@ The input is the headline plus the opening of the publisher's article (up to abo
 or only a short teaser when the page could not be read. Readers see only your output, \
 and they know it is a short summary of a news report.
 
-Write 2-3 plain sentences, 60 words at most: first what happened, then why it matters. Say why it matters \
+Write 2-3 plain sentences, no more than the word limit given: first what happened, then why it matters. Say why it matters \
 only when the text states or plainly shows the consequence (who is affected, what changes, \
 what comes next); never supply a significance the text doesn't support. Attribute claims \
 to the report where they are allegations ("the report says...", "according to the \
@@ -23,10 +23,25 @@ to the reader, or requests for more information."""  # noqa: E501 (LLM prompt te
 SUMMARY_PROMPT = """<headline>{title}</headline>
 <article>
 {article_text}
-</article>"""
+</article>
+<word_limit>{word_limit}</word_limit>"""
 
 
 MAX_SUMMARY_WORDS = 60
+MIN_SUMMARY_WORDS = 15
+SOURCE_RATIO = 0.5  # a summary is at most half as long as the text it summarizes
+
+
+def summary_word_limit(source_words: int) -> int:
+    """How long a summary of `source_words` words may be.
+
+    Half the source, between MIN and MAX words, and never longer than the source itself:
+    a 300-word opening gets 60 words, an 80-word teaser 40, a 12-word teaser 12.
+    """
+    limit = max(MIN_SUMMARY_WORDS, min(MAX_SUMMARY_WORDS, int(source_words * SOURCE_RATIO)))
+    return min(limit, source_words) if source_words > 0 else MIN_SUMMARY_WORDS
+
+
 _SENTENCE_END = re.compile(r"[.!?][\"'”’)]?(?=\s|$)")
 
 
@@ -60,6 +75,8 @@ class SummarizerService:
         words = article_text.split()
         truncated = " ".join(words[:3000])
 
-        prompt = SUMMARY_PROMPT.format(title=title, article_text=truncated)
+        limit = summary_word_limit(len(words))
+        prompt = SUMMARY_PROMPT.format(title=title, article_text=truncated, word_limit=limit)
 
-        return cap_words(await self.llm.generate(prompt, effort="low", system=SUMMARY_SYSTEM))
+        summary = await self.llm.generate(prompt, effort="low", system=SUMMARY_SYSTEM)
+        return cap_words(summary, limit)
