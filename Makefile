@@ -2,7 +2,7 @@
 # Backend: Python 3.11+ via Poetry. Frontend: Node 20+ via npm.
 
 .DEFAULT_GOAL := help
-.PHONY: help install infra-up infra-down dev-backend dev-frontend seed ingest \
+.PHONY: help eval-context install infra-up infra-down dev-backend dev-frontend seed ingest \
         test test-backend test-frontend lint format check build-backend build-frontend \
         deploy-backend clean
 
@@ -59,6 +59,9 @@ build-backend: ## Build the production Docker image
 
 build-frontend: ## Production Next.js build
 	cd frontend && npm run build
+
+eval-context: ## Score entity linking (and, with JUDGE=1 + ANTHROPIC_API_KEY, explanations) on the eval set
+	cd backend && poetry run python -m evals.run_context_eval $(if $(JUDGE),--judge) --label "$(LABEL)"
 
 deploy-backend: ## Deploy backend/ to Railway (service sama4-api)
 	cd backend && railway up --no-gitignore --service sama4-api --ci
