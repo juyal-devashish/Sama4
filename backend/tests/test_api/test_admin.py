@@ -7,7 +7,7 @@ from app.config import Settings
 from app.ingestion import jobs
 from app.models.article import Article
 from app.models.entity import ArticleEntity
-from tests.factories import make_article, make_entity
+from tests.factories import make_article, make_entity, make_source
 from tests.fakes import make_container
 
 ADMIN = {"X-Admin-Secret": "test-secret"}
@@ -149,18 +149,40 @@ async def test_enrich_endpoint_schedules_job(client, container):
     enrich.assert_awaited_once_with(container, 20)
 
 
-async def test_enrich_articles_backfills_image_excerpt_and_rebuilds_mentions(container, db_session):
+def _allow_page_reading(monkeypatch, feed_url: str) -> None:
+    """Configure one feed whose terms allow reading article pages."""
+    monkeypatch.setattr(
+        "app.ingestion.pipeline.NEWS_SOURCES",
+        [
+            {
+                "name": "T",
+                "url": feed_url,
+                "category": "world",
+                "region": "world",
+                "excerpt_words": 300,
+            }
+        ],
+    )
+
+
+async def test_enrich_articles_backfills_image_excerpt_and_rebuilds_mentions(
+    container, db_session, monkeypatch
+):
     from unittest.mock import AsyncMock as Mock
 
     from app.clients.pages import PageContent
     from app.ingestion.ner import ExtractedEntity
 
     async with db_session() as db:
-        teaser = await make_article(db, title="Teaser", content="Nvidia rose.")
+        src = await make_source(db)
+        teaser = await make_article(db, source=src, title="Teaser", content="Nvidia rose.")
         await make_entity(db, name="Nvidia", article=teaser, start=0)
-        pic_only = await make_article(db, title="Pic only", content="Full text already here.")
-        gone = await make_article(db, title="Gone", content="Page is down.")
+        pic_only = await make_article(
+            db, source=src, title="Pic only", content="Full text already here."
+        )
+        gone = await make_article(db, source=src, title="Gone", content="Page is down.")
         await db.commit()
+    _allow_page_reading(monkeypatch, src.feed_url)
     long_text = "Shares of Nvidia rose sharply on Tuesday after earnings beat forecasts."
     container.pages.pages = {
         teaser.url: PageContent(image_url="https://cdn.test/a.jpg", text=long_text, word_count=750),
@@ -202,14 +224,16 @@ async def test_enrich_articles_backfills_image_excerpt_and_rebuilds_mentions(con
     assert rows[gone.id].image_url is None
 
 
-async def test_startup_backfill_skips_finished_stories(container, db_session):
+async def test_startup_backfill_skips_finished_stories(container, db_session, monkeypatch):
     from app.clients.pages import PageContent
 
     async with db_session() as db:
-        done = await make_article(db, title="Done", content=" ".join(["word"] * 150))
+        src = await make_source(db)
+        done = await make_article(db, source=src, title="Done", content=" ".join(["word"] * 150))
         done.image_url = "https://cdn.test/done.jpg"
-        teaser = await make_article(db, title="Teaser", content="Short teaser.")
+        teaser = await make_article(db, source=src, title="Teaser", content="Short teaser.")
         await db.commit()
+    _allow_page_reading(monkeypatch, src.feed_url)
     container.pages.pages = {
         teaser.url: PageContent(
             image_url="https://cdn.test/t.jpg", text="A much longer opening. " * 20, word_count=400
@@ -224,3 +248,22 @@ async def test_startup_backfill_skips_finished_stories(container, db_session):
 
     assert (report.total, report.updated) == (1, 1)
     assert container.pages.calls == [teaser.url]
+
+
+async def test_enrich_never_reads_pages_of_feed_only_or_unknown_outlets(container, db_session):
+    from app.clients.pages import PageContent
+
+    async with db_session() as db:
+        src = await make_source(db)  # not in NEWS_SOURCES: e.g. an outlet no longer read
+        teaser = await make_article(db, source=src, title="Teaser", content="Short teaser.")
+        await db.commit()
+    container.pages.pages = {
+        teaser.url: PageContent(
+            image_url="https://cdn.test/t.jpg", text="Long. " * 50, word_count=400
+        )
+    }
+
+    report = await jobs.enrich_articles(container, 10)
+
+    assert (report.total, report.unchanged) == (1, 1)
+    assert container.pages.calls == []

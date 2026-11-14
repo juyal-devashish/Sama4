@@ -6,8 +6,8 @@ from app.clients.llm import LLMClient
 logger = logging.getLogger(__name__)
 
 SUMMARY_SYSTEM = """You write the summary shown on a news card in Samā4, a news reader app. \
-The input is the headline plus the opening of the publisher's article (up to about 300 words), \
-or only a short teaser when the page could not be read. Readers see only your output, \
+The input is the headline plus the publisher's own text: usually the short description from \
+its feed, sometimes the opening of the article where the publisher allows it. Readers see only your output, \
 and they know it is a short summary of a news report.
 
 Write 2-3 plain sentences, no more than the word limit given: first what happened, then why it matters. Say why it matters \

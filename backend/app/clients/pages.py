@@ -143,7 +143,7 @@ class PageFetcher:
     def __init__(self, timeout: float = 20.0) -> None:
         self.timeout = timeout
 
-    async def fetch(self, url: str) -> PageContent | None:
+    async def fetch(self, url: str, max_words: int = EXCERPT_WORDS) -> PageContent | None:
         if not url:
             return None
         try:
@@ -160,7 +160,7 @@ class PageFetcher:
         if "html" not in response.headers.get("content-type", "html"):
             return None
         try:
-            return parse_page(response.text, str(response.url))
+            return parse_page(response.text, str(response.url), max_words)
         except Exception:
             logger.warning("Could not parse article page %s", url, exc_info=True)
             return None

@@ -10,7 +10,7 @@ export const LANDING_MARKUP = `<section class="hero">
       explanation opens beside the text.
     </p>
     <div class="hero-actions">
-      <a href="#waitlist" class="btn-primary">Get early access →</a>
+      <a href="/" class="btn-primary">Read today&rsquo;s stories →</a>
       <a href="#how" class="btn-secondary">See how it works</a>
     </div>
   </div>
@@ -60,7 +60,7 @@ export const LANDING_MARKUP = `<section class="hero">
       <p class="value-label">Why Samā4</p>
       <h2 class="value-title">Understand the story without opening five more tabs.</h2>
       <p class="value-sub">
-        Samā4 gives you a personal AI news analyst that aggregates, deduplicates, and connects, delivering briefings, not clutter.
+        Each night Samā4 reads ten outlets, removes the duplicates, picks the stories that matter and explains what each one takes for granted.
       </p>
       <div class="value-tags">
         <span class="value-tag">Researchers</span>
@@ -109,7 +109,7 @@ export const LANDING_MARKUP = `<section class="hero">
         <span class="step-num"></span>
         <div class="step-body">
           <h3>See what the story assumes</h3>
-          <p>People, places, organizations and ideas a reader might not know are highlighted in the summary and in the opening of the original article.</p>
+          <p>People, places, organizations and ideas a reader might not know are highlighted in the summary and in the publisher&rsquo;s own text.</p>
         </div>
       </div>
       <div class="step">
@@ -141,6 +141,11 @@ export const LANDING_MARKUP = `<section class="hero">
         <p class="feature-desc">Select a highlighted name, place or idea for a short explanation, written from Wikipedia and the story itself.</p>
       </div>
       <div class="feature-item">
+        <div class="feature-icon">✓</div>
+        <h3 class="feature-title">Sourced and dated</h3>
+        <p class="feature-desc">Every explanation links what it was written from and says when. Spot a mistake? Report it from the explanation. <a href="/how-explanations-work">How explanations are made</a></p>
+      </div>
+      <div class="feature-item">
         <div class="feature-icon">⊕</div>
         <h3 class="feature-title">Follow-up questions</h3>
         <p class="feature-desc">Ask about any highlighted term and get an answer grounded in the story.</p>
@@ -161,50 +166,38 @@ export const LANDING_MARKUP = `<section class="hero">
         <p class="feature-desc">One page listing everyone and everything a story names, each with its explanation.</p>
       </div>
       <div class="feature-item">
+        <div class="feature-icon">⌕</div>
+        <h3 class="feature-title">Save and search</h3>
+        <p class="feature-desc">Keep stories for later and search past editions by topic, outlet and date.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">☰</div>
+        <h3 class="feature-title">Open about sources</h3>
+        <p class="feature-desc">Every outlet and feed Samā4 reads is listed, and every story links to its publisher. <a href="/sources">See the sources</a></p>
+      </div>
+      <div class="feature-item">
         <div class="feature-icon">◇</div>
         <h3 class="feature-title">No tracking</h3>
         <p class="feature-desc">No analytics, advertising scripts or tracking cookies. Saved stories, your theme and your topics stay in your browser. <a href="/privacy">Read the privacy page</a></p>
       </div>
     </div>
-    <p class="section-label features-planned-label">Planned &middot; not available yet</p>
-    <div class="features-grid features-planned">
-      <div class="feature-item">
-        <div class="feature-icon">⌘</div>
-        <h3 class="feature-title">Browser extension</h3>
-        <p class="feature-desc">The same explanations on articles you read anywhere, not just in Samā4&rsquo;s own edition.</p>
-      </div>
-      <div class="feature-item">
-        <div class="feature-icon">◈</div>
-        <h3 class="feature-title">Voice briefings</h3>
-        <p class="feature-desc">Hear the day&rsquo;s stories and ask questions out loud.</p>
-      </div>
-      <div class="feature-item">
-        <div class="feature-icon">◇</div>
-        <h3 class="feature-title">Depth control</h3>
-        <p class="feature-desc">Choose a one-line gloss for scanning or a deeper explanation for learning.</p>
-      </div>
-      <div class="feature-item">
-        <div class="feature-icon">≋</div>
-        <h3 class="feature-title">Multi-language</h3>
-        <p class="feature-desc">Read a story in one language and get explanations in the language you think in.</p>
-      </div>
-    </div>
   </div>
 </section>
 <section class="cta-section" id="waitlist">
-  <h2 class="cta-title">Get early access to Samā4.</h2>
+  <h2 class="cta-title">Coming next: Samā4, tailored to you.</h2>
   <p class="cta-sub">
-    The reader is free and open to everyone now. Early access means trying the
-    planned features first, starting with the browser extension and voice briefings.
+    Everything above is free and open now, with no account. Next we&rsquo;re building
+    sign-in, so Samā4 can remember your topics and saved stories on every device and shape
+    your edition around what you follow. Join the waitlist and we&rsquo;ll email you when it opens.
   </p>
   <label class="waitlist-label" for="waitlistEmail">Your email address</label>
   <form class="waitlist-form" id="waitlistForm" novalidate>
     <input id="waitlistEmail" name="email" type="email" placeholder="name@example.com" required autocomplete="email" aria-describedby="formError formNote" />
-    <button type="submit"><span class="btn-spinner"></span>Get early access</button>
+    <button type="submit"><span class="btn-spinner"></span>Join the waitlist</button>
   </form>
   <p class="form-error" id="formError" role="alert"></p>
-  <p class="form-note" id="formNote">We only use your email to tell you when early access opens. No spam, never sold. <a href="/privacy">How Samā4 handles your data</a></p>
-  <p class="form-success" id="formSuccess" role="status">✓ You're on the list. We'll email you when early access opens.</p>
+  <p class="form-note" id="formNote">We only use your email to tell you when sign-in opens. No spam, never sold. <a href="/privacy">How Samā4 handles your data</a></p>
+  <p class="form-success" id="formSuccess" role="status">✓ You're on the list. We'll email you when sign-in opens.</p>
 </section>
 <footer>
   <span class="footer-logo"><img src="/logo-owl.png" alt="" class="footer-owl logo-light" /><img src="/logo-owl-dark.png" alt="" class="footer-owl logo-dark" /><span>Samā4</span></span>

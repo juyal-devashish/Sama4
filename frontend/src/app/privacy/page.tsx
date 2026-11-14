@@ -10,7 +10,7 @@ export const metadata = {
 
 const SECTIONS: { title: string; body: React.ReactNode }[] = [
   {
-    title: "The early-access waitlist",
+    title: "The waitlist",
     body: (
       <>
         <p>
@@ -19,10 +19,11 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
             href="/early-access#waitlist"
             className="text-accent-secondary underline underline-offset-2"
           >
-            early-access waitlist
+            waitlist
           </Link>{" "}
-          we store your email address, when you signed up and which page you used. We use it only to
-          tell you when early access opens. We never sell it or share it for marketing.
+          for sign-in and a personalized edition, we store your email address, when you signed up
+          and which page you used. We use it only to tell you when sign-in opens. We never sell it
+          or share it for marketing.
         </p>
         <p>
           To stop abuse of the form, your IP address is used as a sign-up counter for up to an hour

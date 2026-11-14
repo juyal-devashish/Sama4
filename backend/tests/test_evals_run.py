@@ -62,3 +62,11 @@ def test_linker_score_uses_current_links_and_redirects():
     assert linker_score([item])["correct"] == 0  # the link recorded at build time
     now = {"x": "https://w/wiki/Palestinian_territories"}
     assert linker_score([item], now, redirects)["correct"] == 1
+
+
+def test_excluded_items_are_not_scored():
+    from evals.run_context_eval import linker_score
+
+    item = _item("https://w/wiki/A", "https://w/wiki/B")
+    item["gold"]["exclude"] = True
+    assert linker_score([item]) == {"n": 0, "correct": 0, "accuracy": None}

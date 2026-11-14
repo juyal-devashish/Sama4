@@ -86,7 +86,7 @@ class FakePages:
     pages: dict[str, PageContent] = field(default_factory=dict)
     calls: list[str] = field(default_factory=list)
 
-    async def fetch(self, url: str) -> PageContent | None:
+    async def fetch(self, url: str, max_words: int = 300) -> PageContent | None:
         self.calls.append(url)
         return self.pages.get(url)
 

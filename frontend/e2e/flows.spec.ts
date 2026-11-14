@@ -134,7 +134,7 @@ test("publisher text and Samā4-generated text are labelled", async ({ page }) =
     { timeout: 10_000 },
   );
   await expect(page.getByRole("region", { name: /^From / })).toHaveAccessibleDescription(
-    /^The opening of the article as published/,
+    /^As published by .+\. Samā4 adds the highlights\.$/,
   );
   await page.locator(".term").first().click();
   // Names its sources (none in these fixtures) and the date it was written.
@@ -218,7 +218,7 @@ test("waitlist email has a real label and accessible inline errors", async ({ pa
   const email = page.getByRole("textbox", { name: "Your email address" });
   await expect(email).toHaveAttribute("type", "email");
   await expect(email).toHaveAttribute("autocomplete", "email");
-  const submit = page.getByRole("button", { name: "Get early access" });
+  const submit = page.getByRole("button", { name: "Join the waitlist" });
 
   await submit.click();
   await expect(page.locator("#formError[role=alert]")).toHaveText("Enter your email address.");
@@ -248,7 +248,7 @@ test("privacy page explains how data is handled", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
   await page.goto("/privacy");
   await expect(page.getByRole("heading", { name: "Privacy", level: 1 })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "The early-access waitlist" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "The waitlist" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "No tracking" })).toBeVisible();
 });
 
@@ -310,4 +310,7 @@ test("early-access page: sample demo labelled, no unsourced stats, one CTA wordi
   await expect(page.getByText(/Uptime|Articles Processed|Latency/i)).toHaveCount(0);
   await expect(page.getByText(/Join Waitlist|Get Early Access/)).toHaveCount(0);
   await expect(page.getByText(/Mistral/)).toHaveCount(0);
+  // Only what's built is offered; the waitlist is for sign-in and personalization.
+  await expect(page.getByText(/Browser extension|Voice briefings/)).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: /tailored to you/ })).toBeVisible();
 });

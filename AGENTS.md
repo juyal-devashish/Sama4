@@ -7,7 +7,7 @@ Instructions for AI coding agents (and humans) changing this repo. Read this fil
 
 ## What the product is
 
-Samā4 is a news reader that explains unfamiliar people, organizations, places and concepts **inline**. A nightly pipeline (03:00 New York) pulls the last 24 hours of RSS news from US, Indian, world and tech outlets, has Claude pick the 12-15 most consequential stories (`backend/app/ingestion/ranker.py`), reads each picked article's page for its lead image and opening (up to 300 words), finds the terms a reader probably doesn't know, and writes a brief of at most 60 words with Claude. In the app, tapping a highlighted term opens a short, sourced explanation.
+Samā4 is a news reader that explains unfamiliar people, organizations, places and concepts **inline**. A nightly pipeline (03:00 New York) pulls the last 24 hours of RSS news from US, Indian, world and tech outlets, has Claude pick the 12-15 most consequential stories (`backend/app/ingestion/ranker.py`), keeps each picked story's text to what its outlet's terms allow (the feed's own text unless `excerpt_words` in `ingestion/sources.py` permits reading the page; see `docs/feed-terms.md`), finds the terms a reader probably doesn't know, and writes a brief of at most 60 words with Claude. In the app, tapping a highlighted term opens a short, sourced explanation.
 
 ## Repo map
 
