@@ -50,13 +50,13 @@ export function ReportError({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="label-ui link-ui inline-flex items-center gap-1.5 text-text-tertiary hover:text-foreground"
+          className="label-ui link-ui inline-flex min-h-6 items-center gap-1.5 text-text-tertiary hover:text-foreground"
         >
           <Flag size={11} aria-hidden /> Report an error
         </button>
         <Link
           href="/how-explanations-work"
-          className="label-ui link-ui text-text-tertiary hover:text-foreground"
+          className="label-ui link-ui inline-flex min-h-6 items-center text-text-tertiary hover:text-foreground"
         >
           How explanations are made
         </Link>
