@@ -220,7 +220,7 @@ export function Landing() {
           {[
             ["#how", "How it works"],
             ["#features", "Features"],
-            ["#waitlist", "Get early access"],
+            ["#waitlist", "Join the waitlist"],
           ].map(([href, label]) => (
             <a
               key={href}
