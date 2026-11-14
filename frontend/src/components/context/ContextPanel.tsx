@@ -259,6 +259,22 @@ function ExplanationSources({ context }: { context: ContextData }) {
           ) : (
             sourceLabel(s)
           )}
+          {s.revision_url && (
+            <>
+              {" "}
+              (
+              <a
+                href={s.revision_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="link-ui text-accent-secondary"
+              >
+                version used
+                <span className="sr-only"> of the Wikipedia article (opens in a new tab)</span>
+              </a>
+              )
+            </>
+          )}
         </span>
       ))}
       {date && (

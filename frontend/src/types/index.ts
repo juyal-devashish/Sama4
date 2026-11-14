@@ -98,6 +98,8 @@ export interface ContextSource {
   type: string;
   title?: string;
   url?: string;
+  /** Wikipedia only: permalink to the exact revision the explanation used. */
+  revision_url?: string;
 }
 
 export interface ContextData {

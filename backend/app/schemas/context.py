@@ -17,6 +17,8 @@ class ContextSource(BaseModel):
     type: str  # "article" | "wikipedia" | "graph" | "explanation" | "outlook"
     title: str | None = None
     url: str | None = None
+    # Wikipedia only: a permalink to the exact revision the explanation used.
+    revision_url: str | None = None
 
 
 class ContextData(BaseModel):

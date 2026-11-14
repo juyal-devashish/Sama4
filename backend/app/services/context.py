@@ -19,6 +19,7 @@ from app.models.article import Article
 from app.models.entity import ArticleEntity, Entity
 from app.prompts.templates import PROMPTS, entity_context_prompt
 from app.repositories import entities as entity_repo
+from app.repositories import explanations as explanation_repo
 from app.repositories import predictions as prediction_repo
 from app.schemas.context import (
     ContextData,
@@ -171,18 +172,24 @@ class ContextService:
     async def _generate_context(
         self, entity: Entity, db: AsyncSession
     ) -> tuple[str, list[ContextSource]]:
-        """Claude's explanation, and the sources it was given (only those that had content)."""
+        """Claude's explanation, and the sources it was given (only those that had content).
+
+        Each explanation written is also recorded with the story and Wikipedia revision used.
+        """
         sources: list[ContextSource] = []
-        wikipedia_extract = await self.wikimedia.get_wikipedia_extract(entity.wikipedia_url or "")
-        if wikipedia_extract and (wiki := wikipedia_source(entity)):
+        wiki_page = await self.wikimedia.get_wikipedia_page(entity.wikipedia_url or "")
+        wikipedia_extract = wiki_page.extract if wiki_page else None
+        if wiki_page and (wiki := wikipedia_source(entity)):
+            wiki.revision_url = wiki_page.revision_url
             sources.append(wiki)
         graph_context = await self._mirofish_graph_context(entity)
         if graph_context:
             sources.append(ContextSource(type="graph", title="Samā4's knowledge graph"))
-        article_title, excerpt = None, None
+        article_title, excerpt, article_id = None, None, None
         mention = await entity_repo.latest_mention(db, entity)
         if mention is not None:
             article, ae = mention
+            article_id = article.id
             article_title = article.title
             excerpt = mention_excerpt(article.cleaned_content or article.raw_content or "", ae)
             sources.insert(0, ContextSource(type="article", title=article.title, url=article.url))
@@ -195,6 +202,16 @@ class ContextService:
             related_news=graph_context,
         )
         text = await self.llm.generate(prompt, effort="low", system=system)
+        if text:
+            await explanation_repo.add(
+                db,
+                entity_id=entity.id,
+                article_id=article_id,
+                wikipedia_title=wiki_page.title if wiki_page else None,
+                wikipedia_revision_id=wiki_page.revision_id if wiki_page else None,
+                text=text,
+                model=getattr(self.llm, "model", None),
+            )
         return text, sources
 
     async def answer_followup(

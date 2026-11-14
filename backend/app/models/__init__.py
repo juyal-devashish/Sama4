@@ -1,5 +1,6 @@
 from app.models.article import Article
 from app.models.entity import ArticleEntity, Entity
+from app.models.explanation import ExplanationRecord
 from app.models.prediction import AgentPerspective, Prediction
 from app.models.report import ExplanationReport
 from app.models.source import Source
@@ -11,6 +12,7 @@ __all__ = [
     "Article",
     "ArticleEntity",
     "Entity",
+    "ExplanationRecord",
     "ExplanationReport",
     "Prediction",
     "Source",

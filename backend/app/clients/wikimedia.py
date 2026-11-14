@@ -1,6 +1,8 @@
 """Wikidata + Wikipedia lookups used to link and explain entities."""
 
 import logging
+from dataclasses import dataclass
+from urllib.parse import unquote
 
 import httpx
 
@@ -11,6 +13,48 @@ _HEADERS = {"User-Agent": "sama4/0.1 (https://github.com/juyal-devashish/Sama4)"
 
 WIKIDATA_API = "https://www.wikidata.org/w/api.php"
 WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
+
+
+@dataclass(frozen=True)
+class WikipediaPage:
+    """The opening of a Wikipedia article, and exactly which revision it came from."""
+
+    extract: str
+    title: str
+    page_id: int | None
+    revision_id: int | None
+
+    @property
+    def revision_url(self) -> str | None:
+        if self.revision_id is None:
+            return None
+        return f"https://en.wikipedia.org/w/index.php?oldid={self.revision_id}"
+
+
+def title_from_url(url: str) -> str:
+    """ "https://en.wikipedia.org/wiki/Caf%C3%A9" -> "Café" (the API wants it decoded)."""
+    return unquote(url.split("/wiki/")[-1].split("#")[0])
+
+
+def parse_extract_response(data: dict) -> WikipediaPage | None:
+    """First two sentences of the intro plus revision ids, from an extracts|revisions query."""
+    pages = (data.get("query") or {}).get("pages") or {}
+    for page in pages.values():
+        text = (page.get("extract") or "").strip()
+        if not text:
+            return None
+        sentences = text.split(". ")[:2]
+        extract = ". ".join(sentences)
+        if not extract.endswith("."):
+            extract += "."
+        revisions = page.get("revisions") or [{}]
+        return WikipediaPage(
+            extract=extract,
+            title=page.get("title", ""),
+            page_id=page.get("pageid"),
+            revision_id=revisions[0].get("revid"),
+        )
+    return None
 
 
 class WikimediaClient:
@@ -61,27 +105,29 @@ class WikimediaClient:
         entity = response.json().get("entities", {}).get(wikidata_id, {})
         return entity.get("sitelinks", {}).get("enwiki", {}).get("url")
 
-    async def get_wikipedia_extract(self, url: str) -> str | None:
-        """Return the first two sentences of a Wikipedia article, or None."""
+    async def get_wikipedia_page(self, url: str) -> WikipediaPage | None:
+        """The first two sentences of a Wikipedia article and its current revision, or None."""
         if not url:
             return None
-        title = url.split("/wiki/")[-1]
         response = await self._http.get(
             WIKIPEDIA_API,
             params={
                 "action": "query",
-                "titles": title,
-                "prop": "extracts",
+                "titles": title_from_url(url),
+                "prop": "extracts|revisions",
                 "exintro": True,
                 "explaintext": True,
+                "rvprop": "ids",
+                "redirects": True,
                 "format": "json",
             },
         )
         if response.status_code != 200:
             logger.warning("Wikipedia extract returned %s", response.status_code)
             return None
-        pages = response.json().get("query", {}).get("pages", {})
-        for page in pages.values():
-            sentences = page.get("extract", "").split(". ")[:2]
-            return ". ".join(sentences) + "." if sentences else None
-        return None
+        return parse_extract_response(response.json())
+
+    async def get_wikipedia_extract(self, url: str) -> str | None:
+        """Return the first two sentences of a Wikipedia article, or None."""
+        page = await self.get_wikipedia_page(url)
+        return page.extract if page else None
