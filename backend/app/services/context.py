@@ -139,13 +139,19 @@ class ContextService:
                     },
                     ttl=self.context_ttl,
                 )
+                context = ContextData(text=text, generated_at=now, sources=sources)
             else:
                 # Claude unavailable or declined: fall back to the linker's short description
                 # (a Wikipedia extract), uncached, so the real explanation appears as soon as
                 # Claude is back.
-                text = entity.short_context or ""
-                sources = [s for s in [wikipedia_source(entity)] if s and text]
-            context = ContextData(text=text, generated_at=now, sources=sources)
+                fallback = entity.short_context or ""
+                context = ContextData(
+                    text=fallback,
+                    # Stored when the entity was linked, so that's the date it's as of.
+                    generated_at=entity.created_at or now,
+                    source="wikipedia_extract",
+                    sources=[s for s in [wikipedia_source(entity)] if s and fallback],
+                )
 
         related_entities = [
             RelatedEntity(id=e.id, name=e.canonical_name, type=e.entity_type)

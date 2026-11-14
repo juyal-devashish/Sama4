@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { entityColor, entityKind, formatExactTime, formatTimeAgo, metaDescription } from "./utils";
+import {
+  entityColor,
+  entityKind,
+  formatExactTime,
+  formatShortDate,
+  formatTimeAgo,
+  metaDescription,
+} from "./utils";
 
 describe("entityKind", () => {
   it.each([
@@ -43,6 +50,14 @@ describe("formatExactTime", () => {
     const out = formatExactTime("2026-11-11T07:00:00Z");
     expect(out).toContain("2026");
     expect(out).toMatch(/\d:\d\d/);
+  });
+});
+
+describe("formatShortDate", () => {
+  it("gives the date with the year, or nothing", () => {
+    expect(formatShortDate("2026-11-11T12:00:00Z")).toContain("2026");
+    expect(formatShortDate(undefined)).toBe("");
+    expect(formatShortDate("nope")).toBe("");
   });
 });
 

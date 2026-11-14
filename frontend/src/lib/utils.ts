@@ -35,6 +35,14 @@ export function formatExactTime(dateStr?: string): string {
   });
 }
 
+/** "Nov 11, 2026" */
+export function formatShortDate(dateStr?: string): string {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
 export function formatLongDate(date = new Date()): string {
   return date.toLocaleDateString(undefined, {
     weekday: "long",

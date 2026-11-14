@@ -159,6 +159,9 @@ async def test_stored_fallback_text_is_sourced_to_wikipedia(client, container, d
     body = (await client.get(f"/api/v1/context/{ada.id}")).json()
 
     assert body["context"]["sources"] == [{"type": "wikipedia", "title": "Wikipedia", "url": WIKI}]
+    # It's Wikipedia's text, dated when it was stored, not "written now by AI".
+    assert body["context"]["source"] == "wikipedia_extract"
+    assert body["context"]["generated_at"][:10] == ada.created_at.isoformat()[:10]
 
 
 async def test_context_unknown_entity_404(client):
