@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     # On startup, backfill the newest N stories still missing a lead image or holding only
     # the feed's teaser (see jobs.enrich_articles). Complete stories are skipped. 0 = off.
     startup_enrich_limit: int = 100
+    # Publisher opt-out: comma-separated domains never ingested or listed, e.g.
+    # "ft.com,bloomberg.com". Remove already-stored stories with POST /admin/publishers/purge.
+    blocked_publishers: str = ""
 
     # Database
     database_url: str = "postgresql+asyncpg://sama4:sama4_dev@localhost:5432/sama4"

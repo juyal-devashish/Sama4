@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.clients.pages import PageContent, excerpt
 from app.container import Container
+from app.ingestion.blocklist import allowed_sources, is_blocked, parse_domains
 from app.ingestion.cleaner import CleanerService
 from app.ingestion.dedup import DeduplicationService
 from app.ingestion.fetcher import FetchedArticle, FetcherService
@@ -53,7 +54,10 @@ class IngestionPipeline:
         """`max_stories` > 0 ranks candidates and processes at most that many;
         0 processes every fresh candidate (tests, backfills)."""
         self.session_factory = session_factory
-        self.sources = sources if sources is not None else NEWS_SOURCES
+        self.blocked = parse_domains(container.settings.blocked_publishers)
+        self.sources = allowed_sources(
+            sources if sources is not None else NEWS_SOURCES, self.blocked
+        )
         self.max_stories = max_stories
         self.window = timedelta(hours=window_hours) if window_hours > 0 else None
         self.vectors = container.vectors
@@ -118,6 +122,8 @@ class IngestionPipeline:
                 for fetched in items:
                     if not fetched.url or fetched.url in seen_urls:
                         continue
+                    if is_blocked(fetched.url, self.blocked):
+                        continue  # publisher opted out
                     if self.window is not None:
                         if fetched.published_at is None:
                             continue  # can't tell if it's from today

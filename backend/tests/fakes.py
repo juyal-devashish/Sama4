@@ -39,9 +39,14 @@ class FakeVectors:
     available: bool = True
     matches: list[dict] = field(default_factory=list)
     upserts: list[dict] = field(default_factory=list)
+    deleted: list = field(default_factory=list)
 
     async def upsert_article(self, **kwargs) -> bool:
         self.upserts.append(kwargs)
+        return True
+
+    async def delete_articles(self, article_ids: list) -> bool:
+        self.deleted.extend(article_ids)
         return True
 
     async def search(self, query: str, top_k: int = 5) -> list[dict]:

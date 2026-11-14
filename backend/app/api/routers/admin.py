@@ -131,3 +131,29 @@ async def list_reports(
     """Readers' error reports on explanations, newest first. `?status=` (empty) lists all."""
     reports = await report_repo.list_recent(db, status=status_filter or None, limit=limit)
     return [ReportOut.model_validate(r, from_attributes=True) for r in reports]
+
+
+class PurgeResponse(BaseModel):
+    domain: str
+    matched: int
+    deleted: int
+    vectors_deleted: bool
+    sample_titles: list[str]
+    dry_run: bool
+
+
+@router.post("/publishers/purge", response_model=PurgeResponse)
+async def purge_publisher(c: ContainerDep, domain: str, dry_run: bool = True) -> PurgeResponse:
+    """Publisher opt-out: delete every stored story from `domain`, with its vectors.
+
+    Add the domain to BLOCKED_PUBLISHERS first so the next run doesn't bring it back.
+    Dry run by default; pass dry_run=false to delete (irreversible).
+    """
+    if "," in domain or not domain.strip():
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Give exactly one domain, e.g. ft.com.")
+    report = await jobs.purge_publisher(c, domain, dry_run=dry_run)
+    if report is None:
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "Purge failed; nothing was changed."
+        )
+    return PurgeResponse(**{**vars(report), "sample_titles": report.sample_titles or []})

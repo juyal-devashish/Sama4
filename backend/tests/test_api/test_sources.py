@@ -30,3 +30,25 @@ def test_groups_feeds_in_pipeline_order():
     assert [o.name for o in res.outlets] == ["A", "b"]
     assert [f.url for f in res.outlets[1].feeds] == ["https://b/1", "https://b/2"]
     assert res.feed_count == 3
+
+
+def test_blocked_publishers_are_not_listed():
+    feeds = [
+        {
+            "name": "FT",
+            "url": "https://www.ft.com/rss/home",
+            "category": "business",
+            "region": "world",
+        },
+        {
+            "name": "BBC",
+            "url": "https://feeds.bbci.co.uk/x",
+            "category": "world",
+            "region": "world",
+        },
+    ]
+
+    res = list_sources(feeds, blocked="ft.com")
+
+    assert [o.name for o in res.outlets] == ["BBC"]
+    assert res.feed_count == 1
