@@ -54,11 +54,13 @@ async def make_entity(
     article: Article | None = None,
     start: int = 0,
     short_context: str | None = None,
+    wikipedia_url: str | None = None,
 ) -> Entity:
     entity = Entity(
         canonical_name=name,
         entity_type=entity_type,
         short_context=short_context,
+        wikipedia_url=wikipedia_url,
         popularity_score=1,
     )
     db.add(entity)

@@ -12,6 +12,7 @@ from sqlalchemy import func, select
 
 from app.container import Container
 from app.database import async_session
+from app.ingestion.blocklist import is_blocked, parse_domains
 from app.ingestion.ner import is_aligned, locate_mention
 from app.ingestion.pipeline import IngestionPipeline
 from app.ingestion.summarizer import SummarizerService
@@ -276,3 +277,45 @@ async def fail_interrupted_predictions() -> int:
     except Exception:
         logger.error("Could not clean up interrupted predictions", exc_info=True)
         return 0
+
+
+@dataclass
+class PurgeReport:
+    domain: str
+    matched: int = 0
+    deleted: int = 0
+    vectors_deleted: bool = False
+    sample_titles: list[str] | None = None
+    dry_run: bool = True
+
+
+async def purge_publisher(
+    container: Container, domain: str, *, dry_run: bool = True
+) -> PurgeReport | None:
+    """Delete every stored story from `domain` (and its subdomains), with its vectors.
+
+    For publisher opt-outs: add the domain to BLOCKED_PUBLISHERS so nothing new comes in,
+    then run this. Dry run by default (reports what would go). None on failure.
+    """
+    domains = parse_domains(domain)
+    if len(domains) != 1:
+        return None
+    [clean] = domains
+    report = PurgeReport(domain=clean, dry_run=dry_run)
+    try:
+        async with async_session() as db:
+            candidates = await article_repo.list_with_url_containing(db, clean)
+            matches = [a for a in candidates if is_blocked(a.url, domains)]
+            report.matched = len(matches)
+            report.sample_titles = [a.title for a in matches[:20]]
+            if dry_run or not matches:
+                return report
+            ids = [a.id for a in matches]
+            report.deleted = await article_repo.delete_many(db, ids)
+            await db.commit()
+        report.vectors_deleted = await container.vectors.delete_articles(ids)
+        logger.info("Purged %d stories from %s", report.deleted, clean)
+        return report
+    except Exception:
+        logger.error("Publisher purge failed for %s", clean, exc_info=True)
+        return None

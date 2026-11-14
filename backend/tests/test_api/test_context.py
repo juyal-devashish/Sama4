@@ -1,6 +1,7 @@
 import uuid
 
 from app.clients.vectors import vector_id_for_article
+from app.repositories import explanations as explanation_repo
 from tests.factories import make_article, make_entity
 
 
@@ -102,6 +103,110 @@ async def test_fallback_text_is_not_cached_while_claude_is_down(client, containe
     body = (await client.get(f"/api/v1/context/{ada.id}")).json()
 
     assert body["context"]["text"] == "Ada was a mathematician."
+
+
+WIKI = "https://en.wikipedia.org/wiki/Ada_Lovelace"
+
+
+async def test_context_lists_the_sources_it_was_written_from(client, container, db_session):
+    async with db_session() as db:
+        article = await make_article(db, title="Engines")
+        ada = await make_entity(db, name="Ada", article=article, wikipedia_url=WIKI)
+        await db.commit()
+
+    first = (await client.get(f"/api/v1/context/{ada.id}")).json()["context"]
+    second = (await client.get(f"/api/v1/context/{ada.id}")).json()["context"]
+
+    assert first["sources"] == [
+        {"type": "article", "title": "Engines", "url": article.url, "revision_url": None},
+        {
+            "type": "wikipedia",
+            "title": "Wikipedia",
+            "url": WIKI,
+            "revision_url": "https://en.wikipedia.org/w/index.php?oldid=123456",
+        },
+    ]
+    assert second["cached"] is True
+    assert second["sources"] == first["sources"]
+
+
+async def test_each_written_explanation_is_recorded_with_its_provenance(
+    client, container, db_session
+):
+    async with db_session() as db:
+        article = await make_article(db, title="Engines")
+        ada = await make_entity(db, name="Ada", article=article, wikipedia_url=WIKI)
+        await db.commit()
+    container.llm.default = "Ada was a mathematician."
+
+    await client.get(f"/api/v1/context/{ada.id}")
+    await client.get(f"/api/v1/context/{ada.id}")  # cache hit: nothing new to record
+
+    async with db_session() as db:
+        records = await explanation_repo.list_for_entity(db, ada.id)
+    assert len(records) == 1
+    assert records[0].text == "Ada was a mathematician."
+    assert records[0].article_id == article.id
+    assert (records[0].wikipedia_title, records[0].wikipedia_revision_id) == (
+        "Ada_Lovelace",
+        123456,
+    )
+
+
+async def test_declined_explanation_is_not_recorded(client, container, db_session):
+    async with db_session() as db:
+        ada = await make_entity(db, name="Ada")
+        await db.commit()
+    container.llm.default = ""
+
+    await client.get(f"/api/v1/context/{ada.id}")
+
+    async with db_session() as db:
+        assert await explanation_repo.list_for_entity(db, ada.id) == []
+
+
+async def test_context_omits_wikipedia_when_no_extract_was_used(client, container, db_session):
+    async with db_session() as db:
+        ada = await make_entity(db, name="Ada", wikipedia_url=WIKI)
+        await db.commit()
+    container.wikimedia.extract = None
+
+    body = (await client.get(f"/api/v1/context/{ada.id}")).json()
+
+    assert body["context"]["sources"] == []
+
+
+async def test_old_cache_entries_fall_back_to_the_wikipedia_link(client, container, db_session):
+    async with db_session() as db:
+        ada = await make_entity(db, name="Ada", wikipedia_url=WIKI)
+        await db.commit()
+    await container.cache.set(
+        f"context:entity:{ada.id}",
+        {"text": "Old text.", "generated_at": "2026-11-01T00:00:00+00:00"},
+        ttl=60,
+    )
+
+    body = (await client.get(f"/api/v1/context/{ada.id}")).json()
+
+    assert body["context"]["sources"] == [
+        {"type": "wikipedia", "title": "Wikipedia", "url": WIKI, "revision_url": None}
+    ]
+
+
+async def test_stored_fallback_text_is_sourced_to_wikipedia(client, container, db_session):
+    async with db_session() as db:
+        ada = await make_entity(db, name="Ada", short_context="Stored.", wikipedia_url=WIKI)
+        await db.commit()
+    container.llm.available = False
+
+    body = (await client.get(f"/api/v1/context/{ada.id}")).json()
+
+    assert body["context"]["sources"] == [
+        {"type": "wikipedia", "title": "Wikipedia", "url": WIKI, "revision_url": None}
+    ]
+    # It's Wikipedia's text, dated when it was stored, not "written now by AI".
+    assert body["context"]["source"] == "wikipedia_extract"
+    assert body["context"]["generated_at"][:10] == ada.created_at.isoformat()[:10]
 
 
 async def test_context_unknown_entity_404(client):

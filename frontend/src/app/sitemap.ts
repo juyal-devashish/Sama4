@@ -18,6 +18,7 @@ const STATIC_PATHS = [
   "/search",
   "/about",
   "/sources",
+  "/how-explanations-work",
   "/privacy",
 ];
 

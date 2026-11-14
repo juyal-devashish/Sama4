@@ -3,22 +3,24 @@
  * Request/response types live in src/types/index.ts and mirror backend/app/schemas/.
  */
 import type {
-  FeedResponse,
-  ArticleDetail,
-  ContextResponse,
-  ReferenceResponse,
-  ExplainRequest,
-  ExplainResponse,
-  PredictionDetail,
-  PredictionSummary,
-  PredictionStatus,
-  PredictionChatRequest,
-  PredictionChatResponse,
   AgentInterviewRequest,
   AgentInterviewResponse,
+  ArticleDetail,
+  ContextResponse,
+  ExplainRequest,
+  ExplainResponse,
+  FeedResponse,
+  PredictionChatRequest,
+  PredictionChatResponse,
+  PredictionDetail,
+  PredictionStatus,
+  PredictionSummary,
+  ReferenceResponse,
+  ReportRequest,
+  ReportResponse,
+  SourcesResponse,
   TrendingPrediction,
   WaitlistResponse,
-  SourcesResponse,
 } from "@/types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -112,6 +114,13 @@ export const api = {
     return fetchAPI<ExplainResponse>(apiPath("/context/explain"), {
       method: "POST",
       body: request,
+    });
+  },
+
+  reportExplanation(entityId: string, report: ReportRequest) {
+    return fetchAPI<ReportResponse>(apiPath(`/context/${entityId}/reports`), {
+      method: "POST",
+      body: report,
     });
   },
 

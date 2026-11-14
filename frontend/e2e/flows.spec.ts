@@ -137,9 +137,8 @@ test("publisher text and Samā4-generated text are labelled", async ({ page }) =
     /^The opening of the article as published/,
   );
   await page.locator(".term").first().click();
-  await expect(
-    page.getByText("Written by Samā4's AI from Wikipedia and this story."),
-  ).toBeVisible();
+  // Names its sources (none in these fixtures) and the date it was written.
+  await expect(page.getByText(/^Written by Samā4's AI.*, as of /)).toBeVisible();
 });
 
 test("the old Announcements link lands on Early access, with a way back to reading", async ({

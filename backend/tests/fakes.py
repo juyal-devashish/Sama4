@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from app.clients.cache import Cache
 from app.clients.mirofish import MirofishClient
 from app.clients.pages import PageContent
+from app.clients.wikimedia import WikipediaPage
 from app.config import Settings
 from app.container import Container
 
@@ -38,9 +39,14 @@ class FakeVectors:
     available: bool = True
     matches: list[dict] = field(default_factory=list)
     upserts: list[dict] = field(default_factory=list)
+    deleted: list = field(default_factory=list)
 
     async def upsert_article(self, **kwargs) -> bool:
         self.upserts.append(kwargs)
+        return True
+
+    async def delete_articles(self, article_ids: list) -> bool:
+        self.deleted.extend(article_ids)
         return True
 
     async def search(self, query: str, top_k: int = 5) -> list[dict]:
@@ -50,12 +56,21 @@ class FakeVectors:
 @dataclass
 class FakeWikimedia:
     extract: str | None = "A short Wikipedia extract."
+    revision_id: int | None = 123456
 
     async def search_wikidata(self, text: str) -> str | None:
         return None
 
     async def get_wikipedia_url(self, wikidata_id: str) -> str | None:
         return None
+
+    async def get_wikipedia_page(self, url: str) -> WikipediaPage | None:
+        if not self.extract:
+            return None
+        title = url.split("/wiki/")[-1] if url else ""
+        return WikipediaPage(
+            extract=self.extract, title=title, page_id=1, revision_id=self.revision_id
+        )
 
     async def get_wikipedia_extract(self, url: str) -> str | None:
         return self.extract

@@ -271,3 +271,15 @@ async def test_pipeline_reads_the_article_page_for_image_excerpt_and_reading_tim
     assert two.image_url == "https://cdn.test/feed-thumb.jpg"
     assert two.cleaned_content == BODIES[1]
     assert container.pages.calls == ["https://news.test/story-1", "https://news.test/story-2"]
+
+
+async def test_blocked_publishers_feeds_and_items_are_skipped(container):
+    container.settings.blocked_publishers = "news.test, feeds.blocked.test"
+    pipeline = _pipeline(container, [_fetched(1)])
+    blocked_feed = {"name": "Blocked", "url": "https://feeds.blocked.test/rss", "category": "tech"}
+    pipeline_with_blocked_feed = IngestionPipeline(
+        container, async_session, sources=[SOURCE, blocked_feed]
+    )
+
+    assert await pipeline.run() == 0  # the item's URL is on news.test
+    assert pipeline_with_blocked_feed.sources == [SOURCE]

@@ -8,10 +8,11 @@ import { useExplain } from "@/hooks/useExplain";
 import { usePrediction } from "@/hooks/usePrediction";
 import { EntityBadge } from "@/components/ui/entity-badge";
 import { Tip } from "@/components/onboarding/Tip";
+import { ReportError } from "@/components/context/ReportError";
 import type { SelectedTerm } from "@/components/reader/ArticleText";
 import { uniqueEntities } from "@/lib/highlight";
-import { ENTITY_LABELS, ENTITY_TYPES, entityColor, entityKind } from "@/lib/utils";
-import type { ArticleDetail, ExplainResponse } from "@/types";
+import { ENTITY_LABELS, ENTITY_TYPES, entityColor, entityKind, formatShortDate } from "@/lib/utils";
+import type { ArticleDetail, ContextData, ContextSource, ExplainResponse } from "@/types";
 import { splitCitations, type CitationTag } from "@/lib/citations";
 
 interface Props {
@@ -88,9 +89,14 @@ export function ContextPanel({
                 <p className="mt-4 text-[16.5px] leading-[1.6] text-foreground">
                   {data.context.text}
                 </p>
-                <p className="mt-2 font-ui text-[11.5px] text-text-tertiary">
-                  Written by Samā4&apos;s AI from Wikipedia and this story.
-                </p>
+                <ExplanationSources context={data.context} />
+                <ReportError
+                  key={term.id}
+                  entityId={data.entity.id}
+                  entityName={data.entity.name}
+                  articleId={articleId}
+                  explanation={data.context.text}
+                />
               </>
             ) : (
               <div className="mt-4 text-[15px] leading-relaxed text-text-secondary">
@@ -106,7 +112,7 @@ export function ContextPanel({
               </div>
             )}
 
-            {data.entity.wikipedia_url && (
+            {data.entity.wikipedia_url && !hasWikipedia(data.context.sources) && (
               <a
                 href={data.entity.wikipedia_url}
                 target="_blank"
@@ -194,6 +200,93 @@ export function ContextPanel({
         tip={followUpTip}
       />
     </div>
+  );
+}
+
+const hasWikipedia = (sources: ContextSource[] = []) =>
+  sources.some((s) => s.type === "wikipedia" && s.url);
+
+function sourceLabel(s: ContextSource): string {
+  if (s.type === "wikipedia") return "Wikipedia";
+  if (s.type === "article") return s.title ? `“${s.title}”` : "a news story";
+  return s.title ?? s.type;
+}
+
+/**
+ * "Written by Samā4's AI from <story> and Wikipedia, as of Nov 11, 2026." Each source is
+ * linked when it has a URL. The stored fallback is Wikipedia's own text, and says so.
+ */
+function ExplanationSources({ context }: { context: ContextData }) {
+  const fromWikipedia = context.source === "wikipedia_extract";
+  const sources = fromWikipedia ? [] : (context.sources ?? []);
+  const date = formatShortDate(context.generated_at);
+  const wiki = context.sources?.find((s) => s.type === "wikipedia")?.url;
+  return (
+    <p className="mt-2 font-ui text-[11.5px] leading-snug text-text-tertiary">
+      {fromWikipedia ? (
+        <>
+          From{" "}
+          {wiki ? (
+            <a
+              href={wiki}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-ui text-accent-secondary"
+            >
+              Wikipedia
+              <span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          ) : (
+            "Wikipedia"
+          )}
+        </>
+      ) : (
+        <>Written by Samā4&apos;s AI{sources.length > 0 && " from "}</>
+      )}
+      {sources.map((s, i) => (
+        <span key={`${s.type}-${i}`}>
+          {i > 0 && (i === sources.length - 1 ? " and " : ", ")}
+          {s.url ? (
+            <a
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-ui text-accent-secondary"
+            >
+              {sourceLabel(s)}
+              <span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          ) : (
+            sourceLabel(s)
+          )}
+          {s.revision_url && (
+            <>
+              {" "}
+              (
+              <a
+                href={s.revision_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="link-ui text-accent-secondary"
+              >
+                version used
+                <span className="sr-only"> of the Wikipedia article (opens in a new tab)</span>
+              </a>
+              )
+            </>
+          )}
+        </span>
+      ))}
+      {date && (
+        <>
+          , as of{" "}
+          <time dateTime={context.generated_at} suppressHydrationWarning>
+            {date}
+          </time>
+        </>
+      )}
+      .
+    </p>
   );
 }
 

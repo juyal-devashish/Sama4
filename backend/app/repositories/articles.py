@@ -176,3 +176,35 @@ async def list_entities_by_popularity(db: AsyncSession, article_id: uuid.UUID) -
         .order_by(Entity.popularity_score.desc())
     )
     return rows.scalars().all()
+
+
+async def list_with_url_containing(db: AsyncSession, needle: str) -> list[Article]:
+    """Articles whose URL contains `needle` (a domain); callers match the host exactly."""
+    return list(
+        (await db.execute(select(Article).where(Article.url.contains(needle)))).scalars().all()
+    )
+
+
+async def delete_many(db: AsyncSession, article_ids: list[uuid.UUID]) -> int:
+    """Delete articles and every row that hangs off them. Returns articles deleted.
+
+    Child rows are deleted explicitly rather than trusting ON DELETE CASCADE, which
+    SQLite (tests, local) doesn't enforce by default.
+    """
+    from app.models.prediction import AgentPerspective, Prediction
+    from app.models.user import UserReadingHistory
+
+    if not article_ids:
+        return 0
+    prediction_ids = select(Prediction.id).where(Prediction.article_id.in_(article_ids))
+    await db.execute(
+        delete(AgentPerspective).where(AgentPerspective.prediction_id.in_(prediction_ids))
+    )
+    await db.execute(delete(Prediction).where(Prediction.article_id.in_(article_ids)))
+    await db.execute(
+        delete(UserReadingHistory).where(UserReadingHistory.article_id.in_(article_ids))
+    )
+    await db.execute(delete(ArticleEntity).where(ArticleEntity.article_id.in_(article_ids)))
+    result = await db.execute(delete(Article).where(Article.id.in_(article_ids)))
+    await db.flush()
+    return result.rowcount or 0

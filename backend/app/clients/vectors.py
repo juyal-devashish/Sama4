@@ -152,6 +152,22 @@ class VectorStore:
         )
         return True
 
+    async def delete_articles(self, article_ids: list[uuid.UUID]) -> bool:
+        """Remove articles' vectors. Returns False if Pinecone is unavailable or fails."""
+        if not article_ids:
+            return True
+        index = await asyncio.to_thread(self._get_index)
+        if index is None:
+            return False
+        try:
+            await asyncio.to_thread(
+                index.delete, ids=[vector_id_for_article(a) for a in article_ids]
+            )
+        except Exception:
+            logger.error("Pinecone delete failed for %d articles", len(article_ids), exc_info=True)
+            return False
+        return True
+
     async def search(self, query: str, top_k: int = 5) -> list[dict]:
         """Semantic search. Returns [{"id", "score", "metadata"}, ...]; [] if unavailable."""
         index = await asyncio.to_thread(self._get_index)
