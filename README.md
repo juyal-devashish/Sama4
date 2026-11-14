@@ -30,7 +30,7 @@ News assumes you already know the backstory. A single headline can lean on a per
 
 | | |
 |---|---|
-| 📰 **Reads the news for you** | Once a night it pulls stories from 11 outlets (NYT, WSJ, Washington Post, Reuters, BBC, Al Jazeera, Nature and more), removes near-duplicate stories, and writes a short, neutral summary of each. |
+| 📰 **Reads the news for you** | Once a night it pulls stories from 10 outlets (PBS NewsHour, NYT, BBC, Al Jazeera, The Economist, The Hindu, Indian Express, Bloomberg, Financial Times and MIT Technology Review), removes near-duplicate stories, and writes a short, neutral summary of each. |
 | 🔎 **Finds what you might not know** | A two-stage pipeline picks out the terms a general reader would stumble on. Not just names like "Nvidia", but jargon and events like "quantitative tightening" or "the legal fight over the arch". |
 | 💡 **Explains in place** | Click any highlighted term and a side panel explains it **in the context of this story**. The explanation is grounded in Wikipedia and in the article itself, and links to related terms and related coverage. |
 | 💬 **Answers follow-ups** | Ask "why does this matter?" about any term and get a direct answer that draws on the article. |

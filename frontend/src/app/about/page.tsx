@@ -19,7 +19,7 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
       <p>
         A news reader that explains the people, places, organizations and ideas a story takes for
         granted, right beside the text. Each night it picks the day&apos;s most consequential
-        stories from more than 20 outlets and highlights what a reader might not know.
+        stories from ten outlets and highlights what a reader might not know.
       </p>
     ),
   },

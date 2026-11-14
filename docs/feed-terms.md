@@ -1,7 +1,12 @@
 # Feed terms review
 
-Checked 2026-11-13 against every outlet in `backend/app/ingestion/sources.py` (21 outlets,
-28 feeds). Each outlet's terms of use, RSS terms where they exist, and robots.txt were read
+Checked 2026-11-13 against the 21 outlets the pipeline read then.
+
+> **Update, 2026-11-13:** the feed list is now ten outlets: PBS NewsHour, NYT, BBC, Al
+> Jazeera, The Economist, The Hindu, Indian Express, Bloomberg, Financial Times and MIT
+> Technology Review (14 feeds). Eight are reviewed below. **PBS NewsHour and The
+> Economist are new and haven't been reviewed yet.** Rows for outlets no longer read are
+> kept for reference. Each outlet's terms of use, RSS terms where they exist, and robots.txt were read
 directly. **This is a reading of the terms, not legal advice.** Re-check before any
 commercial launch, and whenever a feed is added.
 
