@@ -54,6 +54,12 @@ def related_article_briefs(matches: list[dict]) -> list[RelatedArticleBrief]:
     return briefs
 
 
+def wikipedia_source(entity: Entity) -> ContextSource | None:
+    if not entity.wikipedia_url:
+        return None
+    return ContextSource(type="wikipedia", title="Wikipedia", url=entity.wikipedia_url)
+
+
 EXCERPT_RADIUS = 300  # characters of article text kept on each side of a mention
 FOLLOWUP_ARTICLE_CHARS = 6000  # article text given to follow-up answers
 
@@ -108,21 +114,38 @@ class ContextService:
         """
         cached = await self.cache.get(self.cache_key(entity))
         if cached:
+            if "sources" in cached:
+                sources = [ContextSource(**s) for s in cached["sources"]]
+            else:  # cached before sources were recorded: Wikipedia is the best we know
+                sources = [s for s in [wikipedia_source(entity)] if s]
             context = ContextData(
-                text=cached["text"], generated_at=cached["generated_at"], cached=True
+                text=cached["text"],
+                generated_at=cached["generated_at"],
+                cached=True,
+                sources=sources,
             )
         else:
-            text = await self._generate_context(entity, db) if self.llm.available else ""
+            text, sources = "", []
+            if self.llm.available:
+                text, sources = await self._generate_context(entity, db)
             now = datetime.now(UTC)
             if text:
                 await self.cache.set(
                     self.cache_key(entity),
-                    {"text": text, "generated_at": now.isoformat()},
+                    {
+                        "text": text,
+                        "generated_at": now.isoformat(),
+                        "sources": [s.model_dump() for s in sources],
+                    },
                     ttl=self.context_ttl,
                 )
-            # Claude unavailable or declined: fall back to the linker's short description,
-            # uncached, so the real explanation appears as soon as Claude is back.
-            context = ContextData(text=text or entity.short_context or "", generated_at=now)
+            else:
+                # Claude unavailable or declined: fall back to the linker's short description
+                # (a Wikipedia extract), uncached, so the real explanation appears as soon as
+                # Claude is back.
+                text = entity.short_context or ""
+                sources = [s for s in [wikipedia_source(entity)] if s and text]
+            context = ContextData(text=text, generated_at=now, sources=sources)
 
         related_entities = [
             RelatedEntity(id=e.id, name=e.canonical_name, type=e.entity_type)
@@ -139,15 +162,24 @@ class ContextService:
             related_articles=related_articles,
         )
 
-    async def _generate_context(self, entity: Entity, db: AsyncSession) -> str:
+    async def _generate_context(
+        self, entity: Entity, db: AsyncSession
+    ) -> tuple[str, list[ContextSource]]:
+        """Claude's explanation, and the sources it was given (only those that had content)."""
+        sources: list[ContextSource] = []
         wikipedia_extract = await self.wikimedia.get_wikipedia_extract(entity.wikipedia_url or "")
+        if wikipedia_extract and (wiki := wikipedia_source(entity)):
+            sources.append(wiki)
         graph_context = await self._mirofish_graph_context(entity)
+        if graph_context:
+            sources.append(ContextSource(type="graph", title="Samā4's knowledge graph"))
         article_title, excerpt = None, None
         mention = await entity_repo.latest_mention(db, entity)
         if mention is not None:
             article, ae = mention
             article_title = article.title
             excerpt = mention_excerpt(article.cleaned_content or article.raw_content or "", ae)
+            sources.insert(0, ContextSource(type="article", title=article.title, url=article.url))
         system, prompt = entity_context_prompt(
             name=entity.canonical_name,
             entity_type=entity.entity_type,
@@ -156,7 +188,8 @@ class ContextService:
             background=wikipedia_extract,
             related_news=graph_context,
         )
-        return await self.llm.generate(prompt, effort="low", system=system)
+        text = await self.llm.generate(prompt, effort="low", system=system)
+        return text, sources
 
     async def answer_followup(
         self, entity: Entity, article: Article, question: str, db: AsyncSession

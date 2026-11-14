@@ -93,11 +93,20 @@ export interface EntityInfo {
   wikipedia_url?: string;
 }
 
+/** Where an explanation or answer came from. type: article | wikipedia | graph | explanation | outlook */
+export interface ContextSource {
+  type: string;
+  title?: string;
+  url?: string;
+}
+
 export interface ContextData {
   text: string;
   generated_at: string;
   source: string;
   cached: boolean;
+  /** What the explanation was written from. */
+  sources: ContextSource[];
 }
 
 export interface ContextResponse {
@@ -116,7 +125,7 @@ export interface ExplainRequest {
 export interface ExplainResponse {
   entity: EntityInfo;
   explanation: string;
-  sources: { type: string; title?: string; url?: string }[];
+  sources: ContextSource[];
   confidence: number;
 }
 

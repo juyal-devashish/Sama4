@@ -12,11 +12,19 @@ class EntityInfo(BaseModel):
     wikipedia_url: str | None = None
 
 
+class ContextSource(BaseModel):
+    type: str  # "article" | "wikipedia" | "graph" | "explanation" | "outlook"
+    title: str | None = None
+    url: str | None = None
+
+
 class ContextData(BaseModel):
     text: str
     generated_at: datetime
     source: str = "rag_pipeline"
     cached: bool = False
+    # What the explanation was written from, so the reader can check it.
+    sources: list[ContextSource] = []
 
 
 class RelatedEntity(BaseModel):
@@ -41,12 +49,6 @@ class ExplainRequest(BaseModel):
     entity_id: uuid.UUID
     article_id: uuid.UUID
     question: str
-
-
-class ContextSource(BaseModel):
-    type: str
-    title: str | None = None
-    url: str | None = None
 
 
 class ExplainResponse(BaseModel):

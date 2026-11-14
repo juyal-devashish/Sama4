@@ -11,7 +11,7 @@ import { Tip } from "@/components/onboarding/Tip";
 import type { SelectedTerm } from "@/components/reader/ArticleText";
 import { uniqueEntities } from "@/lib/highlight";
 import { ENTITY_LABELS, ENTITY_TYPES, entityColor, entityKind } from "@/lib/utils";
-import type { ArticleDetail, ExplainResponse } from "@/types";
+import type { ArticleDetail, ContextSource, ExplainResponse } from "@/types";
 import { splitCitations, type CitationTag } from "@/lib/citations";
 
 interface Props {
@@ -88,9 +88,7 @@ export function ContextPanel({
                 <p className="mt-4 text-[16.5px] leading-[1.6] text-foreground">
                   {data.context.text}
                 </p>
-                <p className="mt-2 font-ui text-[11.5px] text-text-tertiary">
-                  Written by Samā4&apos;s AI from Wikipedia and this story.
-                </p>
+                <ExplanationSources sources={data.context.sources} />
               </>
             ) : (
               <div className="mt-4 text-[15px] leading-relaxed text-text-secondary">
@@ -106,7 +104,7 @@ export function ContextPanel({
               </div>
             )}
 
-            {data.entity.wikipedia_url && (
+            {data.entity.wikipedia_url && !hasWikipedia(data.context.sources) && (
               <a
                 href={data.entity.wikipedia_url}
                 target="_blank"
@@ -194,6 +192,43 @@ export function ContextPanel({
         tip={followUpTip}
       />
     </div>
+  );
+}
+
+const hasWikipedia = (sources: ContextSource[] = []) =>
+  sources.some((s) => s.type === "wikipedia" && s.url);
+
+function sourceLabel(s: ContextSource): string {
+  if (s.type === "wikipedia") return "Wikipedia";
+  if (s.type === "article") return s.title ? `“${s.title}”` : "a news story";
+  return s.title ?? s.type;
+}
+
+/** "Written by Samā4's AI from: <story> · Wikipedia", each linked when it has a URL. */
+function ExplanationSources({ sources = [] }: { sources?: ContextSource[] }) {
+  return (
+    <p className="mt-2 font-ui text-[11.5px] leading-snug text-text-tertiary">
+      Written by Samā4&apos;s AI{sources.length > 0 ? " from " : "."}
+      {sources.map((s, i) => (
+        <span key={`${s.type}-${i}`}>
+          {i > 0 && (i === sources.length - 1 ? " and " : ", ")}
+          {s.url ? (
+            <a
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-ui text-accent-secondary"
+            >
+              {sourceLabel(s)}
+              <span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          ) : (
+            sourceLabel(s)
+          )}
+        </span>
+      ))}
+      {sources.length > 0 && "."}
+    </p>
   );
 }
 

@@ -104,6 +104,63 @@ async def test_fallback_text_is_not_cached_while_claude_is_down(client, containe
     assert body["context"]["text"] == "Ada was a mathematician."
 
 
+WIKI = "https://en.wikipedia.org/wiki/Ada_Lovelace"
+
+
+async def test_context_lists_the_sources_it_was_written_from(client, container, db_session):
+    async with db_session() as db:
+        article = await make_article(db, title="Engines")
+        ada = await make_entity(db, name="Ada", article=article, wikipedia_url=WIKI)
+        await db.commit()
+
+    first = (await client.get(f"/api/v1/context/{ada.id}")).json()["context"]
+    second = (await client.get(f"/api/v1/context/{ada.id}")).json()["context"]
+
+    assert first["sources"] == [
+        {"type": "article", "title": "Engines", "url": article.url},
+        {"type": "wikipedia", "title": "Wikipedia", "url": WIKI},
+    ]
+    assert second["cached"] is True
+    assert second["sources"] == first["sources"]
+
+
+async def test_context_omits_wikipedia_when_no_extract_was_used(client, container, db_session):
+    async with db_session() as db:
+        ada = await make_entity(db, name="Ada", wikipedia_url=WIKI)
+        await db.commit()
+    container.wikimedia.extract = None
+
+    body = (await client.get(f"/api/v1/context/{ada.id}")).json()
+
+    assert body["context"]["sources"] == []
+
+
+async def test_old_cache_entries_fall_back_to_the_wikipedia_link(client, container, db_session):
+    async with db_session() as db:
+        ada = await make_entity(db, name="Ada", wikipedia_url=WIKI)
+        await db.commit()
+    await container.cache.set(
+        f"context:entity:{ada.id}",
+        {"text": "Old text.", "generated_at": "2026-11-01T00:00:00+00:00"},
+        ttl=60,
+    )
+
+    body = (await client.get(f"/api/v1/context/{ada.id}")).json()
+
+    assert body["context"]["sources"] == [{"type": "wikipedia", "title": "Wikipedia", "url": WIKI}]
+
+
+async def test_stored_fallback_text_is_sourced_to_wikipedia(client, container, db_session):
+    async with db_session() as db:
+        ada = await make_entity(db, name="Ada", short_context="Stored.", wikipedia_url=WIKI)
+        await db.commit()
+    container.llm.available = False
+
+    body = (await client.get(f"/api/v1/context/{ada.id}")).json()
+
+    assert body["context"]["sources"] == [{"type": "wikipedia", "title": "Wikipedia", "url": WIKI}]
+
+
 async def test_context_unknown_entity_404(client):
     response = await client.get(f"/api/v1/context/{uuid.uuid4()}")
     assert response.status_code == 404

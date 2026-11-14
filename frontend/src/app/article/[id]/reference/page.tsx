@@ -177,7 +177,7 @@ function ReferenceRow({
             rel="noopener noreferrer"
             className="label-ui link-ui inline-flex items-center gap-1 font-bold text-accent-secondary"
           >
-            Read more on Wikipedia <ArrowUpRight size={12} />
+            {explained ? "Source: Wikipedia" : "Read more on Wikipedia"} <ArrowUpRight size={12} />
           </a>
         </div>
       )}
