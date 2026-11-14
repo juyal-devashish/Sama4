@@ -49,7 +49,9 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
       <p>
         Under every explanation, Samā4 lists what it was written from, with links: the story and the
         Wikipedia article. A source is listed only if its text was actually given to Claude. The
-        date shows when the explanation was written.
+        date shows when the explanation was written, and &ldquo;version used&rdquo; opens the exact
+        revision of the Wikipedia article, since Wikipedia changes. Samā4 keeps a permanent record
+        of the story and Wikipedia revision behind every explanation it writes.
       </p>
     ),
   },
