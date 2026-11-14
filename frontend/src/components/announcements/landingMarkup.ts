@@ -74,7 +74,7 @@ export const LANDING_MARKUP = `<section class="hero">
       <div class="value-card">
         <div class="value-card-icon">◉</div>
         <h3 class="value-card-title">Every source, one feed</h3>
-        <p class="value-card-desc">One feed from more than 20 outlets, with the same story told twice shown once.</p>
+        <p class="value-card-desc">One feed from ten outlets, with the same story told twice shown once.</p>
       </div>
       <div class="value-card">
         <div class="value-card-icon">◎</div>
@@ -102,7 +102,7 @@ export const LANDING_MARKUP = `<section class="hero">
         <span class="step-num"></span>
         <div class="step-body">
           <h3>Open today&rsquo;s edition</h3>
-          <p>Each night Samā4 reads the day&rsquo;s news from more than 20 outlets, picks the most consequential stories and writes a short, neutral summary of each.</p>
+          <p>Each night Samā4 reads the day&rsquo;s news from ten outlets, picks the most consequential stories and writes a short, neutral summary of each.</p>
         </div>
       </div>
       <div class="step">
@@ -153,7 +153,7 @@ export const LANDING_MARKUP = `<section class="hero">
       <div class="feature-item">
         <div class="feature-icon">◈</div>
         <h3 class="feature-title">A nightly edition</h3>
-        <p class="feature-desc">Each night Samā4 picks the day&rsquo;s most consequential stories from more than 20 outlets, with duplicates removed.</p>
+        <p class="feature-desc">Each night Samā4 picks the day&rsquo;s most consequential stories from ten outlets, with duplicates removed.</p>
       </div>
       <div class="feature-item">
         <div class="feature-icon">≋</div>
