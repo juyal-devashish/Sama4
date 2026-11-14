@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Flag } from "lucide-react";
 import { useReportExplanation } from "@/hooks/useReportExplanation";
 import { ApiError } from "@/lib/api";
@@ -45,13 +46,21 @@ export function ReportError({
 
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="label-ui link-ui mt-3 inline-flex items-center gap-1.5 text-text-tertiary hover:text-foreground"
-      >
-        <Flag size={11} aria-hidden /> Report an error
-      </button>
+      <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="label-ui link-ui inline-flex items-center gap-1.5 text-text-tertiary hover:text-foreground"
+        >
+          <Flag size={11} aria-hidden /> Report an error
+        </button>
+        <Link
+          href="/how-explanations-work"
+          className="label-ui link-ui text-text-tertiary hover:text-foreground"
+        >
+          How explanations are made
+        </Link>
+      </p>
     );
   }
 

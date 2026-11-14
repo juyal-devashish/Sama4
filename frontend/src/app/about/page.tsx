@@ -47,7 +47,11 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
           </Link>
           ). Near-duplicate stories are merged with MinHash. Names, places and ideas are found with
           spaCy and linked to Wikidata and Wikipedia. Pinecone and Redis handle retrieval and
-          caching, and Anthropic&apos;s Claude writes the summaries and explanations.
+          caching, and Anthropic&apos;s Claude writes the summaries and explanations (
+          <Link href="/how-explanations-work" className={LINK}>
+            how explanations are made
+          </Link>
+          ).
         </p>
         <p>
           The web app is Next.js; the API and the nightly pipeline are Python (FastAPI). How your
