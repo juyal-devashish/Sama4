@@ -167,4 +167,4 @@ Interactive OpenAPI docs are served at `/docs` on any running backend.
 
 ## Team
 
-Built by **Devashish Juyal**, **Shreyash Methi** and **Shaivya Saini**.
+Built by **Devashish Juyal** and **Shreyash Methi**.
