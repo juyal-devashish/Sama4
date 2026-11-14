@@ -116,6 +116,20 @@ export interface ContextResponse {
   related_articles: { id: string; title: string }[];
 }
 
+export type ReportReason = "wrong_thing" | "wrong_fact" | "outdated" | "other";
+
+export interface ReportRequest {
+  reason: ReportReason;
+  article_id?: string;
+  /** The explanation exactly as the reader saw it. */
+  explanation_text?: string;
+  note?: string;
+}
+
+export interface ReportResponse {
+  status: "received";
+}
+
 export interface ExplainRequest {
   entity_id: string;
   article_id: string;

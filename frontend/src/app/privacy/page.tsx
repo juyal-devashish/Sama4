@@ -5,7 +5,7 @@ export const metadata = {
   title: "Privacy",
   alternates: { canonical: "/privacy" },
   description:
-    "How Samā4 handles your data, in plain terms: the waitlist, what stays on your device, error reports, and no tracking.",
+    "How Samā4 handles your data, in plain terms: the waitlist, what stays on your device, reports you send, error reports, and no tracking.",
 };
 
 const SECTIONS: { title: string; body: React.ReactNode }[] = [
@@ -52,6 +52,17 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
         question and the story text are sent to Samā4&apos;s server and to Anthropic&apos;s Claude,
         which writes the answer. Samā4 doesn&apos;t save your questions to its database. Outlooks
         are saved and shown to other readers, but they contain no information about you.
+      </p>
+    ),
+  },
+  {
+    title: "Reporting a wrong explanation",
+    body: (
+      <p>
+        If you report an explanation as wrong, we save the term, the story, the explanation you saw,
+        the reason you picked and any details you typed, so we can fix it. We don&apos;t save your
+        IP address or anything else that identifies you with the report. Don&apos;t put personal
+        information in the details box.
       </p>
     ),
   },

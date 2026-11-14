@@ -8,6 +8,8 @@ from pydantic import BaseModel
 from app.api.deps import AdminOnly, ContainerDep, DbSession
 from app.ingestion import canonicalize as entity_cleanup
 from app.ingestion import jobs
+from app.repositories import reports as report_repo
+from app.schemas.context import ReportOut
 
 logger = logging.getLogger(__name__)
 
@@ -118,3 +120,14 @@ async def canonicalize_entities(
             status.HTTP_500_INTERNAL_SERVER_ERROR, "Entity cleanup failed; nothing was changed."
         ) from exc
     return EntityCleanupResponse(**vars(report))
+
+
+@router.get("/reports", response_model=list[ReportOut])
+async def list_reports(
+    db: DbSession,
+    status_filter: str | None = Query("open", alias="status"),
+    limit: int = Query(100, ge=1, le=500),
+) -> list[ReportOut]:
+    """Readers' error reports on explanations, newest first. `?status=` (empty) lists all."""
+    reports = await report_repo.list_recent(db, status=status_filter or None, limit=limit)
+    return [ReportOut.model_validate(r, from_attributes=True) for r in reports]

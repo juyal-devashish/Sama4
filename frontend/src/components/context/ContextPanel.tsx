@@ -8,6 +8,7 @@ import { useExplain } from "@/hooks/useExplain";
 import { usePrediction } from "@/hooks/usePrediction";
 import { EntityBadge } from "@/components/ui/entity-badge";
 import { Tip } from "@/components/onboarding/Tip";
+import { ReportError } from "@/components/context/ReportError";
 import type { SelectedTerm } from "@/components/reader/ArticleText";
 import { uniqueEntities } from "@/lib/highlight";
 import { ENTITY_LABELS, ENTITY_TYPES, entityColor, entityKind, formatShortDate } from "@/lib/utils";
@@ -89,6 +90,13 @@ export function ContextPanel({
                   {data.context.text}
                 </p>
                 <ExplanationSources context={data.context} />
+                <ReportError
+                  key={term.id}
+                  entityId={data.entity.id}
+                  entityName={data.entity.name}
+                  articleId={articleId}
+                  explanation={data.context.text}
+                />
               </>
             ) : (
               <div className="mt-4 text-[15px] leading-relaxed text-text-secondary">
