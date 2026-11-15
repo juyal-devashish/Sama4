@@ -14,16 +14,18 @@ Verdicts: **Real** (seen in the code), **Verify** (likely real, but the componen
 
 ## Decisions needed before the batches that use them
 
-| # | Question | Tasks | My recommendation |
+All eight were decided on Nov 14, 2026.
+
+| # | Question | Tasks | Decision |
 |---|---|---|---|
-| D1 | Where do About, Sources, How explanations work and Privacy go, since there is no footer? | T007, T008 | A small link group at the bottom of the Sidebar rail on desktop, and a footer inside `Page` (info and utility pages). Phones get the `Page` footer plus an "About" item in the Masthead nav. |
-| D2 | Which tagline: "News, explained inline" (title, masthead, hero) or "News, understood." (Splash, IntroFlow)? | T038 | "News, explained inline": it is already in the `<title>` and the hero. |
-| D3 | Remove Outlook from the primary nav? Rename "Early access" to "Waitlist"? | T015, T072 | Keep Outlook in the nav until it has real use, but mark it "Beta". Keep "Early access", which was a deliberate choice in #56. |
-| D4 | Drop the newspaper masthead (tagline and date) on utility and info pages? | T037 | Yes: keep the nameplate and drop the two side columns outside the reader. |
-| D5 | Serve thumbnails through `next/image` (Vercel proxies and caches publisher images)? | T051, T028 | Not yet. Caching publisher images needs checking against `docs/feed-terms.md`, and it costs Vercel image quota. Keep direct loads and disclose them (T028). |
-| D6 | Add API fields: the edition's build time (T058) and the total count of feed stories (T060)? | T058, T060 | Yes, both read-only: a `generated_at` from the latest ingestion run, and `total` on the feed response. Change the schema and `types/index.ts` together. No new columns on existing tables. |
-| D7 | Replace the PNG owl with an inline SVG? This needs SVG artwork. | T048 | Yes, if you have or can export a vector owl. Otherwise do the cheap part of P-2: render a single `<picture>` with a `prefers-color-scheme` source. |
-| D8 | Run `summaries/regenerate` in production after the backend fix? It makes about one Claude call per stored story. | T001 | Yes, once, after deploying. A cheaper option is to re-cap the stored summaries with the fixed `cap_words`: no LLM calls, but it only works when the uncut text is still stored. It isn't, so regenerate. |
+| D1 | Where do About, Sources, How explanations work and Privacy go, since there is no footer? | T007, T008 | **Rail + page footer.** A small link group at the bottom of the Sidebar rail on desktop, and a footer inside `Page` (info and utility pages). Phones get the `Page` footer plus an "About" item in the Masthead nav. |
+| D2 | Which tagline? | T038 | **"News, explained inline"** everywhere. The Splash and IntroFlow change. |
+| D3 | Remove Outlook from the primary nav? Rename "Early access"? | T015, T072 | **Outlook stays in the nav with a "Beta" tag.** "Early access" keeps its name, so T072 is a no-op. |
+| D4 | Drop the newspaper masthead (tagline and date) on utility and info pages? | T037 | **Slim it off-reader.** The nameplate stays everywhere; the tagline and date columns show only on Today and story pages. |
+| D5 | Serve thumbnails through `next/image`? | T051, T028 | **Not yet.** Keep loading images from publishers directly and disclose it on /privacy (T028). T051 is deferred. |
+| D6 | Add API fields for the edition's build time and the total story count? | T058, T060 | **Add both**, read-only: `generated_at` from the latest ingestion run, and `total` on the feed response. The schema and `types/index.ts` change together. No changes to columns on existing tables. |
+| D7 | Replace the PNG owl? | T048 | **Inline SVG** that follows the text color. **Blocked on vector artwork of the owl from you**; batch 2 leaves T048 for last. |
+| D8 | Run `summaries/regenerate` in production after the backend fix? | T001 | **No. Only new stories** get correct summaries. The broken summaries already stored stay until they age out of the feed, and the frontend guard (T002) hides the shortest fragments meanwhile. |
 
 ## Batches
 
@@ -32,9 +34,9 @@ Each batch is one branch and one PR off `origin/main`. Each task is its own comm
 | Batch | Branch | Tasks | Notes |
 |---|---|---|---|
 | **0. Evidence harness** | `test/visual-matrix` | T052, T053, T054, T056 (T055 is mostly done) | Playwright screenshots against the recorded fixtures (`e2e/fixtures/api.json`). A fixed clock (`page.clock`) at 21:00 America/New_York also gives a regression test for the date bug. Screenshots go to CI artifacts, without pixel diffs at first. |
-| **1. Summaries (backend)** | `fix/summary-abbreviations` | T001, T002, T041, T043 | Make `_SENTENCE_END` skip known abbreviations and initialisms (`U.S.`, `Gov.`, `Sen.`, `Dr.`, `St.`, `Jr.`, single capitals). Test with the two live examples. Frontend guard: hide a summary under 40 characters. Fix the display names and feed labels in `ingestion/sources.py`. Deploy with `make deploy-backend`, then D8. |
-| **2. Shell and dates** | `fix/shell-dates` | T003, T004, T057, T010, T022, T036, T068, T071, (T007, T037, T038, T048 after D1/D2/D4/D7), T025 | One `ClientDate` component (empty on the server, filled after mount, `min-width` reserved) used by the Masthead and the Today h1; `PublishedTime` recomputes on mount. Skip link in `AppShell`. The phone theme button's visible text matches its name. |
-| **3. Today feed and story** | `fix/feed-cards` | T009, T016, T021, T026, T030, T059, T061, T062, T065, T096, (T058, T060 after D6) | `StoryRow` becomes a `<Link href={storyPath(id)}>` and keeps the in-place selection (Reader already routes by URL). The date `h1` in `StoryList` becomes a `p` or an `h2` on `/article/[id]`. AI-summary label under the Today heading. A clipboard fallback for Copy link. |
+| **1. Backend** | `fix/summary-abbreviations` | T001, T002, T041, T043, API half of T058 and T060 | Make `_SENTENCE_END` skip known abbreviations and initialisms (`U.S.`, `Gov.`, `Sen.`, `Dr.`, `St.`, `Jr.`, single capitals). Test with the two live examples. Frontend guard: hide a summary under 40 characters. Fix the display names and feed labels in `ingestion/sources.py`. Add `generated_at` and `total` to the feed response, with `types/index.ts`. Deploy with `make deploy-backend`. No regenerate (D8). |
+| **2. Shell and dates** | `fix/shell-dates` | T003, T004, T057, T010, T022, T036, T068, T071, T007, T037, T038, T015 (Beta tag), T025, T048 last (needs artwork) | One `ClientDate` component (empty on the server, filled after mount, `min-width` reserved) used by the Masthead and the Today h1; `PublishedTime` recomputes on mount. Skip link in `AppShell`. The phone theme button's visible text matches its name. |
+| **3. Today feed and story** | `fix/feed-cards` | T009, T016, T021, T026, T030, T059, T061, T062, T065, T096, T058, T060 (UI) | `StoryRow` becomes a `<Link href={storyPath(id)}>` and keeps the in-place selection (Reader already routes by URL). The date `h1` in `StoryList` becomes a `p` or an `h2` on `/article/[id]`. AI-summary label under the Today heading. A clipboard fallback for Copy link. |
 | **4. Early-access page** | `fix/landing` | T008, T012, T023, T024, T032, T034, T035, T039, T045, T047, T073, T076, T077 | Everything lives in `landingMarkup.ts`, `landing.css` and `Landing.tsx`. T023 undoes PR #14's h2 choice for the demo headline, so make it a `p` and keep the heading order valid. T031 is a no-op (Search has filters for topic, source and date), but the Search description copy is fixed in batch 6. |
 | **5. Info pages and trust copy** | `fix/info-pages` | T013, T028, T040, T042, T044, T046, T078, + per-page `og:` tags | One `InfoPageFooter` component for the closing links on About, Sources, How explanations work and Privacy. Sources links each outlet's site and adds a secondary "RSS" link. 404 links to Today and Search. |
 | **6. Search** | `feat/search-url` | T017, T020, T031 (copy), T074 | `q` and filters in the query string through `useSearchParams` wrapped in `Suspense`, so the input still server-renders. Check the empty-results state. |
@@ -42,19 +44,19 @@ Each batch is one branch and one PR off `origin/main`. Each task is its own comm
 | **8. Outlook** | `fix/outlook-states` | T019, T049, T079, T081 | Server-render the skeleton and the empty-state sentence. Show impact and confidence as bands, with the number in a details row. |
 | **9. Saved, settings, retention** | `feat/device-data` | T050, T090, T095, T098, T099 | "New since last visit" marker (logic in `lib/`, tested). Clear device data in Settings. Saved: a "on this device only" note, plus JSON export and import. |
 
-No-ops to close with a one-line note in the PR that covers their area: T005, T006, T011, T014, T027, T029, T033, T063, T064, T066, T067, T069, T070, T075, T080, T084, T088, T089, T092, T097, T100.
+No-ops to close with a one-line note in the PR that covers their area: T005, T006, T011, T014, T027, T029, T033, T063, T064, T066, T067, T069, T070, T075, T080, T084, T088, T089, T092, T097, T100, T072.
 
 ## All 100 tasks
 
 | Task | Verdict | Batch | Note |
 |---|---|---|---|
-| T001 Clamp summaries | Real (backend) | 1 | CSS clamp already exists; fix `cap_words` |
+| T001 Clamp summaries | Real (backend) | 1 | CSS clamp already exists; fix `cap_words`; no regenerate (D8) |
 | T002 Hide fragment summaries | Real | 1 | Frontend guard only |
 | T003 Masthead date in reader's timezone | Real, different fix | 2 | Client-only date; no server fallback |
 | T004 Today heading date | Real | 2 | Same `ClientDate` |
 | T005 /privacy on shared layout | Done | — | Live page uses `Page` |
 | T006 Brand on /privacy | Done | — | |
-| T007 Trust links in footer | Misread → Decide | 2 | No footer exists; D1 |
+| T007 Trust links in footer | Misread → Real | 2 | No footer exists; D1: rail + `Page` footer |
 | T008 Remove second footer | Misread | 4 | Only the landing footer exists; drop its bare-domain link |
 | T009 Cards as anchors | Real | 3 | `StoryRow` is a `<button>` |
 | T010 Skip link | Real | 2 | |
@@ -62,7 +64,7 @@ No-ops to close with a one-line note in the PR that covers their area: T005, T00
 | T012 Waitlist success after success | Verify | 4 | Node is in the HTML with `role="status"` |
 | T013 Error-report section on /privacy | Verify | 5 | The description mentions "reports you send" |
 | T014 Waitlist wording | Done | — | Privacy says "when sign-in opens" |
-| T015 Outlook out of nav | Decide | 2 | D3 |
+| T015 Outlook out of nav | Decided: Beta tag | 2 | D3: stays in nav, tagged "Beta" |
 | T016 One h1 on the reader | Real | 3 | StoryList h1 + ReadingPane h1 |
 | T017 Search query in URL | Real | 6 | `useState` only |
 | T018 Panel focus | Verify | 7 | No focus handling found |
@@ -84,8 +86,8 @@ No-ops to close with a one-line note in the PR that covers their area: T005, T00
 | T034 Demo resting state | Real | 4 | |
 | T035 Hide phone chrome | Real | 4 | |
 | T036 Duplicate date/eyebrow | Real | 2 | |
-| T037 Slim header on utility pages | Decide | 2 | D4 |
-| T038 One tagline | Real, elsewhere | 2 | Splash/IntroFlow; D2 |
+| T037 Slim header on utility pages | Real | 2 | D4: nameplate only off-reader |
+| T038 One tagline | Real, elsewhere | 2 | D2: "News, explained inline"; change Splash/IntroFlow |
 | T039 Sentence case | Real | 4 | |
 | T040 One date format | Verify | 5 | |
 | T041 Full publisher names | Real (backend) | 1 | Names come from `sources.py` |
@@ -95,19 +97,19 @@ No-ops to close with a one-line note in the PR that covers their area: T005, T00
 | T045 Merge duplicate cards | Real | 4 | |
 | T046 Contact section | Real | 5 | |
 | T047 SVG feature icons | Real | 4 | lucide icons already a dependency |
-| T048 SVG logo | Decide | 2 | D7 |
+| T048 SVG logo | Real, blocked | 2 | D7: needs owl vector artwork |
 | T049 Words before numbers | Verify | 8 | e2e says the figures are explained |
 | T050 New since last visit | New | 9 | |
-| T051 Resized thumbnails | Decide | — | D5 |
+| T051 Resized thumbnails | Deferred | — | D5 |
 | T052 Screenshot matrix | New | 0 | |
 | T053 Story/panel screenshots | New | 0 | |
 | T054 Keyboard walkthrough | New | 0 | |
 | T055 axe dark + 375 | Mostly done | 0 | Suite covers 6 routes × themes × 1440/375; add open panel at 375 dark |
 | T056 Layout-shift budget | New | 0 | |
 | T057 Relative times on client | Real | 2 | `suppressHydrationWarning` keeps server value |
-| T058 Edition build time | Decide | 3 | D6 |
+| T058 Edition build time | Real (API + UI) | 1, 3 | D6: `generated_at` |
 | T059 "Earlier" divider | Real | 3 | |
-| T060 Count for Load more | Decide | 3 | D6 |
+| T060 Count for Load more | Real (API + UI) | 1, 3 | D6: `total` |
 | T061 Focus after Load more | Real | 3 | |
 | T062 Server-render chips | Verify | 3 | |
 | T063 Chip state | Done | — | `aria-pressed` |
@@ -119,7 +121,7 @@ No-ops to close with a one-line note in the PR that covers their area: T005, T00
 | T069 Menu button | No-op | — | Phones have no menu button; the nav wraps |
 | T070 "/" shortcut | No-op | — | Shortcuts were removed on purpose (#47) |
 | T071 One set of landmarks | Verify | 2 | |
-| T072 Rename Early access | Decide | 2 | D3 |
+| T072 Rename Early access | No-op | — | D3: keep "Early access" |
 | T073 Top back-link | Verify | 4 | |
 | T074 Empty search results | Verify | 6 | |
 | T075 Announce result count | Done | — | `aria-live` on the count |
