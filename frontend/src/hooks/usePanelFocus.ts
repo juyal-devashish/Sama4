@@ -86,10 +86,19 @@ export function usePanelFocus(
     const onPointer = () => {
       tabbing = false;
     };
+    // If the control that has focus is removed (the explanation finishes loading and the
+    // content is replaced), focus falls to <body>: put it back on the panel.
+    const observer = new MutationObserver(() => {
+      if (tabbing && drawer() && !panel.contains(document.activeElement)) {
+        panel.focus({ preventScroll: true });
+      }
+    });
+    observer.observe(panel, { childList: true, subtree: true });
     document.addEventListener("keydown", onKey);
     document.addEventListener("focusin", onFocusIn);
     document.addEventListener("pointerdown", onPointer);
     return () => {
+      observer.disconnect();
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("focusin", onFocusIn);
       document.removeEventListener("pointerdown", onPointer);
