@@ -30,6 +30,7 @@ from app.schemas.context import (
     ContextSource,
     EntityInfo,
     ExplainResponse,
+    MoreDetailResponse,
     RelatedArticleBrief,
     RelatedEntity,
     SelectionResponse,
@@ -96,6 +97,27 @@ SELECTION_EXCERPT_RADIUS = 450
 def squash(text: str) -> str:
     """Collapse all whitespace runs to single spaces."""
     return " ".join(text.split())
+
+
+BRIEF_MAX_WORDS = 60  # the explanation shown beside the story
+MORE_MAX_WORDS = 170  # the fuller one behind "More detail"
+
+
+def cap_words(text: str, max_words: int) -> str:
+    """Shorten text to at most `max_words`, ending at a sentence if one fits, else with …
+
+    The prompts ask for this length; this makes it a guarantee.
+    """
+    words = text.split()
+    if len(words) <= max_words:
+        return text.strip()
+    clipped = " ".join(words[:max_words])
+    if clipped.endswith((".", "!", "?")):
+        return clipped
+    last_end = max(clipped.rfind(". "), clipped.rfind("! "), clipped.rfind("? "))
+    if last_end >= len(clipped) // 2:  # a sentence boundary in the second half: stop there
+        return clipped[: last_end + 1]
+    return clipped.rstrip(",;:") + "…"
 
 
 class ContextService:
@@ -220,7 +242,9 @@ class ContextService:
             background=wikipedia_extract,
             related_news=graph_context,
         )
-        text = await self.llm.generate(prompt, effort="low", system=system)
+        text = cap_words(
+            await self.llm.generate(prompt, effort="low", system=system), BRIEF_MAX_WORDS
+        )
         if text:
             await explanation_repo.add(
                 db,
@@ -285,6 +309,45 @@ class ContextService:
             sources=sources,
             confidence=0.85,
         )
+
+    async def get_more_detail(self, entity: Entity, db: AsyncSession) -> MoreDetailResponse:
+        """A fuller explanation (about 150 words) for readers who want depth.
+
+        Built from the same story passage and a longer Wikipedia intro. Cached per entity;
+        "" when Claude is unavailable, so the panel can offer a retry.
+        """
+        key = f"context:entity-more:{entity.id}"
+        cached = await self.cache.get(key)
+        if cached:
+            return MoreDetailResponse(**cached, cached=True)
+        text = ""
+        if self.llm.available:
+            wiki_page = await self.wikimedia.get_wikipedia_page(
+                entity.wikipedia_url or "", sentences=6
+            )
+            article_title, excerpt = None, None
+            mention = await entity_repo.latest_mention(db, entity)
+            if mention is not None:
+                article, ae = mention
+                article_title = article.title
+                excerpt = mention_excerpt(article.cleaned_content or article.raw_content or "", ae)
+            system, prompt = entity_context_prompt(
+                name=entity.canonical_name,
+                entity_type=entity.entity_type,
+                article_title=article_title,
+                article_excerpt=excerpt,
+                background=wiki_page.extract if wiki_page else None,
+                more=True,
+            )
+            text = cap_words(
+                await self.llm.generate(prompt, effort="low", system=system), MORE_MAX_WORDS
+            )
+        result = MoreDetailResponse(text=text, generated_at=datetime.now(UTC))
+        if text:
+            await self.cache.set(
+                key, result.model_dump(mode="json", exclude={"cached"}), ttl=self.context_ttl
+            )
+        return result
 
     async def explain_selection(self, article: Article, raw_text: str) -> SelectionResponse:
         """Explain text a reader selected in a story.

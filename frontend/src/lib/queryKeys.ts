@@ -11,6 +11,7 @@ export const queryKeys = {
   reference: (articleId: string) => ["reference", articleId] as const,
   entityContext: (entityId: string) => ["context", entityId] as const,
   selection: (articleId: string, text: string) => ["selection", articleId, text] as const,
+  moreDetail: (entityId: string) => ["more-detail", entityId] as const,
   prediction: (articleId: string) => ["prediction", articleId] as const,
   predictionStatus: (predictionId: string) => ["prediction-status", predictionId] as const,
   trendingPredictions: (limit: number) => ["trending-predictions", limit] as const,

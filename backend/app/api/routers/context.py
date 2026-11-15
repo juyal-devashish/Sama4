@@ -10,6 +10,7 @@ from app.schemas.context import (
     ContextResponse,
     ExplainRequest,
     ExplainResponse,
+    MoreDetailResponse,
     ReportRequest,
     ReportResponse,
     SelectionRequest,
@@ -28,6 +29,7 @@ router = APIRouter()
 EXPLANATIONS_PER_IP = 300
 FOLLOWUPS_PER_IP = 40
 SELECTIONS_PER_IP = 120
+MORE_DETAIL_PER_IP = 120
 
 
 @router.post(
@@ -61,6 +63,21 @@ async def get_entity_context(
     if entity is None:
         raise HTTPException(status_code=404, detail="Entity not found")
     return await service.get_context(entity, db)
+
+
+@router.get(
+    "/{entity_id}/more",
+    response_model=MoreDetailResponse,
+    dependencies=[per_ip_limit("more-detail", MORE_DETAIL_PER_IP)],
+)
+async def get_more_detail(
+    entity_id: uuid.UUID, db: DbSession, service: ContextServiceDep
+) -> MoreDetailResponse:
+    """A fuller explanation of an entity, for the "More detail" button."""
+    entity = await entity_repo.get(db, entity_id)
+    if entity is None:
+        raise HTTPException(status_code=404, detail="Entity not found")
+    return await service.get_more_detail(entity, db)
 
 
 @router.post(

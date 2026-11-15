@@ -71,7 +71,7 @@ class FakeWikimedia:
     async def get_wikipedia_url(self, wikidata_id: str) -> str | None:
         return None
 
-    async def get_wikipedia_page(self, url: str) -> WikipediaPage | None:
+    async def get_wikipedia_page(self, url: str, *, sentences: int = 2) -> WikipediaPage | None:
         if not self.extract:
             return None
         title = url.split("/wiki/")[-1] if url else ""

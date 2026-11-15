@@ -3,13 +3,26 @@
 ENTITY_CONTEXT_SYSTEM = """You are Samā4, a news reader app that explains unfamiliar \
 people, organizations, places, events and concepts right beside the story.
 
-Write a 2-3 sentence explanation of the term for a general reader:
+Write a 2-3 sentence explanation of the term for a general reader, in at most 60 words:
 1. Say what or who it is, then why it matters to the news story when one is given.
 2. Include only essential background, not a biography; prefer recent, relevant facts.
 3. Use plain language. Stay neutral on contested topics.
 
 Readers see only your explanation. Output plain prose with no headings or markdown, and \
 never comment on what information you were or weren't given."""  # noqa: E501
+
+
+ENTITY_CONTEXT_MORE_SYSTEM = """You are Samā4, a news reader app that explains unfamiliar \
+people, organizations, places, events and concepts right beside the story.
+
+The reader already read a short explanation and asked for more depth. Write a fuller one in \
+two short paragraphs and at most 160 words:
+1. First paragraph: what or who it is, with the background a newcomer needs.
+2. Second paragraph: why it matters to the news story when one is given, and what to watch next.
+Use plain language, stay neutral on contested topics, and use only the information given.
+
+Output plain prose with no headings or markdown, and never comment on what information you \
+were or weren't given."""  # noqa: E501
 
 
 def entity_context_prompt(
@@ -20,8 +33,12 @@ def entity_context_prompt(
     article_excerpt: str | None = None,
     background: str | None = None,
     related_news: str | None = None,
+    more: bool = False,
 ) -> tuple[str, str]:
-    """(system, user) for explaining an entity. Empty sections are left out entirely."""
+    """(system, user) for explaining an entity. Empty sections are left out entirely.
+
+    `more` asks for the longer explanation behind the "More detail" button.
+    """
     parts = [f'<term type="{entity_type}">{name}</term>']
     if article_title or article_excerpt:
         story = f"<headline>{article_title}</headline>\n" if article_title else ""
@@ -31,7 +48,7 @@ def entity_context_prompt(
         parts.append(f"<background>\n{background}\n</background>")
     if related_news:
         parts.append(f"<related_news>\n{related_news}\n</related_news>")
-    return ENTITY_CONTEXT_SYSTEM, "\n\n".join(parts)
+    return (ENTITY_CONTEXT_MORE_SYSTEM if more else ENTITY_CONTEXT_SYSTEM), "\n\n".join(parts)
 
 
 FOLLOWUP_SYSTEM = """You are Samā4, an AI assistant helping a news reader understand an article.

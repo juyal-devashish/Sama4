@@ -8,6 +8,7 @@ import type {
   ArticleDetail,
   ContextResponse,
   ExplainRequest,
+  MoreDetailResponse,
   SelectionRequest,
   SelectionResponse,
   ExplainResponse,
@@ -110,6 +111,10 @@ export const api = {
 
   getEntityContext(entityId: string) {
     return fetchAPI<ContextResponse>(apiPath(`/context/${entityId}`));
+  },
+
+  getMoreDetail(entityId: string) {
+    return fetchAPI<MoreDetailResponse>(apiPath(`/context/${entityId}/more`));
   },
 
   explainEntity(request: ExplainRequest) {

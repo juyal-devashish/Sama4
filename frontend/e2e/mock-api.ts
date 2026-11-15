@@ -99,6 +99,13 @@ export async function mockApi(page: Page) {
       const body = (fixtures.articles as Record<string, unknown>)[m[1]];
       return body ? json(route, body) : json(route, { detail: "Not found" }, 404);
     }
+    if (/^\/context\/[^/]+\/more$/.test(path)) {
+      return json(route, {
+        text: "The longer explanation starts here.\n\nAnd it continues in a second paragraph.",
+        generated_at: new Date().toISOString(),
+        cached: false,
+      });
+    }
     m = path.match(/^\/context\/([^/]+)$/);
     if (m) {
       const body = (fixtures.context as Record<string, unknown>)[m[1]];
