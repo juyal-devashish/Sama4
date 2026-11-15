@@ -336,6 +336,28 @@ test("the search query lives in the address and a shared link reopens it", async
   });
 });
 
+test("Share hands the story's own address to the system share sheet", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => {
+    localStorage.setItem("sama4_onboarded", "true");
+    (window as unknown as { shared: unknown[] }).shared = [];
+    navigator.share = async (data) => {
+      (window as unknown as { shared: unknown[] }).shared.push(data);
+    };
+  });
+  await page.goto(`/article/${ARTICLE_ID}`);
+  await page.getByRole("button", { name: "Share" }).click();
+  const shared = (await page.evaluate(
+    () => (window as unknown as { shared: unknown[] }).shared,
+  )) as {
+    title: string;
+    url: string;
+  }[];
+  expect(shared).toHaveLength(1);
+  expect(shared[0].url).toBe(new URL(`/article/${ARTICLE_ID}`, page.url()).href);
+  expect(shared[0].title.length).toBeGreaterThan(0);
+});
+
 test("stories stored since the reader's last visit are marked New, and only then", async ({
   page,
 }) => {
