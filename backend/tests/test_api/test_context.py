@@ -320,3 +320,25 @@ async def test_followup_question_length_is_capped(client, db_session):
     )
 
     assert response.status_code == 422
+
+
+async def test_over_the_daily_budget_followups_get_a_503_and_explanations_fall_back(
+    client, container, db_session
+):
+    async with db_session() as db:
+        article = await make_article(db, title="Engines")
+        ada = await make_entity(db, name="Ada", article=article)
+        await db.commit()
+    container.llm.exhausted = True
+
+    followup = await client.post(
+        "/api/v1/context/explain",
+        json={"entity_id": str(ada.id), "article_id": str(article.id), "question": "Why?"},
+    )
+    explanation = await client.get(f"/api/v1/context/{ada.id}")
+
+    assert followup.status_code == 503
+    assert "daily limit" in followup.json()["detail"]
+    assert followup.headers["retry-after"]
+    assert explanation.status_code == 200  # the Wikipedia fallback, not an error
+    assert explanation.json()["context"]["source"] == "wikipedia_extract"

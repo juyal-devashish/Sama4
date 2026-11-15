@@ -83,6 +83,11 @@ class Settings(BaseSettings):
     # Default effort for short, high-volume calls (summaries, entity context, NER)
     anthropic_effort: Literal["low", "medium", "high", "xhigh", "max"] = "low"
 
+    # Daily Claude budget in tokens (input + output, UTC day). At 80% and 100% an error is
+    # logged and sent to Sentry; at 100% reader-facing AI features pause until the next UTC
+    # day. Nightly ingestion is counted but never blocked. 0 turns the cap off.
+    llm_daily_token_cap: int = 5_000_000
+
     # Admin (X-Admin-Secret header). The default is rejected when environment=production.
     admin_secret: str = "change-me-in-production"
 

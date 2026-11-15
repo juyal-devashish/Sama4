@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from app.clients.cache import Cache
 from app.clients.mirofish import MirofishClient
 from app.clients.pages import PageContent
+from app.clients.usage import DailyBudgetExceeded
 from app.clients.wikimedia import WikipediaPage
 from app.config import Settings
 from app.container import Container
@@ -22,8 +23,14 @@ class FakeLLM:
     default: str = "Generated text."
     replies: dict[str, str] = field(default_factory=dict)  # substring-of-prompt -> reply
     calls: list[dict] = field(default_factory=list)
+    exhausted: bool = False  # simulate today's token budget being used up
+
+    async def over_budget(self) -> bool:
+        return self.exhausted
 
     async def generate(self, prompt: str, **kwargs) -> str:
+        if self.exhausted:
+            raise DailyBudgetExceeded(60)
         self.calls.append({"prompt": prompt, **kwargs})
         for needle, reply in self.replies.items():
             if needle in prompt:
@@ -106,6 +113,13 @@ class MemoryCache(Cache):
 
     async def delete(self, key: str) -> None:
         self.store.pop(key, None)
+
+    async def add(self, key: str, amount: int, ttl_seconds: int) -> int | None:
+        self.store[key] = int(self.store.get(key, 0)) + amount  # type: ignore[arg-type]
+        return int(self.store[key])  # type: ignore[arg-type]
+
+    async def counter(self, key: str) -> int | None:
+        return int(self.store.get(key, 0))  # type: ignore[arg-type]
 
     async def hit(self, key: str, window_seconds: int) -> int | None:
         self.store[key] = int(self.store.get(key, 0)) + 1  # type: ignore[arg-type]

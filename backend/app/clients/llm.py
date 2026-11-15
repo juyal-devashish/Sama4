@@ -1,7 +1,13 @@
 """Claude (Anthropic API) client: the only place the app talks to an LLM."""
 
+import functools
 import logging
-from typing import Literal
+from collections.abc import Awaitable, Callable, Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
+from typing import Literal, ParamSpec, TypeVar
+
+from app.clients.usage import DailyBudgetExceeded, UsageMeter, seconds_until_utc_midnight
 
 logger = logging.getLogger(__name__)
 
@@ -25,15 +31,52 @@ def supports_server_fallback(model: str) -> bool:
     return model in FALLBACK_MODELS
 
 
+# Set while a background batch (nightly ingestion, a re-summarize) runs: those calls are
+# counted but never blocked by the daily cap, because their volume is bounded elsewhere.
+_batch_mode: ContextVar[bool] = ContextVar("llm_batch_mode", default=False)
+
+
+@contextmanager
+def batch_calls() -> Iterator[None]:
+    """Exempt Claude calls made inside this block from the daily cap."""
+    token = _batch_mode.set(True)
+    try:
+        yield
+    finally:
+        _batch_mode.reset(token)
+
+
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def batch_job(fn: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[R]]:
+    """Decorator: run a background job with `batch_calls()` active."""
+
+    @functools.wraps(fn)
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        with batch_calls():
+            return await fn(*args, **kwargs)
+
+    return wrapper
+
+
 UNAVAILABLE_TEXT = "(LLM unavailable — set ANTHROPIC_API_KEY to enable context generation)"
 
 
 class LLMClient:
     """Thin async wrapper around the Anthropic Messages API."""
 
-    def __init__(self, api_key: str, model: str, default_effort: Effort = "low") -> None:
+    def __init__(
+        self,
+        api_key: str,
+        model: str,
+        default_effort: Effort = "low",
+        meter: UsageMeter | None = None,
+    ) -> None:
         self.model = model
         self.default_effort = default_effort
+        self.meter = meter
         self._client = None
         if api_key:
             from anthropic import AsyncAnthropic
@@ -46,6 +89,10 @@ class LLMClient:
     def available(self) -> bool:
         """True when an API key is configured."""
         return self._client is not None
+
+    async def over_budget(self) -> bool:
+        """True when reader-facing calls are paused for today."""
+        return bool(self.meter and not _batch_mode.get() and await self.meter.exceeded())
 
     async def generate(
         self,
@@ -68,9 +115,13 @@ class LLMClient:
 
         Raises:
             anthropic.APIStatusError / APIConnectionError on API failures.
+            DailyBudgetExceeded when today's token cap is used up (not raised inside
+            `batch_calls()`).
         """
         if self._client is None:
             return UNAVAILABLE_TEXT
+        if await self.over_budget():
+            raise DailyBudgetExceeded(seconds_until_utc_midnight())
 
         import anthropic
 
@@ -99,6 +150,20 @@ class LLMClient:
         except anthropic.APIConnectionError:
             logger.error("Could not reach the Claude API")
             raise
+
+        if self.meter is not None:
+            usage = response.usage
+            await self.meter.record(
+                sum(
+                    getattr(usage, f, 0) or 0
+                    for f in (
+                        "input_tokens",
+                        "output_tokens",
+                        "cache_creation_input_tokens",
+                        "cache_read_input_tokens",
+                    )
+                )
+            )
 
         if response.stop_reason == "refusal":
             category = response.stop_details.category if response.stop_details else None
