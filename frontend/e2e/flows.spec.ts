@@ -32,6 +32,42 @@ test("selecting a highlighted term opens its explanation and stays accessible", 
   await expect(term).toHaveAttribute("aria-pressed", "false");
 });
 
+test("the explanation panel takes focus, keeps Tab inside it and gives focus back", async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  const term = page.locator("p .term").first();
+  await expect(term).toBeVisible({ timeout: 10_000 });
+  await term.focus();
+  await page.keyboard.press("Enter");
+  const panel = page.locator("#context-margin");
+  await expect(panel).toBeFocused();
+
+  // Wide windows show the margin beside the story (no trap); drawers must hold focus.
+  const isDrawer = await page.evaluate(() => window.matchMedia("(max-width: 1479px)").matches);
+  if (isDrawer) {
+    for (let i = 0; i < 25; i++) {
+      await page.keyboard.press("Tab");
+      const inside = await page.evaluate(
+        () => !!document.activeElement?.closest("#context-margin"),
+      );
+      expect(inside, `Tab #${i + 1} left the panel`).toBe(true);
+    }
+    for (let i = 0; i < 25; i++) {
+      await page.keyboard.press("Shift+Tab");
+      const inside = await page.evaluate(
+        () => !!document.activeElement?.closest("#context-margin"),
+      );
+      expect(inside, `Shift+Tab #${i + 1} left the panel`).toBe(true);
+    }
+  }
+
+  await page.keyboard.press("Escape");
+  await expect(term).toBeFocused();
+});
+
 test("reference page is accessible", async ({ page }) => {
   await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));

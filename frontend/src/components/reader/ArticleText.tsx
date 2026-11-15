@@ -34,6 +34,7 @@ function Term({
       tabIndex={0}
       className="term"
       data-priority={entity.priority}
+      data-entity-id={entity.id}
       aria-pressed={active}
       title={`Explain ${entity.text}`}
       style={{ ["--term-color" as string]: entityColor(entity.type) }}
