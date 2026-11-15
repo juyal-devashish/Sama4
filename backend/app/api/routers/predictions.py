@@ -7,7 +7,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import ContainerDep, DbSession, PredictionServiceDep
+from app.api.deps import ContainerDep, DbSession, PredictionServiceDep, per_ip_limit
 from app.ingestion import jobs
 from app.models.article import Article
 from app.models.prediction import (
@@ -38,7 +38,16 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/simulate", response_model=PredictionSummary)
+# Per IP per hour. Starting an outlook is the most expensive call in the app.
+OUTLOOKS_PER_IP = 10
+OUTLOOK_QUESTIONS_PER_IP = 40
+
+
+@router.post(
+    "/simulate",
+    response_model=PredictionSummary,
+    dependencies=[per_ip_limit("outlook", OUTLOOKS_PER_IP)],
+)
 async def trigger_simulation(
     request: PredictionRequest,
     background_tasks: BackgroundTasks,
@@ -167,7 +176,11 @@ async def cancel_prediction(
     )
 
 
-@router.post("/chat", response_model=PredictionChatResponse)
+@router.post(
+    "/chat",
+    response_model=PredictionChatResponse,
+    dependencies=[per_ip_limit("outlook-chat", OUTLOOK_QUESTIONS_PER_IP)],
+)
 async def chat_with_prediction(
     request: PredictionChatRequest,
     db: DbSession,
@@ -190,7 +203,11 @@ async def chat_with_prediction(
     )
 
 
-@router.post("/interview", response_model=AgentInterviewResponse)
+@router.post(
+    "/interview",
+    response_model=AgentInterviewResponse,
+    dependencies=[per_ip_limit("outlook-interview", OUTLOOK_QUESTIONS_PER_IP)],
+)
 async def interview_agent(
     request: AgentInterviewRequest,
     db: DbSession,
