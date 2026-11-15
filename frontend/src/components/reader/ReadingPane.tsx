@@ -14,6 +14,7 @@ import {
   ListTree,
 } from "lucide-react";
 import { useArticle } from "@/hooks/useArticle";
+import { usePanelFocus } from "@/hooks/usePanelFocus";
 import { useOnboarding, useSavedStories, TOPIC_LABELS } from "@/lib/preferences";
 import { eligibleHint } from "@/lib/onboarding";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,15 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
   // on the term list itself (the toolbar's Terms button), so the list stays reachable.
   const [listOpen, setListOpen] = useState(false);
   const drawerOpen = !!term || listOpen;
+  const marginRef = useRef<HTMLElement>(null);
+  const lastTermId = useRef<string | null>(null);
+  if (term) lastTermId.current = term.id;
+  usePanelFocus(
+    marginRef,
+    drawerOpen,
+    term?.id ?? "terms",
+    lastTermId.current ? `[data-entity-id="${lastTermId.current}"]` : null,
+  );
 
   // First-run hints: at most one at a time (rules in lib/onboarding.ts).
   const { state: onboarding, dispatch } = useOnboarding();
@@ -162,10 +172,12 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
             )}
           </AnimatePresence>
           <aside
+            ref={marginRef}
+            tabIndex={-1}
             id="context-margin"
             aria-label={term ? `About ${term.name}` : "Terms in this story"}
             className={cn(
-              "z-40 w-[380px] flex-shrink-0 border-l bg-background",
+              "z-40 w-[380px] flex-shrink-0 border-l bg-background focus:outline-none",
               "fixed inset-y-0 right-0 shadow-[var(--shadow-panel)] transition-transform duration-200 ease-out",
               "wide:static wide:translate-x-0 wide:shadow-none",
               drawerOpen ? "translate-x-0" : "invisible translate-x-full wide:visible",
