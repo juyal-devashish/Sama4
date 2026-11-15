@@ -42,6 +42,41 @@ export function bodySpans(content: string, entities: EntityInArticle[]): Span[] 
   );
 }
 
+/** Most highlighted terms in one paragraph; more than this reads as a wall of underlines. */
+export const MAX_HIGHLIGHTS_PER_PARAGRAPH = 3;
+
+/**
+ * Keep at most `max` highlights in each paragraph: the most important terms (high before
+ * medium before low, then the earliest in the paragraph), and only the first mention of
+ * a term within a paragraph. The terms list still holds every term, so none is lost.
+ */
+export function limitPerParagraph(
+  content: string,
+  spans: Span[],
+  max: number = MAX_HIGHLIGHTS_PER_PARAGRAPH,
+): Span[] {
+  const kept: Span[] = [];
+  for (const [from, to] of paragraphRanges(content)) {
+    const inside = spans.filter((s) => s.start >= from && s.end <= to);
+    const seen = new Set<string>();
+    const firstMentions = inside.filter((s) => {
+      const key = s.entity.id;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    firstMentions
+      .sort(
+        (a, b) =>
+          (PRIORITY[b.entity.priority] ?? 0) - (PRIORITY[a.entity.priority] ?? 0) ||
+          a.start - b.start,
+      )
+      .slice(0, max)
+      .forEach((s) => kept.push(s));
+  }
+  return kept.sort((a, b) => a.start - b.start);
+}
+
 /** Split content[from, to) into plain and entity segments. Spans crossing the range are skipped. */
 export function segmentRange(content: string, from: number, to: number, spans: Span[]): Segment[] {
   const segs: Segment[] = [];
