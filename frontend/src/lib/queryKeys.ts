@@ -12,6 +12,9 @@ export const queryKeys = {
   entityContext: (entityId: string, articleId?: string) =>
     ["context", entityId, articleId] as const,
   selection: (articleId: string, text: string) => ["selection", articleId, text] as const,
+  /** Key for the explanation text that has streamed in so far (see lib/streamStore.ts). */
+  contextPartial: (entityId: string, articleId?: string) =>
+    ["context-partial", entityId, articleId].join("|"),
   moreDetail: (entityId: string, articleId?: string) =>
     ["more-detail", entityId, articleId] as const,
   prediction: (articleId: string) => ["prediction", articleId] as const,

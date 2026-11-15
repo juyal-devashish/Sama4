@@ -2,6 +2,7 @@
  * Typed client for the Samā4 backend. All network calls go through here.
  * Request/response types live in src/types/index.ts and mirror backend/app/schemas/.
  */
+import { takeEvents } from "./sse";
 import type {
   AgentInterviewRequest,
   AgentInterviewResponse,
@@ -112,6 +113,50 @@ export const api = {
   /** With `articleId` the explanation is written for, and cached per, that story. */
   getEntityContext(entityId: string, articleId?: string) {
     return fetchAPI<ContextResponse>(apiPath(`/context/${entityId}`, { article_id: articleId }));
+  },
+
+  /**
+   * `getEntityContext` as a stream: `onDelta` gets the text as it is written, and the
+   * promise resolves with the same full response the plain call returns. Rejects with an
+   * ApiError if the server can't stream (so callers fall back to `getEntityContext`).
+   */
+  async streamEntityContext(
+    entityId: string,
+    articleId: string | undefined,
+    opts: { signal?: AbortSignal; onDelta: (text: string) => void },
+  ): Promise<ContextResponse> {
+    const path = apiPath(`/context/${entityId}/stream`, { article_id: articleId });
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}${path}`, {
+        headers: { Accept: "text/event-stream" },
+        signal: opts.signal,
+      });
+    } catch (err) {
+      throw new ApiError(0, path, `Network error: ${(err as Error).message}`);
+    }
+    if (
+      !res.ok ||
+      !res.body ||
+      !(res.headers.get("content-type") ?? "").includes("text/event-stream")
+    ) {
+      throw new ApiError(res.status, path, `Not a stream: ${res.status}`);
+    }
+    const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+    let buffer = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (value) {
+        const taken = takeEvents(buffer + value);
+        buffer = taken.rest;
+        for (const ev of taken.events) {
+          if (ev.event === "delta") opts.onDelta((JSON.parse(ev.data) as { text: string }).text);
+          else if (ev.event === "done") return JSON.parse(ev.data) as ContextResponse;
+          else if (ev.event === "error") throw new ApiError(500, path, ev.data);
+        }
+      }
+      if (done) throw new ApiError(0, path, "The stream ended before the explanation was done");
+    }
   },
 
   getMoreDetail(entityId: string, articleId?: string) {

@@ -2,9 +2,11 @@
 
 import functools
 import logging
-from collections.abc import Awaitable, Callable, Iterator
+import time
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
+from dataclasses import dataclass
 from typing import Literal, ParamSpec, TypeVar
 
 from app.clients.usage import DailyBudgetExceeded, UsageMeter, seconds_until_utc_midnight
@@ -59,6 +61,13 @@ def batch_job(fn: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[R]]:
             return await fn(*args, **kwargs)
 
     return wrapper
+
+
+@dataclass
+class StreamEnd:
+    """The last item `LLMClient.stream` yields: the whole text, as `generate` would return."""
+
+    text: str  # "" if Claude declined
 
 
 UNAVAILABLE_TEXT = "(LLM unavailable — set ANTHROPIC_API_KEY to enable context generation)"
@@ -125,14 +134,7 @@ class LLMClient:
 
         import anthropic
 
-        kwargs: dict = {
-            "model": self.model,
-            "max_tokens": max(max_tokens, MIN_MAX_TOKENS),
-            "output_config": {"effort": effort or self.default_effort},
-            "messages": [{"role": "user", "content": prompt}],
-        }
-        if system:
-            kwargs["system"] = system
+        kwargs = self._request(prompt, effort, system, max_tokens)
 
         try:
             if supports_server_fallback(self.model):
@@ -151,28 +153,111 @@ class LLMClient:
             logger.error("Could not reach the Claude API")
             raise
 
-        if self.meter is not None:
-            usage = response.usage
-            await self.meter.record(
-                sum(
-                    getattr(usage, f, 0) or 0
-                    for f in (
-                        "input_tokens",
-                        "output_tokens",
-                        "cache_creation_input_tokens",
-                        "cache_read_input_tokens",
-                    )
+        await self._record_usage(response)
+        if self._declined(response):
+            return ""
+        return "".join(b.text for b in response.content if b.type == "text").strip()
+
+    def _request(
+        self, prompt: str, effort: Effort | None, system: str | None, max_tokens: int
+    ) -> dict:
+        kwargs: dict = {
+            "model": self.model,
+            "max_tokens": max(max_tokens, MIN_MAX_TOKENS),
+            "output_config": {"effort": effort or self.default_effort},
+            "messages": [{"role": "user", "content": prompt}],
+        }
+        if system:
+            kwargs["system"] = system
+        return kwargs
+
+    async def _record_usage(self, response) -> None:
+        """Count a finished call's tokens toward the daily cap."""
+        if self.meter is None:
+            return
+        usage = response.usage
+        await self.meter.record(
+            sum(
+                getattr(usage, f, 0) or 0
+                for f in (
+                    "input_tokens",
+                    "output_tokens",
+                    "cache_creation_input_tokens",
+                    "cache_read_input_tokens",
                 )
             )
+        )
 
+    @staticmethod
+    def _declined(response) -> bool:
         if response.stop_reason == "refusal":
             category = response.stop_details.category if response.stop_details else None
             logger.warning("Claude declined the request (category=%s)", category)
-            return ""
+            return True
         if response.stop_reason == "max_tokens":
             logger.warning("Claude response hit max_tokens; output may be truncated")
+        return False
 
-        return "".join(b.text for b in response.content if b.type == "text").strip()
+    async def stream(
+        self,
+        prompt: str,
+        *,
+        effort: Effort | None = None,
+        system: str | None = None,
+        max_tokens: int = MIN_MAX_TOKENS,
+    ) -> AsyncIterator[str | StreamEnd]:
+        """Like `generate`, but yields the text as it is written, then a `StreamEnd`.
+
+        Same rules as `generate`: nothing is sent once today's token cap is used up
+        (`DailyBudgetExceeded`, before the first item), tokens are counted from the final
+        message, and a refusal ends with `StreamEnd("")`. Logs the seconds until the first
+        text arrives (it includes Claude's thinking time).
+        """
+        if self._client is None:
+            yield StreamEnd(UNAVAILABLE_TEXT)
+            return
+        if await self.over_budget():
+            raise DailyBudgetExceeded(seconds_until_utc_midnight())
+
+        import anthropic
+
+        kwargs = self._request(prompt, effort, system, max_tokens)
+        started = time.monotonic()
+        first_token_at: float | None = None
+        parts: list[str] = []
+        try:
+            if supports_server_fallback(self.model):
+                manager = self._client.beta.messages.stream(
+                    **kwargs, betas=[FALLBACK_BETA], fallbacks="default"
+                )
+            else:
+                manager = self._client.messages.stream(**kwargs)
+            async with manager as stream:
+                async for text in stream.text_stream:
+                    if first_token_at is None:
+                        first_token_at = time.monotonic() - started
+                        logger.info(
+                            "Claude first token after %.2fs (model=%s, effort=%s)",
+                            first_token_at,
+                            self.model,
+                            effort or self.default_effort,
+                        )
+                    parts.append(text)
+                    yield text
+                final = await stream.get_final_message()
+        except anthropic.RateLimitError:
+            logger.warning("Claude rate limited")
+            raise
+        except anthropic.APIStatusError as e:
+            logger.error("Claude API error %s: %s", e.status_code, e.message)
+            raise
+        except anthropic.APIConnectionError:
+            logger.error("Could not reach the Claude API")
+            raise
+
+        await self._record_usage(final)
+        logger.info("Claude stream finished in %.2fs", time.monotonic() - started)
+        yield StreamEnd("" if self._declined(final) else "".join(parts).strip())
 
     async def aclose(self) -> None:
         if self._client is not None:

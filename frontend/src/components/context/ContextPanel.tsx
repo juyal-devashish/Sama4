@@ -44,7 +44,7 @@ export function ContextPanel({
   followUpTip,
   onAnnounce,
 }: Props) {
-  const { data, isLoading, isError, refetch } = useEntityContext(term.id, articleId);
+  const { data, isLoading, isError, refetch, partialText } = useEntityContext(term.id, articleId);
   const { data: prediction } = usePrediction(articleId);
   const color = entityColor(term.type);
 
@@ -77,7 +77,17 @@ export function ContextPanel({
       <div className="scroll-thin flex-1 overflow-y-auto px-6 pb-6">
         <h2 className="headline mt-1 text-[30px]">{data?.entity.name ?? term.name}</h2>
 
-        {isLoading ? (
+        {isLoading && partialText ? (
+          // Streaming in: show the text as it is written. The live region is not told
+          // about each piece; it announces once, when the explanation is complete.
+          <p className="mt-4 text-[16.5px] leading-[1.6] text-foreground" aria-busy="true">
+            {partialText}
+            <span
+              className="ml-0.5 inline-block h-[1em] w-[2px] translate-y-[2px] animate-pulse bg-foreground align-baseline"
+              aria-hidden
+            />
+          </p>
+        ) : isLoading ? (
           <div
             className="mt-5 space-y-2.5"
             role="status"
