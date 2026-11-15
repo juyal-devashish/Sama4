@@ -29,9 +29,8 @@ function Term({
   onSelect: (e: EntityInArticle) => void;
 }) {
   return (
-    <span
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
       className="term"
       data-priority={entity.priority}
       data-entity-id={entity.id}
@@ -42,15 +41,9 @@ function Term({
         ev.stopPropagation();
         onSelect(entity);
       }}
-      onKeyDown={(ev) => {
-        if (ev.key === "Enter" || ev.key === " ") {
-          ev.preventDefault();
-          onSelect(entity);
-        }
-      }}
     >
       {text}
-    </span>
+    </button>
   );
 }
 
