@@ -318,6 +318,24 @@ test("search results can be narrowed by topic, source and date", async ({ page }
   await expect(page.getByLabel("Date")).toHaveValue("any");
 });
 
+test("the search query lives in the address and a shared link reopens it", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto("/search");
+  const box = page.getByLabel("Search stories");
+  await box.fill("art");
+  await expect(page).toHaveURL(/\/search\?q=art$/);
+
+  await box.fill("");
+  await expect(page).toHaveURL(/\/search$/);
+
+  await page.goto("/search?q=art");
+  await expect(box).toHaveValue("art");
+  await expect(page.getByText(/\d+ stor(y|ies)( of \d+)? · newest first/)).toBeVisible({
+    timeout: 10_000,
+  });
+});
+
 test("removing a saved story can be undone, back in its place", async ({ page }) => {
   const saved = [
     { id: "a", title: "Newer story", source: "BBC", saved_at: "2026-11-12T10:00:00Z" },
