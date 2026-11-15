@@ -8,6 +8,7 @@ plus related entities (SQL) and related articles (Pinecone search).
 import hashlib
 import json
 import logging
+import uuid
 from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -141,17 +142,33 @@ class ContextService:
         self.context_ttl = context_ttl
 
     @staticmethod
-    def cache_key(entity: Entity) -> str:
-        return f"context:entity:{entity.id}"
+    def cache_key(entity: Entity, article_id: uuid.UUID | None = None) -> str:
+        """One explanation per term and story (the story decides *why it matters*); with no
+        story, one per term."""
+        base = f"context:entity:{entity.id}"
+        return f"{base}:article:{article_id}" if article_id else base
 
-    async def get_context(self, entity: Entity, db: AsyncSession) -> ContextResponse:
-        """Explain an entity.
+    async def _story_for(
+        self, entity: Entity, db: AsyncSession, article_id: uuid.UUID | None
+    ) -> uuid.UUID | None:
+        """`article_id` if the term really appears in that story, else None (the term-level
+        explanation). Stops arbitrary ids from minting cache entries."""
+        if article_id is None:
+            return None
+        return article_id if await entity_repo.mention_in_article(db, entity, article_id) else None
+
+    async def get_context(
+        self, entity: Entity, db: AsyncSession, article_id: uuid.UUID | None = None
+    ) -> ContextResponse:
+        """Explain an entity, written for the story it was opened from when one is given.
 
         Only Claude's explanation is cached. Related entities (one SQL query) and related
         articles (one vector search) are looked up on every request, so a cache hit returns
         the same shape as a miss and "Also in the news" stays current.
         """
-        cached = await self.cache.get(self.cache_key(entity))
+        article_id = await self._story_for(entity, db, article_id)
+        key = self.cache_key(entity, article_id)
+        cached = await self.cache.get(key)
         if cached:
             if "sources" in cached:
                 sources = [ContextSource(**s) for s in cached["sources"]]
@@ -167,13 +184,13 @@ class ContextService:
             text, sources = "", []
             if self.llm.available:
                 try:
-                    text, sources = await self._generate_context(entity, db)
+                    text, sources = await self._generate_context(entity, db, article_id)
                 except DailyBudgetExceeded:
                     pass  # over today's budget: fall back to the Wikipedia extract below
             now = datetime.now(UTC)
             if text:
                 await self.cache.set(
-                    self.cache_key(entity),
+                    key,
                     {
                         "text": text,
                         "generated_at": now.isoformat(),
@@ -211,7 +228,7 @@ class ContextService:
         )
 
     async def _generate_context(
-        self, entity: Entity, db: AsyncSession
+        self, entity: Entity, db: AsyncSession, article_id: uuid.UUID | None = None
     ) -> tuple[str, list[ContextSource]]:
         """Claude's explanation, and the sources it was given (only those that had content).
 
@@ -226,11 +243,15 @@ class ContextService:
         graph_context = await self._mirofish_graph_context(entity)
         if graph_context:
             sources.append(ContextSource(type="graph", title="Samā4's knowledge graph"))
-        article_title, excerpt, article_id = None, None, None
-        mention = await entity_repo.latest_mention(db, entity)
+        article_title, excerpt, written_for = None, None, None
+        mention = (
+            await entity_repo.mention_in_article(db, entity, article_id)
+            if article_id
+            else await entity_repo.latest_mention(db, entity)
+        )
         if mention is not None:
             article, ae = mention
-            article_id = article.id
+            written_for = article.id
             article_title = article.title
             excerpt = mention_excerpt(article.cleaned_content or article.raw_content or "", ae)
             sources.insert(0, ContextSource(type="article", title=article.title, url=article.url))
@@ -249,7 +270,7 @@ class ContextService:
             await explanation_repo.add(
                 db,
                 entity_id=entity.id,
-                article_id=article_id,
+                article_id=written_for,
                 wikipedia_title=wiki_page.title if wiki_page else None,
                 wikipedia_revision_id=wiki_page.revision_id if wiki_page else None,
                 text=text,
@@ -266,7 +287,10 @@ class ContextService:
         cached one, i.e. exactly what the reader read), plus Wikipedia and the outlook.
         The answer tags each fact with its source; `sources` lists the ones provided.
         """
-        cached = await self.cache.get(self.cache_key(entity))
+        # What the reader read: the explanation written for this story, else the term-level one.
+        cached = await self.cache.get(self.cache_key(entity, article.id)) or await self.cache.get(
+            self.cache_key(entity)
+        )
         explanation = (cached or {}).get("text") or entity.short_context or ""
         article_text = (article.cleaned_content or article.raw_content or article.summary or "")[
             :FOLLOWUP_ARTICLE_CHARS
@@ -310,13 +334,16 @@ class ContextService:
             confidence=0.85,
         )
 
-    async def get_more_detail(self, entity: Entity, db: AsyncSession) -> MoreDetailResponse:
+    async def get_more_detail(
+        self, entity: Entity, db: AsyncSession, article_id: uuid.UUID | None = None
+    ) -> MoreDetailResponse:
         """A fuller explanation (about 150 words) for readers who want depth.
 
         Built from the same story passage and a longer Wikipedia intro. Cached per entity;
         "" when Claude is unavailable, so the panel can offer a retry.
         """
-        key = f"context:entity-more:{entity.id}"
+        article_id = await self._story_for(entity, db, article_id)
+        key = self.cache_key(entity, article_id).replace("context:entity:", "context:entity-more:")
         cached = await self.cache.get(key)
         if cached:
             return MoreDetailResponse(**cached, cached=True)
@@ -326,7 +353,11 @@ class ContextService:
                 entity.wikipedia_url or "", sentences=6
             )
             article_title, excerpt = None, None
-            mention = await entity_repo.latest_mention(db, entity)
+            mention = (
+                await entity_repo.mention_in_article(db, entity, article_id)
+                if article_id
+                else await entity_repo.latest_mention(db, entity)
+            )
             if mention is not None:
                 article, ae = mention
                 article_title = article.title

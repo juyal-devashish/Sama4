@@ -56,13 +56,19 @@ async def explain_selection(
     dependencies=[per_ip_limit("context", EXPLANATIONS_PER_IP)],
 )
 async def get_entity_context(
-    entity_id: uuid.UUID, db: DbSession, service: ContextServiceDep
+    entity_id: uuid.UUID,
+    db: DbSession,
+    service: ContextServiceDep,
+    article_id: uuid.UUID | None = None,
 ) -> ContextResponse:
-    """Explanation of an entity (shown when a reader taps a highlighted term)."""
+    """Explanation of an entity (shown when a reader taps a highlighted term).
+
+    With `article_id` the explanation is written for, and cached per, that story.
+    """
     entity = await entity_repo.get(db, entity_id)
     if entity is None:
         raise HTTPException(status_code=404, detail="Entity not found")
-    return await service.get_context(entity, db)
+    return await service.get_context(entity, db, article_id)
 
 
 @router.get(
@@ -71,13 +77,16 @@ async def get_entity_context(
     dependencies=[per_ip_limit("more-detail", MORE_DETAIL_PER_IP)],
 )
 async def get_more_detail(
-    entity_id: uuid.UUID, db: DbSession, service: ContextServiceDep
+    entity_id: uuid.UUID,
+    db: DbSession,
+    service: ContextServiceDep,
+    article_id: uuid.UUID | None = None,
 ) -> MoreDetailResponse:
     """A fuller explanation of an entity, for the "More detail" button."""
     entity = await entity_repo.get(db, entity_id)
     if entity is None:
         raise HTTPException(status_code=404, detail="Entity not found")
-    return await service.get_more_detail(entity, db)
+    return await service.get_more_detail(entity, db, article_id)
 
 
 @router.post(

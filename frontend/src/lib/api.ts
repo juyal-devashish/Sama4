@@ -109,12 +109,15 @@ export const api = {
     return fetchAPI<ReferenceResponse>(apiPath(`/articles/${articleId}/reference`));
   },
 
-  getEntityContext(entityId: string) {
-    return fetchAPI<ContextResponse>(apiPath(`/context/${entityId}`));
+  /** With `articleId` the explanation is written for, and cached per, that story. */
+  getEntityContext(entityId: string, articleId?: string) {
+    return fetchAPI<ContextResponse>(apiPath(`/context/${entityId}`, { article_id: articleId }));
   },
 
-  getMoreDetail(entityId: string) {
-    return fetchAPI<MoreDetailResponse>(apiPath(`/context/${entityId}/more`));
+  getMoreDetail(entityId: string, articleId?: string) {
+    return fetchAPI<MoreDetailResponse>(
+      apiPath(`/context/${entityId}/more`, { article_id: articleId }),
+    );
   },
 
   explainEntity(request: ExplainRequest) {

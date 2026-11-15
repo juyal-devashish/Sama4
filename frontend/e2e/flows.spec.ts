@@ -170,6 +170,23 @@ test("More detail shows a longer explanation only when asked", async ({ page }) 
   await expect(panel.getByText(/written by AI from the same sources/)).toBeVisible();
 });
 
+test("an explanation is requested for the story it is opened from", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  const asked: string[] = [];
+  page.on("request", (r) => {
+    if (/\/api\/v1\/context\/[0-9a-f-]{36}(\?|$)/.test(r.url())) asked.push(r.url());
+  });
+  await page.goto(ARTICLE);
+  const term = page.locator("p .term").first();
+  await expect(term).toBeVisible({ timeout: 10_000 });
+  await term.click();
+  await expect(page.locator("#explanation-status")).toHaveText(/loaded\./);
+
+  expect(asked.length).toBeGreaterThan(0);
+  expect(asked.every((u) => new URL(u).searchParams.get("article_id") === ARTICLE_ID)).toBe(true);
+});
+
 test("reference page is accessible", async ({ page }) => {
   await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
