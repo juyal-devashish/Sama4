@@ -12,8 +12,6 @@ import {
 } from "@/hooks/usePrediction";
 import { RUNNING_PREDICTION_STATES, cn } from "@/lib/utils";
 import {
-  CONFIDENCE_HELP,
-  IMPACT_HELP,
   OUTLOOK_DISCLAIMER,
   PERSONA_HELP,
   REACTION_HELP,
@@ -194,8 +192,6 @@ function OutlookReport({
   basis: OutlookBasis;
 }) {
   const sentiment = parseSentiment(prediction.sentiment_distribution);
-  const confidence =
-    prediction.confidence_score != null ? Math.round(prediction.confidence_score * 100) : null;
   const method = methodSummary(
     prediction.method,
     prediction.agent_count,
@@ -212,15 +208,7 @@ function OutlookReport({
         {prediction.prediction_summary && (
           <p className="drop-cap text-[19px] leading-[1.55]">{prediction.prediction_summary}</p>
         )}
-        <dl className="mt-6 grid gap-x-8 gap-y-5 sm:grid-cols-3">
-          {confidence != null && (
-            <Stat label="Model confidence" value={`${confidence}%`} help={CONFIDENCE_HELP} />
-          )}
-          <Stat
-            label="Impact (estimate)"
-            value={`${Math.round(prediction.impact_score)} / 100`}
-            help={IMPACT_HELP}
-          />
+        <dl className="mt-6">
           <Stat label={method.label} value={method.value} help={method.help} />
         </dl>
       </div>

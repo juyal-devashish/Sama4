@@ -27,7 +27,7 @@ const PREDICTION = {
   completed_at: new Date().toISOString(),
 };
 
-test("a finished outlook is labelled as an AI projection and explains its figures", async ({
+test("a finished outlook is labelled as an AI projection and shows no impact or confidence scores", async ({
   page,
 }) => {
   await mockApi(page);
@@ -45,8 +45,10 @@ test("a finished outlook is labelled as an AI projection and explains its figure
 
   await expect(outlook.getByText(/AI-generated projection by Samā4/)).toBeVisible();
   await expect(outlook.getByText(/Based only on the \d+-word text Samā4 has from/)).toBeVisible();
-  await expect(outlook.getByText(/not a measured probability/)).toBeVisible();
-  await expect(outlook.getByText(/it does not say how important or true/)).toBeVisible();
+  // The model's own impact and confidence numbers are not evidence: never show them.
+  await expect(outlook.getByText(/confidence/i)).toHaveCount(0);
+  await expect(outlook.getByText(/Impact \(estimate\)/)).toHaveCount(0);
+  await expect(outlook.getByText(/\/ 100/)).toHaveCount(0);
   // The fallback simulated nothing: never show "500 simulated".
   await expect(outlook.getByText("Viewpoints written")).toBeVisible();
   await expect(outlook.getByText("500")).toHaveCount(0);
