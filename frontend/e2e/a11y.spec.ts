@@ -59,3 +59,18 @@ test("loading skeletons are accessible (feed request held open)", async ({ page 
   );
   expect(summary, summary.join("\n")).toEqual([]);
 });
+
+test("the first Tab stop skips the navigation and lands in the content", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto("/saved");
+  await page.waitForLoadState("networkidle");
+
+  await page.keyboard.press("Tab");
+  const skip = page.getByRole("link", { name: "Skip to content" });
+  await expect(skip).toBeFocused();
+  await expect(skip).toBeVisible();
+
+  await page.keyboard.press("Enter");
+  await expect(page.locator("main#main-content")).toBeFocused();
+});
