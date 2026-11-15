@@ -29,6 +29,7 @@ async def get_feed(
                 reading_time_minutes=r.article.reading_time_minutes,
                 categories=r.article.categories or [],
                 entity_count=r.entity_count,
+                entity_names=r.entity_names,
             )
             for r in rows
         ],

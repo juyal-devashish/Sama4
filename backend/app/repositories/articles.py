@@ -2,7 +2,7 @@
 
 import uuid
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import delete, func, select, text
@@ -20,6 +20,7 @@ from app.models.source import Source
 STATUS_COMPLETED = "completed"
 STATUS_FAILED = "failed"
 FAILED_RETRY_AFTER = timedelta(hours=6)
+MAX_CARD_ENTITY_NAMES = 30
 
 
 @dataclass
@@ -27,6 +28,7 @@ class FeedRow:
     article: Article
     source: Source | None
     entity_count: int
+    entity_names: list[str] = field(default_factory=list)
 
 
 async def list_feed(
@@ -68,7 +70,34 @@ async def list_feed(
 
     total = (await db.execute(select(func.count()).select_from(query.subquery()))).scalar_one()
     rows = (await db.execute(query.offset((page - 1) * limit).limit(limit))).all()
-    return [FeedRow(article=a, source=s, entity_count=n) for a, s, n in rows], total
+    names = await _entity_names(db, [a.id for a, _s, _n in rows])
+    return [
+        FeedRow(article=a, source=s, entity_count=n, entity_names=names.get(a.id, []))
+        for a, s, n in rows
+    ], total
+
+
+async def _entity_names(
+    db: AsyncSession, article_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, list[str]]:
+    """Names of the people, places and organisations in each story, most prominent first.
+
+    One query for the whole page. The reader's search matches on these.
+    """
+    if not article_ids:
+        return {}
+    rows = await db.execute(
+        select(ArticleEntity.article_id, Entity.canonical_name)
+        .join(Entity, Entity.id == ArticleEntity.entity_id)
+        .where(ArticleEntity.article_id.in_(article_ids))
+        .order_by(ArticleEntity.in_title.desc(), ArticleEntity.start_position)
+    )
+    names: dict[uuid.UUID, list[str]] = {}
+    for article_id, name in rows:
+        bucket = names.setdefault(article_id, [])
+        if name not in bucket and len(bucket) < MAX_CARD_ENTITY_NAMES:
+            bucket.append(name)
+    return names
 
 
 async def get_with_source(

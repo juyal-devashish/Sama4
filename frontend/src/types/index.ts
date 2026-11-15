@@ -15,6 +15,8 @@ export interface ArticleCard {
   reading_time_minutes?: number;
   categories: string[];
   entity_count: number;
+  /** Names of the terms in the story; search matches on them. Absent from older servers. */
+  entity_names?: string[];
 }
 
 export interface PaginationMeta {

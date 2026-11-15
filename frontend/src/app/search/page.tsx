@@ -51,7 +51,10 @@ export default function SearchPage() {
   };
 
   return (
-    <Page title="Search" description="Find stories by headline, summary or source.">
+    <Page
+      title="Search"
+      description="Find stories by headline, summary, source or a name in the story."
+    >
       <form
         role="search"
         onSubmit={(e) => {
