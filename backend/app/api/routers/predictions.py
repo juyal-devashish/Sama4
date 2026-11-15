@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import ContainerDep, DbSession, PredictionServiceDep, per_ip_limit
+from app.clients.usage import DailyBudgetExceeded, seconds_until_utc_midnight
 from app.ingestion import jobs
 from app.models.article import Article
 from app.models.prediction import (
@@ -56,6 +57,8 @@ async def trigger_simulation(
     c: ContainerDep,
 ) -> PredictionSummary:
     """Trigger a MiroFish simulation for an article."""
+    if await c.llm.over_budget():
+        raise DailyBudgetExceeded(seconds_until_utc_midnight())
     # Verify article exists
     article = await db.get(Article, request.article_id)
     if not article:

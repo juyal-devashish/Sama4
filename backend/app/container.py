@@ -15,6 +15,7 @@ from app.clients.cache import Cache
 from app.clients.llm import LLMClient
 from app.clients.mirofish import MirofishClient
 from app.clients.pages import PageFetcher
+from app.clients.usage import UsageMeter
 from app.clients.vectors import VectorStore
 from app.clients.wikimedia import WikimediaClient
 from app.config import Settings, settings
@@ -32,9 +33,11 @@ class Container:
 
     @classmethod
     def from_settings(cls, s: Settings) -> "Container":
+        cache = Cache(s.redis_url)
+        meter = UsageMeter(cache, s.llm_daily_token_cap)
         return cls(
             settings=s,
-            llm=LLMClient(s.anthropic_api_key, s.anthropic_model, s.anthropic_effort),
+            llm=LLMClient(s.anthropic_api_key, s.anthropic_model, s.anthropic_effort, meter),
             vectors=VectorStore(
                 api_key=s.pinecone_api_key,
                 index_name=s.pinecone_index,
@@ -42,7 +45,7 @@ class Container:
                 embed_model=s.pinecone_embed_model,
                 dimension=s.pinecone_embed_dim,
             ),
-            cache=Cache(s.redis_url),
+            cache=cache,
             wikimedia=WikimediaClient(),
             mirofish=MirofishClient(
                 s.mirofish_url, s.mirofish_simulation_timeout, s.mirofish_enabled

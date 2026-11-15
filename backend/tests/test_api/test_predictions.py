@@ -156,3 +156,13 @@ async def test_a_run_cancelled_mid_generation_never_saves_its_result(container, 
     assert (row.status, row.error_message) == (STATUS_FAILED, "Cancelled by the reader.")
     assert row.prediction_summary is None
     assert perspectives == []
+
+
+async def test_simulate_is_refused_over_the_daily_budget(client, container):
+    container.llm.exhausted = True
+
+    response = await client.post(
+        "/api/v1/predictions/simulate", json={"article_id": str(uuid.uuid4())}
+    )
+
+    assert response.status_code == 503

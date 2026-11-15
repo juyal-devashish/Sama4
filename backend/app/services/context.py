@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.clients.cache import Cache
 from app.clients.llm import LLMClient
 from app.clients.mirofish import MirofishClient
+from app.clients.usage import DailyBudgetExceeded
 from app.clients.vectors import VectorStore, article_id_from_vector_id
 from app.clients.wikimedia import WikimediaClient
 from app.models.article import Article
@@ -128,7 +129,10 @@ class ContextService:
         else:
             text, sources = "", []
             if self.llm.available:
-                text, sources = await self._generate_context(entity, db)
+                try:
+                    text, sources = await self._generate_context(entity, db)
+                except DailyBudgetExceeded:
+                    pass  # over today's budget: fall back to the Wikipedia extract below
             now = datetime.now(UTC)
             if text:
                 await self.cache.set(
