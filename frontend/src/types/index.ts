@@ -12,6 +12,8 @@ export interface ArticleCard {
   image_url?: string;
   source: ArticleCardSource;
   published_at?: string;
+  /** When Samā4 stored the story; absent from older servers. */
+  added_at?: string;
   reading_time_minutes?: number;
   categories: string[];
   entity_count: number;
