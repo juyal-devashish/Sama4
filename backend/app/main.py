@@ -4,6 +4,7 @@ import asyncio
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,13 +30,48 @@ def _configure_logging(s: Settings) -> None:
     )
 
 
+_IP_HEADERS = {
+    "x-forwarded-for",
+    "x-real-ip",
+    "x-vercel-forwarded-for",
+    "x-envoy-external-address",
+    "forwarded",
+    "cf-connecting-ip",
+    "true-client-ip",
+}
+
+
+def scrub_sentry_event(event: dict[str, Any], hint: Any = None) -> dict[str, Any]:
+    """Strip anything that identifies the reader's address before an event leaves.
+
+    `send_default_pii=False` already keeps cookies, the user's IP and the socket address
+    out, but proxies add the visitor's IP as forwarding headers; drop those too.
+    """
+    request = event.get("request")
+    if isinstance(request, dict):
+        headers = request.get("headers")
+        if isinstance(headers, dict):
+            request["headers"] = {k: v for k, v in headers.items() if k.lower() not in _IP_HEADERS}
+        request.pop("env", None)
+        request.pop("cookies", None)
+    user = event.get("user")
+    if isinstance(user, dict):
+        user.pop("ip_address", None)
+    return event
+
+
 def _init_sentry(s: Settings) -> None:
     if not s.sentry_dsn:
         return
     try:
         import sentry_sdk
 
-        sentry_sdk.init(dsn=s.sentry_dsn, environment=s.environment, send_default_pii=True)
+        sentry_sdk.init(
+            dsn=s.sentry_dsn,
+            environment=s.environment,
+            send_default_pii=False,
+            before_send=scrub_sentry_event,
+        )
     except Exception:
         logger.warning("Sentry initialization failed", exc_info=True)
 

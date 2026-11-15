@@ -82,7 +82,8 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
       <>
         <p>
           If something breaks, an error report may be sent to our error-tracking provider (Sentry).
-          It can include technical details of the request, such as your IP address.
+          It can include technical details of the request, but we strip your IP address and cookies
+          before it is sent.
         </p>
         <p>
           The app is hosted on Vercel and its server and database on Railway. Like any website,
