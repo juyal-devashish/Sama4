@@ -44,7 +44,7 @@ export function ContextPanel({
   followUpTip,
   onAnnounce,
 }: Props) {
-  const { data, isLoading, isError, refetch } = useEntityContext(term.id);
+  const { data, isLoading, isError, refetch } = useEntityContext(term.id, articleId);
   const { data: prediction } = usePrediction(articleId);
   const color = entityColor(term.type);
 
@@ -104,7 +104,7 @@ export function ContextPanel({
                   {data.context.text}
                 </p>
                 <ExplanationSources context={data.context} />
-                <MoreDetail entityId={data.entity.id} />
+                <MoreDetail entityId={data.entity.id} articleId={articleId} />
                 <ReportError
                   key={term.id}
                   entityId={data.entity.id}
@@ -306,9 +306,9 @@ export function ExplanationSources({ context }: { context: ContextData }) {
 }
 
 /** "More detail": a longer explanation, fetched only when the reader asks for it. */
-function MoreDetail({ entityId }: { entityId: string }) {
+function MoreDetail({ entityId, articleId }: { entityId: string; articleId: string }) {
   const [asked, setAsked] = useState(false);
-  const { data, isLoading, isError, refetch } = useMoreDetail(entityId, asked);
+  const { data, isLoading, isError, refetch } = useMoreDetail(entityId, articleId, asked);
 
   if (!asked) {
     return (

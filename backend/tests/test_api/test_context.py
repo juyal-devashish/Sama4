@@ -1,6 +1,7 @@
 import uuid
 
 from app.clients.vectors import vector_id_for_article
+from app.models.entity import ArticleEntity
 from app.repositories import explanations as explanation_repo
 from tests.factories import make_article, make_entity
 
@@ -342,3 +343,60 @@ async def test_over_the_daily_budget_followups_get_a_503_and_explanations_fall_b
     assert followup.headers["retry-after"]
     assert explanation.status_code == 200  # the Wikipedia fallback, not an error
     assert explanation.json()["context"]["source"] == "wikipedia_extract"
+
+
+async def test_an_explanation_is_written_and_cached_per_term_and_story(
+    client, container, db_session
+):
+    async with db_session() as db:
+        fed = await make_entity(db, name="The Fed")
+        rates_text = "The Fed held rates steady today."
+        bank_text = "Regional banks lean on the Fed."
+        rates = await make_article(db, title="Rates", content=rates_text)
+        bank = await make_article(db, title="Banks", content=bank_text)
+        for article, text in ((rates, rates_text), (bank, bank_text)):
+            start = text.index("Fed")
+            db.add(
+                ArticleEntity(
+                    article_id=article.id,
+                    entity_id=fed.id,
+                    mention_text="Fed",
+                    start_position=start,
+                    end_position=start + 3,
+                    priority="high",
+                )
+            )
+        await db.commit()
+    container.llm.replies = {
+        "held rates steady": "In the rates story the Fed is the rate-setter.",
+        "lean on the Fed": "In the banks story the Fed is the lender of last resort.",
+    }
+
+    async def explain(article):
+        url = f"/api/v1/context/{fed.id}?article_id={article.id}"
+        return (await client.get(url)).json()["context"]
+
+    in_rates = await explain(rates)
+    in_banks = await explain(bank)
+    again = await explain(rates)
+
+    assert in_rates["text"] == "In the rates story the Fed is the rate-setter."
+    assert in_banks["text"] == "In the banks story the Fed is the lender of last resort."
+    assert (in_rates["cached"], in_banks["cached"], again["cached"]) == (False, False, True)
+    assert len(container.llm.calls) == 2  # one per story, none for the repeat
+    # The term-level (no story) explanation is its own entry, not either of these.
+    assert f"context:entity:{fed.id}" not in container.cache.store
+
+
+async def test_a_story_the_term_is_not_in_falls_back_to_the_term_level_explanation(
+    client, container, db_session
+):
+    async with db_session() as db:
+        ada = await make_entity(db, name="Ada")
+        elsewhere = await make_article(db, title="Elsewhere")
+        await db.commit()
+
+    await client.get(f"/api/v1/context/{ada.id}?article_id={elsewhere.id}")
+
+    keys = [k for k in container.cache.store if k.startswith("context:entity:")]
+    assert keys == [f"context:entity:{ada.id}"]  # no entry minted for an unrelated story
