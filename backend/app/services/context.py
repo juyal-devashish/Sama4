@@ -38,6 +38,7 @@ from app.schemas.context import (
     RelatedEntity,
     SelectionResponse,
 )
+from app.text import cap_words as _cap_words
 
 logger = logging.getLogger(__name__)
 
@@ -109,18 +110,10 @@ MORE_MAX_WORDS = 170  # the fuller one behind "More detail"
 def cap_words(text: str, max_words: int) -> str:
     """Shorten text to at most `max_words`, ending at a sentence if one fits, else with …
 
-    The prompts ask for this length; this makes it a guarantee.
+    The prompts ask for this length; this makes it a guarantee. A sentence end counts only
+    in the second half of the cut, and abbreviations such as "U.S." are not sentence ends.
     """
-    words = text.split()
-    if len(words) <= max_words:
-        return text.strip()
-    clipped = " ".join(words[:max_words])
-    if clipped.endswith((".", "!", "?")):
-        return clipped
-    last_end = max(clipped.rfind(". "), clipped.rfind("! "), clipped.rfind("? "))
-    if last_end >= len(clipped) // 2:  # a sentence boundary in the second half: stop there
-        return clipped[: last_end + 1]
-    return clipped.rstrip(",;:") + "…"
+    return _cap_words(text, max_words, min_ratio=0.5)
 
 
 class ContextService:
