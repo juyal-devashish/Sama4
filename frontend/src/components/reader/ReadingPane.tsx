@@ -12,6 +12,7 @@ import {
   Library,
   Link2,
   ListTree,
+  Share2,
 } from "lucide-react";
 import { useArticle } from "@/hooks/useArticle";
 import { usePanelFocus } from "@/hooks/usePanelFocus";
@@ -269,6 +270,21 @@ function Story({
       source: article.source.name,
     });
 
+  // The system share sheet (phones, Safari, some desktop browsers); read after mount.
+  const [canShare, setCanShare] = useState(false);
+  useEffect(() => setCanShare(typeof navigator.share === "function"), []);
+  const share = async () => {
+    try {
+      await navigator.share({
+        title: article.title,
+        text: article.summary ?? undefined,
+        url: `${window.location.origin}${storyPath(article.id)}`,
+      });
+    } catch {
+      /* dismissed, or sharing isn't available: the Copy link button is still there */
+    }
+  };
+
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(`${window.location.origin}${storyPath(article.id)}`);
@@ -327,6 +343,17 @@ function Story({
           >
             <Library size={14} /> <span className="hidden sm:inline">References</span>
           </Link>
+          {canShare && (
+            <button
+              type="button"
+              onClick={share}
+              aria-label="Share"
+              className="label-ui flex h-9 items-center gap-1.5 px-2.5 text-text-secondary transition-colors hover:text-foreground"
+            >
+              <Share2 size={14} />
+              <span className="hidden sm:inline">Share</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={copyLink}
