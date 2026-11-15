@@ -358,6 +358,37 @@ test("Share hands the story's own address to the system share sheet", async ({ p
   expect(shared[0].title.length).toBeGreaterThan(0);
 });
 
+test("stories stored since the reader's last visit are marked New, and only then", async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  // First ever visit: nothing is marked.
+  await page.goto("/");
+  await expect(page.locator("section[aria-label=Stories] li").first()).toBeVisible({
+    timeout: 10_000,
+  });
+  await expect(page.getByText("since your last visit")).toHaveCount(0);
+
+  // Returning after a long time (an earlier visit is on record): everything newer is marked.
+  const returning = await page.context().newPage();
+  await mockApi(returning);
+  await returning.addInitScript(() => {
+    localStorage.setItem("sama4_onboarded", "true");
+    if (!sessionStorage.getItem("sama4_visit_baseline"))
+      localStorage.setItem("sama4_last_visit", "1");
+  });
+  await returning.goto("/");
+  await expect(returning.getByText("since your last visit").first()).toBeAttached({
+    timeout: 10_000,
+  });
+  // A reload in the same session keeps the markers.
+  await returning.reload();
+  await expect(returning.getByText("since your last visit").first()).toBeAttached({
+    timeout: 10_000,
+  });
+});
+
 test("removing a saved story can be undone, back in its place", async ({ page }) => {
   const saved = [
     { id: "a", title: "Newer story", source: "BBC", saved_at: "2026-11-12T10:00:00Z" },

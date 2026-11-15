@@ -7,6 +7,8 @@ import { StoryImage } from "@/components/ui/story-image";
 import { cn, formatLongDate } from "@/lib/utils";
 import { PublishedTime } from "@/components/ui/published-time";
 import { TOPIC_LABELS } from "@/lib/preferences";
+import { useNewSince } from "@/hooks/useNewSince";
+import { isNewSince } from "@/lib/lastVisit";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 
 export function TopicChips({
@@ -52,8 +54,15 @@ export function TopicChips({
 
 export const StoryRow = forwardRef<
   HTMLButtonElement,
-  { story: ArticleCard; selected?: boolean; onClick: () => void; dense?: boolean }
->(function StoryRow({ story, selected, onClick, dense }, ref) {
+  {
+    story: ArticleCard;
+    selected?: boolean;
+    onClick: () => void;
+    dense?: boolean;
+    /** Stored since the reader's last visit: shows a "New" marker. */
+    isNew?: boolean;
+  }
+>(function StoryRow({ story, selected, onClick, dense, isNew }, ref) {
   return (
     <button
       ref={ref}
@@ -70,6 +79,11 @@ export const StoryRow = forwardRef<
       <div className="min-w-0 flex-1">
         <div className="mb-1.5 flex items-baseline gap-2">
           <span className="kicker truncate">{story.source.name}</span>
+          {isNew && (
+            <span className="label-ui flex-shrink-0 font-bold text-accent-secondary">
+              New<span className="sr-only"> since your last visit</span>
+            </span>
+          )}
           <PublishedTime
             at={story.published_at}
             className="label-ui flex-shrink-0 text-text-tertiary"
@@ -164,6 +178,7 @@ export function StoryList({
   onLoadMore,
   className,
 }: StoryListProps) {
+  const since = useNewSince();
   return (
     <section
       aria-label="Stories"
@@ -206,6 +221,7 @@ export function StoryList({
                     story={s}
                     selected={s.id === selectedId}
                     onClick={() => onSelect(s.id)}
+                    isNew={isNewSince(s, since)}
                   />
                 </li>
               ))}

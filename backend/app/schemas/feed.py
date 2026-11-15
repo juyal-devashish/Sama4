@@ -18,6 +18,8 @@ class ArticleCard(BaseModel):
     image_url: str | None = None
     source: ArticleCardSource
     published_at: datetime | None = None
+    # When Samā4 stored the story (the nightly run). "New since your last visit" uses it.
+    added_at: datetime | None = None
     reading_time_minutes: int | None = None
     categories: list[str] = []
     entity_count: int = 0
