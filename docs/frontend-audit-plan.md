@@ -23,7 +23,7 @@ All eight were decided on Nov 14, 2026.
 | D3 | Remove Outlook from the primary nav? Rename "Early access"? | T015, T072 | **Outlook stays in the nav with a "Beta" tag.** "Early access" keeps its name, so T072 is a no-op. |
 | D4 | Drop the newspaper masthead (tagline and date) on utility and info pages? | T037 | **Slim it off-reader.** The nameplate stays everywhere; the tagline and date columns show only on Today and story pages. |
 | D5 | Serve thumbnails through `next/image`? | T051, T028 | **Not yet.** Keep loading images from publishers directly and disclose it on /privacy (T028). T051 is deferred. |
-| D6 | Add API fields for the edition's build time and the total story count? | T058, T060 | **Add both**, read-only: `generated_at` from the latest ingestion run, and `total` on the feed response. The schema and `types/index.ts` change together. No changes to columns on existing tables. |
+| D6 | Add API fields for the edition's build time and the total story count? | T058, T060 | **Not needed.** Approved, then found redundant: the feed already returns `pagination.total`, and every card has `added_at`, so the edition time is the newest `added_at`. Both are frontend-only. |
 | D7 | Replace the PNG owl? | T048 | **Inline SVG** that follows the text color. **Blocked on vector artwork of the owl from you**; batch 2 leaves T048 for last. |
 | D8 | Run `summaries/regenerate` in production after the backend fix? | T001 | **No. Only new stories** get correct summaries. The broken summaries already stored stay until they age out of the feed, and the frontend guard (T002) hides the shortest fragments meanwhile. |
 
@@ -33,8 +33,8 @@ Each batch is one branch and one PR off `origin/main`. Each task is its own comm
 
 | Batch | Branch | Tasks | Notes |
 |---|---|---|---|
-| **0. Evidence harness** | `test/visual-matrix` | T052, T053, T054, T056 (T055 is mostly done) | Playwright screenshots against the recorded fixtures (`e2e/fixtures/api.json`). A fixed clock (`page.clock`) at 21:00 America/New_York also gives a regression test for the date bug. Screenshots go to CI artifacts, without pixel diffs at first. |
-| **1. Backend** | `fix/summary-abbreviations` | T001, T002, T041, T043, API half of T058 and T060 | Make `_SENTENCE_END` skip known abbreviations and initialisms (`U.S.`, `Gov.`, `Sen.`, `Dr.`, `St.`, `Jr.`, single capitals). Test with the two live examples. Frontend guard: hide a summary under 40 characters. Fix the display names and feed labels in `ingestion/sources.py`. Add `generated_at` and `total` to the feed response, with `types/index.ts`. Deploy with `make deploy-backend`. No regenerate (D8). |
+| **0. Evidence harness** (PR #86) | `test/visual-matrix` | T052, T053, T054, T056 (T055 is mostly done) | Playwright screenshots against the recorded fixtures (`e2e/fixtures/api.json`). A fixed clock (`page.clock`) at 21:00 America/New_York also gives a regression test for the date bug. Screenshots go to CI artifacts, without pixel diffs at first. |
+| **1. Backend** | `fix/summary-abbreviations` | T001, T002, T041, T043, API half of T058 and T060 | Make `_SENTENCE_END` skip known abbreviations and initialisms (`U.S.`, `Gov.`, `Sen.`, `Dr.`, `St.`, `Jr.`, single capitals). Test with the two live examples. Frontend guard: hide a summary under 40 characters. Fix the display names and feed labels in `ingestion/sources.py`. Deploy with `make deploy-backend`. No regenerate (D8). (The `generated_at`/`total` fields were dropped: see D6.) Status: PR #85. |
 | **2. Shell and dates** | `fix/shell-dates` | T003, T004, T057, T010, T022, T036, T068, T071, T007, T037, T038, T015 (Beta tag), T025, T048 last (needs artwork) | One `ClientDate` component (empty on the server, filled after mount, `min-width` reserved) used by the Masthead and the Today h1; `PublishedTime` recomputes on mount. Skip link in `AppShell`. The phone theme button's visible text matches its name. |
 | **3. Today feed and story** | `fix/feed-cards` | T009, T016, T021, T026, T030, T059, T061, T062, T065, T096, T058, T060 (UI) | `StoryRow` becomes a `<Link href={storyPath(id)}>` and keeps the in-place selection (Reader already routes by URL). The date `h1` in `StoryList` becomes a `p` or an `h2` on `/article/[id]`. AI-summary label under the Today heading. A clipboard fallback for Copy link. |
 | **4. Early-access page** | `fix/landing` | T008, T012, T023, T024, T032, T034, T035, T039, T045, T047, T073, T076, T077 | Everything lives in `landingMarkup.ts`, `landing.css` and `Landing.tsx`. T023 undoes PR #14's h2 choice for the demo headline, so make it a `p` and keep the heading order valid. T031 is a no-op (Search has filters for topic, source and date), but the Search description copy is fixed in batch 6. |
@@ -59,7 +59,7 @@ No-ops to close with a one-line note in the PR that covers their area: T005, T00
 | T007 Trust links in footer | Misread → Real | 2 | No footer exists; D1: rail + `Page` footer |
 | T008 Remove second footer | Misread | 4 | Only the landing footer exists; drop its bare-domain link |
 | T009 Cards as anchors | Real | 3 | `StoryRow` is a `<button>` |
-| T010 Skip link | Real | 2 | |
+| T010 Skip link | Done | — | a11y.spec.ts: "the first Tab stop skips the navigation and lands in the content" |
 | T011 Name the logo link | Done | — | `aria-label="Samā4, go to Today"` |
 | T012 Waitlist success after success | Verify | 4 | Node is in the HTML with `role="status"` |
 | T013 Error-report section on /privacy | Verify | 5 | The description mentions "reports you send" |
@@ -67,7 +67,7 @@ No-ops to close with a one-line note in the PR that covers their area: T005, T00
 | T015 Outlook out of nav | Decided: Beta tag | 2 | D3: stays in nav, tagged "Beta" |
 | T016 One h1 on the reader | Real | 3 | StoryList h1 + ReadingPane h1 |
 | T017 Search query in URL | Real | 6 | `useState` only |
-| T018 Panel focus | Verify | 7 | No focus handling found |
+| T018 Panel focus | Done | — | flows.spec.ts: panel takes focus, traps Tab as a drawer, returns focus |
 | T019 Outlook states | Verify | 8 | |
 | T020 Server-render search form | Verify | 6 | |
 | T021 Label AI summaries | Real (Today) | 3 | Story page already labelled |
@@ -107,9 +107,9 @@ No-ops to close with a one-line note in the PR that covers their area: T005, T00
 | T055 axe dark + 375 | Mostly done | 0 | Suite covers 6 routes × themes × 1440/375; add open panel at 375 dark |
 | T056 Layout-shift budget | New | 0 | |
 | T057 Relative times on client | Real | 2 | `suppressHydrationWarning` keeps server value |
-| T058 Edition build time | Real (API + UI) | 1, 3 | D6: `generated_at` |
+| T058 Edition build time | Real (UI only) | 3 | D6 revised: no API change; newest card `added_at` is the edition time |
 | T059 "Earlier" divider | Real | 3 | |
-| T060 Count for Load more | Real (API + UI) | 1, 3 | D6: `total` |
+| T060 Count for Load more | Real (UI only) | 3 | D6 revised: `pagination.total` already exists |
 | T061 Focus after Load more | Real | 3 | |
 | T062 Server-render chips | Verify | 3 | |
 | T063 Chip state | Done | — | `aria-pressed` |
