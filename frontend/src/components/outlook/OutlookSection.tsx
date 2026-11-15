@@ -137,6 +137,11 @@ export function OutlookSection({
             </p>
           )}
         </div>
+      ) : prediction?.declined ? (
+        <p className="mt-3 max-w-[60ch] text-[16.5px] leading-relaxed text-text-secondary">
+          Samā4 doesn&apos;t write outlooks about private individuals, and this story is mainly
+          about someone who isn&apos;t a public figure.
+        </p>
       ) : (
         <div className="mt-3">
           <p className="max-w-[60ch] text-[16.5px] leading-relaxed text-text-secondary">

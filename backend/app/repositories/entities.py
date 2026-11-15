@@ -78,3 +78,14 @@ async def latest_mention(db: AsyncSession, entity: Entity) -> tuple[Article, Art
         )
     ).first()
     return (row[0], row[1]) if row else None
+
+
+async def list_people_in_article(db: AsyncSession, article_id: uuid.UUID) -> Sequence[Entity]:
+    """Distinct person entities mentioned in a story."""
+    rows = await db.execute(
+        select(Entity)
+        .join(ArticleEntity, ArticleEntity.entity_id == Entity.id)
+        .where(ArticleEntity.article_id == article_id, Entity.entity_type == "PERSON")
+        .distinct()
+    )
+    return rows.scalars().all()

@@ -33,7 +33,7 @@ from app.schemas.prediction import (
     PredictionSummary,
     TrendingPrediction,
 )
-from app.services.predictions import CANCELLED_MESSAGE
+from app.services.predictions import CANCELLED_MESSAGE, PRIVATE_SUBJECT_MESSAGE
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -131,6 +131,8 @@ async def get_article_prediction(
         ],
         created_at=prediction.created_at,
         completed_at=prediction.completed_at,
+        declined=prediction.status == STATUS_FAILED
+        and prediction.error_message == PRIVATE_SUBJECT_MESSAGE,
     )
 
 
@@ -152,7 +154,11 @@ async def get_prediction_status(
         STATUS_SIMULATING: f"Running simulation with {prediction.agent_count} agents...",
         STATUS_GENERATING_REPORT: "Analyzing simulation results...",
         STATUS_COMPLETED: "Prediction complete!",
-        STATUS_FAILED: f"Simulation failed: {prediction.error_message or 'Unknown error'}",
+        STATUS_FAILED: (
+            prediction.error_message
+            if prediction.error_message == PRIVATE_SUBJECT_MESSAGE
+            else f"Simulation failed: {prediction.error_message or 'Unknown error'}"
+        ),
     }
 
     return PredictionStatusOut(
