@@ -82,3 +82,11 @@ jobs:
       - run: npm run test:e2e
         env:
           NEXT_PUBLIC_API_URL: http://localhost:8000
+      # Screenshots of every route at 1440/768/375 in both themes (e2e/screens.spec.ts).
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screens
+          path: frontend/test-results/screens
+          if-no-files-found: ignore
+          retention-days: 14
