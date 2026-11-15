@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { mockApi } from "./mock-api";
+import { ARTICLE_ID, mockApi } from "./mock-api";
 
 const routes = [
   "/",
@@ -58,4 +58,32 @@ test("loading skeletons are accessible (feed request held open)", async ({ page 
     (v) => `${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes[0]?.target.join(" ")}`,
   );
   expect(summary, summary.join("\n")).toEqual([]);
+});
+
+test.describe("exactly one h1 per page", () => {
+  const pages = [...routes, `/article/${ARTICLE_ID}`];
+  for (const route of pages) {
+    test(route.startsWith("/article") ? "an open story" : route, async ({ page }) => {
+      await mockApi(page);
+      await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+      await page.goto(route);
+      await page.waitForLoadState("networkidle");
+      await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    });
+  }
+});
+
+test("the first Tab stop skips the navigation and lands in the content", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto("/saved");
+  await page.waitForLoadState("networkidle");
+
+  await page.keyboard.press("Tab");
+  const skip = page.getByRole("link", { name: "Skip to content" });
+  await expect(skip).toBeFocused();
+  await expect(skip).toBeVisible();
+
+  await page.keyboard.press("Enter");
+  await expect(page.locator("main#main-content")).toBeFocused();
 });

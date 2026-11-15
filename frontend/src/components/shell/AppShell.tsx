@@ -22,11 +22,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:bg-foreground focus:px-4 focus:py-2.5 focus:font-ui focus:text-[14px] focus:font-bold focus:text-background"
+      >
+        Skip to content
+      </a>
       <div data-app-shell className="flex h-screen overflow-hidden bg-background">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <Masthead />
-          <main className="flex min-h-0 min-w-0 flex-1 overflow-hidden">{children}</main>
+          <main
+            id="main-content"
+            tabIndex={-1}
+            className="flex min-h-0 min-w-0 flex-1 overflow-hidden focus:outline-none"
+          >
+            {children}
+          </main>
         </div>
       </div>
       <Splash />
