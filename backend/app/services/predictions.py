@@ -25,6 +25,7 @@ from app.models.prediction import (
     Prediction,
 )
 from app.models.source import Source
+from app.repositories import prediction_log as prediction_log_repo
 
 logger = logging.getLogger(__name__)
 
@@ -298,6 +299,7 @@ Return ONLY valid JSON, no markdown code blocks."""  # noqa: E501 (LLM prompt te
             await self._check_not_cancelled(prediction, db)
             prediction.status = STATUS_COMPLETED
             prediction.completed_at = datetime.now(UTC)
+            await self._log_projection(prediction, db)
             await db.commit()
 
             # Cache the result
@@ -386,12 +388,22 @@ Return ONLY valid JSON."""
         await self._check_not_cancelled(prediction, db)
         prediction.status = STATUS_COMPLETED
         prediction.completed_at = datetime.now(UTC)
+        await self._log_projection(prediction, db)
         await db.commit()
 
         await self.cache.set(
             f"prediction:article:{prediction.article_id}",
             {"prediction_id": str(prediction.id), "status": STATUS_COMPLETED},
             ttl=self.settings.prediction_cache_ttl,
+        )
+
+    async def _log_projection(self, prediction: Prediction, db: AsyncSession) -> None:
+        """Record the finished projection in the permanent log (same transaction)."""
+        await prediction_log_repo.record(
+            db,
+            prediction,
+            resolve_after_days=self.settings.prediction_resolve_days,
+            model=getattr(self.llm, "model", None),
         )
 
     async def get_prediction_for_article(

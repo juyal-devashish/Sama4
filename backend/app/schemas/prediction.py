@@ -123,3 +123,20 @@ class TrendingPrediction(BaseModel):
     method: str = "language_model"
     agent_count: int
     completed_at: datetime | None = None
+
+
+class PredictionLogOut(BaseModel):
+    id: uuid.UUID
+    prediction_id: uuid.UUID
+    article_id: uuid.UUID
+    article_title: str
+    article_url: str
+    method: str
+    model: str | None
+    summary: str
+    outcomes: list[str]
+    predicted_at: datetime
+    resolve_by: datetime
+    resolution: str
+    resolved_at: datetime | None
+    resolution_note: str | None

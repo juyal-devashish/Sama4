@@ -1,5 +1,6 @@
 """Admin operations. Every route requires the X-Admin-Secret header (see deps.require_admin)."""
 
+import json
 import logging
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, status
@@ -8,8 +9,10 @@ from pydantic import BaseModel
 from app.api.deps import AdminOnly, ContainerDep, DbSession
 from app.ingestion import canonicalize as entity_cleanup
 from app.ingestion import jobs
+from app.repositories import prediction_log as prediction_log_repo
 from app.repositories import reports as report_repo
 from app.schemas.context import ReportOut
+from app.schemas.prediction import PredictionLogOut
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +135,26 @@ async def list_reports(
     """Readers' error reports on explanations, newest first. `?status=` (empty) lists all."""
     reports = await report_repo.list_recent(db, status=status_filter or None, limit=limit)
     return [ReportOut.model_validate(r, from_attributes=True) for r in reports]
+
+
+@router.get("/predictions/log", response_model=list[PredictionLogOut])
+async def list_prediction_log(
+    db: DbSession,
+    resolution: str | None = Query(None),
+    limit: int = Query(100, ge=1, le=500),
+) -> list[PredictionLogOut]:
+    """Every projection ever published, newest first, with the date to check it by.
+
+    `?resolution=pending` lists the ones not yet checked against events.
+    """
+    entries = await prediction_log_repo.list_recent(db, resolution=resolution, limit=limit)
+    return [
+        PredictionLogOut(
+            **{c: getattr(e, c) for c in PredictionLogOut.model_fields if c != "outcomes"},
+            outcomes=json.loads(e.outcomes or "[]"),
+        )
+        for e in entries
+    ]
 
 
 class PurgeResponse(BaseModel):
