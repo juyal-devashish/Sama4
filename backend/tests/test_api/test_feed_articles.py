@@ -25,6 +25,7 @@ async def test_feed_lists_completed_articles_newest_first_with_entity_counts(cli
 
     assert [a["title"] for a in body["articles"]] == ["New", "Old"]
     assert body["articles"][0]["entity_count"] == 2
+    assert body["articles"][0]["added_at"]  # when we stored it, for "new since your last visit"
     assert body["articles"][0]["entity_names"] == ["A", "B"]  # in order of appearance
     assert body["articles"][1]["entity_names"] == []
     assert body["articles"][1]["entity_count"] == 0
