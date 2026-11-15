@@ -48,6 +48,11 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
   const [listOpen, setListOpen] = useState(false);
   const drawerOpen = !!term || listOpen;
   const marginRef = useRef<HTMLElement>(null);
+  // Spoken by screen readers when an explanation starts loading and when it is ready.
+  const [announcement, setAnnouncement] = useState("");
+  useEffect(() => {
+    if (!term) setAnnouncement("");
+  }, [term]);
   const lastTermId = useRef<string | null>(null);
   if (term) lastTermId.current = term.id;
   usePanelFocus(
@@ -115,6 +120,9 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
 
   return (
     <div className="flex min-w-0 flex-1">
+      <p id="explanation-status" role="status" aria-live="polite" className="sr-only">
+        {announcement}
+      </p>
       <div
         ref={setScroller}
         onScroll={onScroll}
@@ -199,6 +207,7 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
                     onSelectTerm={setTerm}
                     onOpenArticle={onOpenArticle}
                     onClose={() => setTerm(null)}
+                    onAnnounce={setAnnouncement}
                     followUpTip={
                       hint === "ask-follow-up"
                         ? {
