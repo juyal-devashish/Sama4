@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import APIRouter, HTTPException, Request, status
 
-from app.api.deps import ContainerDep, ContextServiceDep, DbSession, rate_limit
+from app.api.deps import ContainerDep, ContextServiceDep, DbSession, per_ip_limit, rate_limit
 from app.repositories import articles as article_repo
 from app.repositories import entities as entity_repo
 from app.repositories import reports as report_repo
@@ -20,7 +20,17 @@ REPORT_WINDOW_SECONDS = 3600
 router = APIRouter()
 
 
-@router.get("/{entity_id}", response_model=ContextResponse)
+# Per IP per hour. A reader opening terms hits the cache most of the time, so the explanation
+# limit is generous; follow-ups always call Claude, so theirs is tighter.
+EXPLANATIONS_PER_IP = 300
+FOLLOWUPS_PER_IP = 40
+
+
+@router.get(
+    "/{entity_id}",
+    response_model=ContextResponse,
+    dependencies=[per_ip_limit("context", EXPLANATIONS_PER_IP)],
+)
 async def get_entity_context(
     entity_id: uuid.UUID, db: DbSession, service: ContextServiceDep
 ) -> ContextResponse:
@@ -31,7 +41,11 @@ async def get_entity_context(
     return await service.get_context(entity, db)
 
 
-@router.post("/explain", response_model=ExplainResponse)
+@router.post(
+    "/explain",
+    response_model=ExplainResponse,
+    dependencies=[per_ip_limit("followup", FOLLOWUPS_PER_IP)],
+)
 async def explain_entity(
     request: ExplainRequest, db: DbSession, service: ContextServiceDep
 ) -> ExplainResponse:
