@@ -405,6 +405,8 @@ test("privacy page explains how data is handled", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Privacy", level: 1 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "The waitlist" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "No tracking" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Limits on heavy use" })).toBeVisible();
+  await expect(page.getByText(/daily totals of how the app is used/)).toBeVisible();
 });
 
 test("search results can be narrowed by topic, source and date", async ({ page }) => {

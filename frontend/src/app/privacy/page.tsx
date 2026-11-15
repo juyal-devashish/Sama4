@@ -5,7 +5,7 @@ export const metadata = {
   title: "Privacy",
   alternates: { canonical: "/privacy" },
   description:
-    "How Samā4 handles your data, in plain terms: the waitlist, what stays on your device, reports you send, error reports, and no tracking.",
+    "How Samā4 handles your data, in plain terms: the waitlist, what stays on your device, reports you send, error reports, limits on heavy use, and no tracking.",
 };
 
 const SECTIONS: { title: string; body: React.ReactNode }[] = [
@@ -27,7 +27,7 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
         </p>
         <p>
           To stop abuse of the form, your IP address is used as a sign-up counter for up to an hour
-          and then discarded.
+          and then discarded. See &ldquo;Limits on heavy use&rdquo; below.
         </p>
       </>
     ),
@@ -39,9 +39,10 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
         <Link href="/saved" className="text-accent-secondary underline underline-offset-2">
           Saved stories
         </Link>
-        , your theme, your topics and whether you&apos;ve seen the welcome screen are kept in your
-        browser&apos;s local storage. They aren&apos;t sent to Samā4. Clearing this site&apos;s data
-        in your browser removes them.
+        , your theme, your topics, whether you&apos;ve seen the welcome screen and when you last
+        visited (so we can mark stories that are new since then) are kept in your browser&apos;s
+        local storage. They aren&apos;t sent to Samā4. Clearing this site&apos;s data in your
+        browser removes them.
       </p>
     ),
   },
@@ -49,10 +50,11 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
     title: "Explanations, questions and outlooks",
     body: (
       <p>
-        When you open an explanation, ask a follow-up question or run an outlook, the term, your
-        question and the story text are sent to Samā4&apos;s server and to Anthropic&apos;s Claude,
-        which writes the answer. Samā4 doesn&apos;t save your questions to its database. Outlooks
-        are saved and shown to other readers, but they contain no information about you.
+        When you open an explanation, select text to have it explained, ask a follow-up question or
+        run an outlook, the term or selected text, your question and the story text are sent to
+        Samā4&apos;s server and to Anthropic&apos;s Claude, which writes the answer. Samā4
+        doesn&apos;t save your questions to its database. Outlooks are saved and shown to other
+        readers, but they contain no information about you.
       </p>
     ),
   },
@@ -68,12 +70,33 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
     ),
   },
   {
-    title: "No tracking",
+    title: "Limits on heavy use",
     body: (
       <p>
-        Samā4 has no analytics or advertising scripts and sets no tracking cookies. We don&apos;t
-        build a profile of what you read.
+        To keep Samā4 usable for everyone and its AI costs in check, the server limits how often one
+        address can ask for explanations, questions, outlooks and error reports. To do that it keeps
+        a running count against your IP address for up to an hour, then discards it. The count
+        isn&apos;t linked to anything you read or write.
       </p>
+    ),
+  },
+  {
+    title: "No tracking",
+    body: (
+      <>
+        <p>
+          Samā4 has no analytics or advertising scripts and sets no tracking cookies. We don&apos;t
+          build a profile of what you read.
+        </p>
+        <p>
+          We do keep daily totals of how the app is used: how many stories were opened, terms
+          explained, selections explained, follow-up questions asked and outlooks started, each day.
+          They are plain numbers on our server. No cookie, IP address or identifier is stored with
+          them or sent to your browser, so they can&apos;t be traced to you, and they include visits
+          by search engines and other automated programs because we can&apos;t tell them apart. We
+          keep them for 13 months.
+        </p>
+      </>
     ),
   },
   {
@@ -108,7 +131,7 @@ export default function PrivacyPage() {
   return (
     <Page
       title="Privacy"
-      description="How Samā4 handles your data, in plain terms. This describes what the app does today. Last updated 12 November 2026."
+      description="How Samā4 handles your data, in plain terms. This describes what the app does today. Last updated 15 November 2026."
     >
       <div className="max-w-[62ch] space-y-9">
         {SECTIONS.map((s) => (
