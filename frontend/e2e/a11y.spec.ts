@@ -71,6 +71,7 @@ test.describe("exactly one h1 per page", () => {
       await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     });
   }
+});
 
 test("the first Tab stop skips the navigation and lands in the content", async ({ page }) => {
   await mockApi(page);
