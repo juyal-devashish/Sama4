@@ -276,6 +276,28 @@ for (const respond of ["not-found", "not-a-stream"] as const) {
   });
 }
 
+test("a term longer than the line wraps inside its box instead of overflowing", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(`/article/${ARTICLE_ID}`);
+  await expect(page.locator("p .term").first()).toBeVisible({ timeout: 10_000 });
+
+  const fit = await page.evaluate(() => {
+    const term = document.querySelector<HTMLElement>("p .term")!;
+    term.textContent = "The United States Department of Health and Human Services Administration";
+    const line = term.closest("p")!.getBoundingClientRect();
+    return {
+      overflowsLine: term.getBoundingClientRect().right > line.right + 0.5,
+      pageScrollsSideways: document.documentElement.scrollWidth > window.innerWidth,
+    };
+  });
+
+  expect(fit).toEqual({ overflowsLine: false, pageScrollsSideways: false });
+});
+
 test("reference page is accessible", async ({ page }) => {
   await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
