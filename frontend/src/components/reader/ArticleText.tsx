@@ -3,6 +3,7 @@
 import { Fragment } from "react";
 import {
   bodySpans,
+  limitPerParagraph,
   findMentions,
   paragraphRanges,
   segmentRange,
@@ -82,7 +83,7 @@ export function ArticleBody({
   /** Open the first paragraph with a drop cap, like the start of a printed story. */
   dropCap?: boolean;
 }) {
-  const spans = bodySpans(content, entities);
+  const spans = limitPerParagraph(content, bodySpans(content, entities));
 
   const paragraphs = paragraphRanges(content);
 
