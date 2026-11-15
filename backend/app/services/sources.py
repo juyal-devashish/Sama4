@@ -16,7 +16,9 @@ def list_sources(sources: list[dict] | None = None, blocked: str = "") -> Source
     by_outlet: dict[str, list[SourceFeed]] = {}
     for s in sources:
         by_outlet.setdefault(s["name"], []).append(
-            SourceFeed(url=s["url"], category=s["category"], region=s["region"])
+            SourceFeed(
+                url=s["url"], label=s.get("label", ""), category=s["category"], region=s["region"]
+            )
         )
     outlets = [
         SourceOutlet(name=name, feeds=feeds)

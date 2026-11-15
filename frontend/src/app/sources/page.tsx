@@ -46,7 +46,7 @@ export default async function SourcesPage() {
                   {outlet.feeds.map((feed) => (
                     <li key={feed.url} className="text-[15px] text-text-secondary">
                       <span className="label-ui mr-2 text-text-tertiary">
-                        {REGION[feed.region] ?? feed.region}
+                        {feed.label || (REGION[feed.region] ?? feed.region)}
                       </span>
                       <a
                         href={feed.url}

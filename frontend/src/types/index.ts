@@ -276,6 +276,8 @@ export interface WaitlistResponse {
 
 export interface SourceFeed {
   url: string;
+  /** Which of the outlet's feeds this is ("Markets", "Explained"); "" from older backends. */
+  label: string;
   category: string;
   region: string;
 }

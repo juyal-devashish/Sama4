@@ -1,7 +1,7 @@
 import logging
-import re
 
 from app.clients.llm import LLMClient
+from app.text import cap_words as _cap_words
 
 logger = logging.getLogger(__name__)
 
@@ -42,17 +42,13 @@ def summary_word_limit(source_words: int) -> int:
     return min(limit, source_words) if source_words > 0 else MIN_SUMMARY_WORDS
 
 
-_SENTENCE_END = re.compile(r"[.!?][\"'”’)]?(?=\s|$)")
-
-
 def cap_words(text: str, limit: int = MAX_SUMMARY_WORDS) -> str:
-    """Trim to `limit` words, ending on a whole sentence when one fits."""
-    words = text.split()
-    if len(words) <= limit:
-        return text.strip()
-    cut = " ".join(words[:limit])
-    ends = list(_SENTENCE_END.finditer(cut))
-    return cut[: ends[-1].end()] if ends else cut.rstrip(",;:") + "…"
+    """Trim to `limit` words, ending on a whole sentence when one fits.
+
+    "U.S." and "Gov." are not sentence ends (see `app.text`), so a summary is never cut
+    to "Existing U.S."
+    """
+    return _cap_words(text, limit)
 
 
 class SummarizerService:

@@ -13,8 +13,12 @@ async def get_by_feed_url(db: AsyncSession, feed_url: str) -> Source | None:
 
 
 async def ensure(db: AsyncSession, configs: list[dict]) -> None:
-    """Create a Source row for each feed config ({name, url, category}) that has none."""
+    """Create a Source row for each feed config ({name, url, category}) that has none, and
+    rename existing rows whose outlet name changed in the config (stories show the new name)."""
     for cfg in configs:
-        if await get_by_feed_url(db, cfg["url"]) is None:
+        row = await get_by_feed_url(db, cfg["url"])
+        if row is None:
             db.add(Source(name=cfg["name"], feed_url=cfg["url"], categories=[cfg["category"]]))
+        elif row.name != cfg["name"]:
+            row.name = cfg["name"]
     await db.flush()

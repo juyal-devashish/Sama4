@@ -4,7 +4,7 @@ import { forwardRef } from "react";
 import { Newspaper } from "lucide-react";
 import type { ArticleCard } from "@/types";
 import { StoryImage } from "@/components/ui/story-image";
-import { cn, formatLongDate } from "@/lib/utils";
+import { cn, displaySummary, formatLongDate } from "@/lib/utils";
 import { PublishedTime } from "@/components/ui/published-time";
 import { TOPIC_LABELS } from "@/lib/preferences";
 import { useNewSince } from "@/hooks/useNewSince";
@@ -63,6 +63,7 @@ export const StoryRow = forwardRef<
     isNew?: boolean;
   }
 >(function StoryRow({ story, selected, onClick, dense, isNew }, ref) {
+  const summary = displaySummary(story.summary);
   return (
     <button
       ref={ref}
@@ -97,9 +98,9 @@ export const StoryRow = forwardRef<
         >
           {story.title}
         </h2>
-        {!dense && story.summary && (
+        {!dense && summary && (
           <p className="mt-2 line-clamp-2 font-editorial text-[14px] leading-[1.4] text-text-secondary">
-            {story.summary}
+            {summary}
           </p>
         )}
       </div>
