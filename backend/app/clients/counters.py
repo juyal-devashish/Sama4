@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 EVENTS: dict[tuple[str, str], str] = {
     ("GET", "/api/v1/articles/{article_id}"): "story_opened",
     ("GET", "/api/v1/context/{entity_id}"): "term_explained",
+    ("GET", "/api/v1/context/{entity_id}/stream"): "term_explained",
     ("POST", "/api/v1/context/selection"): "selection_explained",
     ("POST", "/api/v1/context/explain"): "followup_asked",
     ("POST", "/api/v1/predictions/simulate"): "outlook_started",

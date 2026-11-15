@@ -208,6 +208,74 @@ test("the logo is a small WebP and loads in both themes", async ({ page }) => {
   for (const bytes of Object.values(sizes)) expect(bytes).toBeLessThan(15_000);
 });
 
+const sseEvent = (event: string, data: unknown) =>
+  `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+
+/** Answer the explanation stream for any term with `text`, built from that term's fixture. */
+async function streamExplanations(
+  page: import("@playwright/test").Page,
+  text: string,
+  respond: "stream" | "not-found" | "not-a-stream" = "stream",
+) {
+  await page.route(/\/api\/v1\/context\/[0-9a-f-]{36}\/stream/, (route) => {
+    const cors = { "access-control-allow-origin": "*" };
+    if (respond === "not-found") return route.fulfill({ status: 404, headers: cors, body: "" });
+    if (respond === "not-a-stream")
+      return route.fulfill({ status: 200, headers: cors, contentType: "text/html", body: "<p>" });
+    const id = new URL(route.request().url()).pathname.split("/")[4];
+    const full = (fixtures.context as Record<string, { context: { text: string } }>)[id];
+    const done = { ...full, context: { ...full.context, text, cached: false } };
+    const words = text.split(" ");
+    return route.fulfill({
+      status: 200,
+      headers: { ...cors, "cache-control": "no-cache" },
+      contentType: "text/event-stream",
+      body:
+        words
+          .map((w, i) => sseEvent("delta", { text: w + (i < words.length - 1 ? " " : "") }))
+          .join("") + sseEvent("done", done),
+    });
+  });
+}
+
+test("an explanation streams in and the finished text replaces it", async ({ page }) => {
+  await mockApi(page);
+  await streamExplanations(page, "Streamed explanation text for this term.");
+  let plainGets = 0;
+  page.on("request", (r) => {
+    if (/\/api\/v1\/context\/[0-9a-f-]{36}(\?|$)/.test(r.url())) plainGets++;
+  });
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  const term = page.locator("p .term").first();
+  await expect(term).toBeVisible({ timeout: 10_000 });
+  await term.click();
+
+  await expect(
+    page.locator("#context-margin").getByText("Streamed explanation text for this term."),
+  ).toBeVisible();
+  await expect(page.locator("#explanation-status")).toHaveText(/loaded\./);
+  expect(plainGets).toBe(0); // the stream was enough
+});
+
+for (const respond of ["not-found", "not-a-stream"] as const) {
+  test(`if the stream is unavailable (${respond}) the plain request still explains the term`, async ({
+    page,
+  }) => {
+    await mockApi(page);
+    await streamExplanations(page, "never shown", respond);
+    await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+    await page.goto(ARTICLE);
+    const term = page.locator("p .term").first();
+    await expect(term).toBeVisible({ timeout: 10_000 });
+    await term.click();
+
+    await expect(page.locator("#explanation-status")).toHaveText(/loaded\./);
+    await expect(page.locator("#context-margin").getByText("never shown")).toHaveCount(0);
+    await expect(page.locator("#context-margin").getByText("Try again")).toHaveCount(0);
+  });
+}
+
 test("reference page is accessible", async ({ page }) => {
   await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));

@@ -7,6 +7,7 @@ Build a test container with `make_container()`; override fields per test, e.g.
 from dataclasses import dataclass, field
 
 from app.clients.cache import Cache
+from app.clients.llm import StreamEnd
 from app.clients.mirofish import MirofishClient
 from app.clients.pages import PageContent
 from app.clients.usage import DailyBudgetExceeded
@@ -28,14 +29,27 @@ class FakeLLM:
     async def over_budget(self) -> bool:
         return self.exhausted
 
-    async def generate(self, prompt: str, **kwargs) -> str:
-        if self.exhausted:
-            raise DailyBudgetExceeded(60)
-        self.calls.append({"prompt": prompt, **kwargs})
+    def _reply(self, prompt: str) -> str:
         for needle, reply in self.replies.items():
             if needle in prompt:
                 return reply
         return self.default
+
+    async def generate(self, prompt: str, **kwargs) -> str:
+        if self.exhausted:
+            raise DailyBudgetExceeded(60)
+        self.calls.append({"prompt": prompt, **kwargs})
+        return self._reply(prompt)
+
+    async def stream(self, prompt: str, **kwargs):
+        """Yields the reply a word at a time, then StreamEnd, like LLMClient.stream."""
+        if self.exhausted:
+            raise DailyBudgetExceeded(60)
+        self.calls.append({"prompt": prompt, "streamed": True, **kwargs})
+        reply = self._reply(prompt)
+        for word in reply.split(" "):
+            yield word + " "
+        yield StreamEnd(reply)
 
     async def aclose(self) -> None:
         pass

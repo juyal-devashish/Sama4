@@ -5,16 +5,18 @@ Pipeline for GET /context/{entity_id}:
 plus related entities (SQL) and related articles (Pinecone search).
 """
 
+import asyncio
 import hashlib
 import json
 import logging
 import uuid
+from collections.abc import AsyncIterator, Callable
 from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.clients.cache import Cache
-from app.clients.llm import LLMClient
+from app.clients.llm import LLMClient, StreamEnd
 from app.clients.mirofish import MirofishClient
 from app.clients.usage import DailyBudgetExceeded
 from app.clients.vectors import VectorStore, article_id_from_vector_id
@@ -157,10 +159,39 @@ class ContextService:
             return None
         return article_id if await entity_repo.mention_in_article(db, entity, article_id) else None
 
-    async def get_context(
+    async def stream_context(
         self, entity: Entity, db: AsyncSession, article_id: uuid.UUID | None = None
+    ) -> AsyncIterator[tuple[str, str | ContextResponse]]:
+        """`get_context`, but the explanation's text arrives as it is written.
+
+        Yields ("delta", text) for each piece Claude writes, then one ("done",
+        ContextResponse): the same response `get_context` returns, with the final, capped
+        text. A cached explanation yields only "done". Everything else (caching, recording,
+        the Wikipedia fallback, the daily cap) is `get_context` itself, so the two can't drift.
+        """
+        queue: asyncio.Queue[str | None] = asyncio.Queue()
+        task = asyncio.ensure_future(
+            self.get_context(entity, db, article_id, on_delta=queue.put_nowait)
+        )
+        task.add_done_callback(lambda _t: queue.put_nowait(None))
+        try:
+            while (chunk := await queue.get()) is not None:
+                yield "delta", chunk
+            yield "done", task.result()
+        finally:
+            if not task.done():  # the reader went away: stop paying for the answer
+                task.cancel()
+
+    async def get_context(
+        self,
+        entity: Entity,
+        db: AsyncSession,
+        article_id: uuid.UUID | None = None,
+        on_delta: Callable[[str], None] | None = None,
     ) -> ContextResponse:
         """Explain an entity, written for the story it was opened from when one is given.
+
+        `on_delta` receives the text as Claude writes it (see `stream_context`).
 
         Only Claude's explanation is cached. Related entities (one SQL query) and related
         articles (one vector search) are looked up on every request, so a cache hit returns
@@ -184,7 +215,7 @@ class ContextService:
             text, sources = "", []
             if self.llm.available:
                 try:
-                    text, sources = await self._generate_context(entity, db, article_id)
+                    text, sources = await self._generate_context(entity, db, article_id, on_delta)
                 except DailyBudgetExceeded:
                     pass  # over today's budget: fall back to the Wikipedia extract below
             now = datetime.now(UTC)
@@ -228,7 +259,11 @@ class ContextService:
         )
 
     async def _generate_context(
-        self, entity: Entity, db: AsyncSession, article_id: uuid.UUID | None = None
+        self,
+        entity: Entity,
+        db: AsyncSession,
+        article_id: uuid.UUID | None = None,
+        on_delta: Callable[[str], None] | None = None,
     ) -> tuple[str, list[ContextSource]]:
         """Claude's explanation, and the sources it was given (only those that had content).
 
@@ -263,9 +298,16 @@ class ContextService:
             background=wikipedia_extract,
             related_news=graph_context,
         )
-        text = cap_words(
-            await self.llm.generate(prompt, effort="low", system=system), BRIEF_MAX_WORDS
-        )
+        if on_delta is None:
+            raw = await self.llm.generate(prompt, effort="low", system=system)
+        else:
+            raw = ""
+            async for item in self.llm.stream(prompt, effort="low", system=system):
+                if isinstance(item, StreamEnd):
+                    raw = item.text
+                else:
+                    on_delta(item)
+        text = cap_words(raw, BRIEF_MAX_WORDS)
         if text:
             await explanation_repo.add(
                 db,

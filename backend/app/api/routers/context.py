@@ -1,8 +1,14 @@
+import json
+import logging
 import uuid
+from collections.abc import AsyncIterator
 
 from fastapi import APIRouter, HTTPException, Request, status
+from fastapi.responses import StreamingResponse
 
 from app.api.deps import ContainerDep, ContextServiceDep, DbSession, per_ip_limit, rate_limit
+from app.clients.usage import DailyBudgetExceeded
+from app.database import async_session
 from app.repositories import articles as article_repo
 from app.repositories import entities as entity_repo
 from app.repositories import reports as report_repo
@@ -21,6 +27,7 @@ from app.services.context import SelectionNotInArticleError
 REPORTS_PER_IP = 20
 REPORT_WINDOW_SECONDS = 3600
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -69,6 +76,57 @@ async def get_entity_context(
     if entity is None:
         raise HTTPException(status_code=404, detail="Entity not found")
     return await service.get_context(entity, db, article_id)
+
+
+def sse(event: str, data: str) -> str:
+    """One Server-Sent Event. `data` must be a single line (JSON)."""
+    return f"event: {event}\ndata: {data}\n\n"
+
+
+@router.get(
+    "/{entity_id}/stream",
+    dependencies=[per_ip_limit("context", EXPLANATIONS_PER_IP)],
+)
+async def stream_entity_context(
+    entity_id: uuid.UUID,
+    service: ContextServiceDep,
+    article_id: uuid.UUID | None = None,
+) -> StreamingResponse:
+    """`GET /{entity_id}` as a stream of Server-Sent Events.
+
+    `delta` events carry `{"text": ...}` as Claude writes; one `done` event carries the full
+    ContextResponse (the same JSON the plain GET returns), with the final text. A cached
+    explanation sends only `done`. Anything that goes wrong ends with an `error` event; the
+    client then falls back to the plain GET.
+    """
+    # Own session: the request's is closed before a streamed body is produced.
+    async with async_session() as db:
+        entity = await entity_repo.get(db, entity_id)
+    if entity is None:
+        raise HTTPException(status_code=404, detail="Entity not found")
+
+    async def events() -> AsyncIterator[str]:
+        try:
+            async with async_session() as db:
+                entity_here = await entity_repo.get(db, entity_id)
+                assert entity_here is not None
+                async for kind, payload in service.stream_context(entity_here, db, article_id):
+                    if kind == "delta":
+                        yield sse("delta", json.dumps({"text": payload}))
+                    else:
+                        yield sse("done", payload.model_dump_json())  # type: ignore[union-attr]
+                await db.commit()
+        except DailyBudgetExceeded as e:
+            yield sse("error", json.dumps({"detail": str(e)}))
+        except Exception:
+            logger.error("Streaming an explanation failed", exc_info=True)
+            yield sse("error", json.dumps({"detail": "The explanation could not be written."}))
+
+    return StreamingResponse(
+        events(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @router.get(
