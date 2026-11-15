@@ -7,6 +7,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, status
 from pydantic import BaseModel
 
 from app.api.deps import AdminOnly, ContainerDep, DbSession
+from app.clients.counters import UsageCounters
 from app.ingestion import canonicalize as entity_cleanup
 from app.ingestion import jobs
 from app.repositories import prediction_log as prediction_log_repo
@@ -135,6 +136,17 @@ async def list_reports(
     """Readers' error reports on explanations, newest first. `?status=` (empty) lists all."""
     reports = await report_repo.list_recent(db, status=status_filter or None, limit=limit)
     return [ReportOut.model_validate(r, from_attributes=True) for r in reports]
+
+
+class UsageDay(BaseModel):
+    day: str
+    events: dict[str, int | None]  # None: the counter store (Redis) was unavailable
+
+
+@router.get("/usage", response_model=list[UsageDay])
+async def usage_totals(c: ContainerDep, days: int = Query(30, ge=1, le=400)) -> list[UsageDay]:
+    """Anonymous daily totals (stories opened, terms explained, ...), newest day first."""
+    return [UsageDay(**d) for d in await UsageCounters(c.cache).totals(days)]
 
 
 @router.get("/predictions/log", response_model=list[PredictionLogOut])
