@@ -51,24 +51,48 @@ export function usePanelFocus(
   useEffect(() => {
     const panel = panelRef.current;
     if (!open || !panel) return;
+    const drawer = () => window.matchMedia(DRAWER_QUERY).matches;
+    const items = () =>
+      Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+        (el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== "hidden",
+      );
+    let tabbing = false;
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Tab" || !window.matchMedia(DRAWER_QUERY).matches) return;
-      const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE));
+      if (e.key !== "Tab" || !drawer()) return;
+      tabbing = true;
+      const list = items();
       const next = trapTarget(
-        items.indexOf(document.activeElement as HTMLElement),
-        items.length,
+        list.indexOf(document.activeElement as HTMLElement),
+        list.length,
         e.shiftKey,
       );
       if (next !== null) {
         e.preventDefault();
-        items[next].focus();
-      } else if (document.activeElement === panel) {
+        list[next].focus();
+      } else if (document.activeElement === panel && list.length > 0) {
         // The panel itself holds focus on open; Tab goes to its first control.
         e.preventDefault();
-        (e.shiftKey ? items[items.length - 1] : items[0])?.focus();
+        list[e.shiftKey ? list.length - 1 : 0].focus();
       }
     };
+    // Backstop for anything the list above misjudges: if keyboard focus lands outside
+    // the drawer, pull it back in. Mouse and touch are left alone.
+    const onFocusIn = (e: FocusEvent) => {
+      if (!tabbing || !drawer() || panel.contains(e.target as Node)) return;
+      const list = items();
+      (list[0] ?? panel).focus();
+    };
+    const onPointer = () => {
+      tabbing = false;
+    };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("pointerdown", onPointer);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("pointerdown", onPointer);
+    };
   }, [open, panelRef]);
 }
