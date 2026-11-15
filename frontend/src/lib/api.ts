@@ -9,6 +9,8 @@ import type {
   ContextResponse,
   ExplainRequest,
   MoreDetailResponse,
+  SelectionRequest,
+  SelectionResponse,
   ExplainResponse,
   FeedResponse,
   PredictionChatRequest,
@@ -117,6 +119,13 @@ export const api = {
 
   explainEntity(request: ExplainRequest) {
     return fetchAPI<ExplainResponse>(apiPath("/context/explain"), {
+      method: "POST",
+      body: request,
+    });
+  },
+
+  explainSelection(request: SelectionRequest) {
+    return fetchAPI<SelectionResponse>(apiPath("/context/selection"), {
       method: "POST",
       body: request,
     });

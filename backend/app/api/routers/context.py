@@ -13,7 +13,10 @@ from app.schemas.context import (
     MoreDetailResponse,
     ReportRequest,
     ReportResponse,
+    SelectionRequest,
+    SelectionResponse,
 )
+from app.services.context import SelectionNotInArticleError
 
 REPORTS_PER_IP = 20
 REPORT_WINDOW_SECONDS = 3600
@@ -25,7 +28,26 @@ router = APIRouter()
 # limit is generous; follow-ups always call Claude, so theirs is tighter.
 EXPLANATIONS_PER_IP = 300
 FOLLOWUPS_PER_IP = 40
+SELECTIONS_PER_IP = 120
 MORE_DETAIL_PER_IP = 120
+
+
+@router.post(
+    "/selection",
+    response_model=SelectionResponse,
+    dependencies=[per_ip_limit("selection", SELECTIONS_PER_IP)],
+)
+async def explain_selection(
+    request: SelectionRequest, db: DbSession, service: ContextServiceDep
+) -> SelectionResponse:
+    """Explain text a reader selected in a story (anything that isn't a highlighted term)."""
+    article = await article_repo.get(db, request.article_id)
+    if article is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+    try:
+        return await service.explain_selection(article, request.text)
+    except SelectionNotInArticleError:
+        raise HTTPException(status_code=422, detail="That text isn't in this story.") from None
 
 
 @router.get(

@@ -76,6 +76,83 @@ test("the explanation panel takes focus, keeps Tab inside it and gives focus bac
   await expect(term).toBeFocused();
 });
 
+test("any selected text can be explained, and honest when nothing is known", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  await expect(page.locator("p .term").first()).toBeVisible({ timeout: 10_000 });
+
+  // Select two plain words from the story body (no highlighted term inside).
+  const selectTwoPlainWords = () =>
+    page.evaluate(() => {
+      const walker = document.createTreeWalker(
+        document.querySelector("section[data-explainable]:not(:has(h2#summary-label)) p")!,
+        NodeFilter.SHOW_TEXT,
+      );
+      let node: Node | null;
+      while ((node = walker.nextNode())) {
+        const text = node.textContent ?? "";
+        const m = /([A-Za-z]{4,}) ([A-Za-z]{4,})/.exec(text);
+        if (m && !(node.parentElement?.closest(".term") ?? false)) {
+          const range = document.createRange();
+          range.setStart(node, m.index);
+          range.setEnd(node, m.index + m[0].length);
+          const sel = window.getSelection()!;
+          sel.removeAllRanges();
+          sel.addRange(range);
+          return m[0];
+        }
+      }
+      return null;
+    });
+
+  const words = await selectTwoPlainWords();
+  expect(words).toBeTruthy();
+  const explain = page.getByRole("button", { name: /Explain/ });
+  await expect(explain).toBeVisible();
+  await explain.click();
+
+  const panel = page.locator("#context-margin");
+  await expect(panel.getByText("Selected text")).toBeVisible();
+  await expect(panel.getByText(`"${words}" is explained here.`)).toBeVisible();
+  await expect(panel.getByText(/Written by AI/)).toBeVisible();
+  await expect(page.locator("#explanation-status")).toHaveText(/loaded\./);
+  await page.keyboard.press("Escape");
+  await expect(panel.getByText("Selected text")).toHaveCount(0);
+});
+
+test("selected text with no reliable information says so instead of guessing", async ({ page }) => {
+  await mockApi(page);
+  await page.route("**/api/v1/context/selection", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      headers: { "access-control-allow-origin": "*" },
+      body: JSON.stringify({
+        text: "some words",
+        explanation: "",
+        reliable: false,
+        generated_at: new Date().toISOString(),
+        cached: false,
+        sources: [],
+      }),
+    }),
+  );
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  await expect(page.locator("p .term").first()).toBeVisible({ timeout: 10_000 });
+  await page.evaluate(() => {
+    const body = document.querySelector("section[data-explainable]:not(:has(h2#summary-label)) p")!;
+    const range = document.createRange();
+    const node = body.firstChild!;
+    range.setStart(node, 0);
+    range.setEnd(node, Math.min(12, node.textContent!.length));
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+  });
+  await page.getByRole("button", { name: /Explain/ }).click();
+  await expect(page.locator("#context-margin").getByText(/no reliable information/)).toBeVisible();
+});
+
 test("More detail shows a longer explanation only when asked", async ({ page }) => {
   await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));

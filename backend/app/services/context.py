@@ -5,6 +5,8 @@ Pipeline for GET /context/{entity_id}:
 plus related entities (SQL) and related articles (Pinecone search).
 """
 
+import hashlib
+import json
 import logging
 from datetime import UTC, datetime
 
@@ -18,7 +20,7 @@ from app.clients.vectors import VectorStore, article_id_from_vector_id
 from app.clients.wikimedia import WikimediaClient
 from app.models.article import Article
 from app.models.entity import ArticleEntity, Entity
-from app.prompts.templates import entity_context_prompt, followup_prompt
+from app.prompts.templates import entity_context_prompt, followup_prompt, selection_prompt
 from app.repositories import entities as entity_repo
 from app.repositories import explanations as explanation_repo
 from app.repositories import predictions as prediction_repo
@@ -31,6 +33,7 @@ from app.schemas.context import (
     MoreDetailResponse,
     RelatedArticleBrief,
     RelatedEntity,
+    SelectionResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -82,6 +85,18 @@ def mention_excerpt(text: str, mention: ArticleEntity, radius: int = EXCERPT_RAD
     prefix = "…" if start > 0 else ""
     suffix = "…" if end < len(text) else ""
     return prefix + text[start:end].strip() + suffix
+
+
+class SelectionNotInArticleError(ValueError):
+    """The selected text isn't in the story it was sent with."""
+
+
+SELECTION_EXCERPT_RADIUS = 450
+
+
+def squash(text: str) -> str:
+    """Collapse all whitespace runs to single spaces."""
+    return " ".join(text.split())
 
 
 BRIEF_MAX_WORDS = 60  # the explanation shown beside the story
@@ -332,6 +347,86 @@ class ContextService:
             await self.cache.set(
                 key, result.model_dump(mode="json", exclude={"cached"}), ttl=self.context_ttl
             )
+        return result
+
+    async def explain_selection(self, article: Article, raw_text: str) -> SelectionResponse:
+        """Explain text a reader selected in a story.
+
+        The text must really be in the story (so this can't be used as a general question
+        box). Claude gets the passage around it and, if Wikipedia has a likely match, that
+        extract as background it may ignore. If nothing reliable can be said, the answer is
+        `reliable=False` with no text, never a guess. Results are cached per story and text.
+        """
+        text = squash(raw_text)
+        story = squash(
+            " ".join(
+                filter(
+                    None,
+                    [
+                        article.title,
+                        article.summary,
+                        article.cleaned_content or article.raw_content,
+                    ],
+                )
+            )
+        )
+        at = story.lower().find(text.lower())
+        if at == -1:
+            raise SelectionNotInArticleError(text)
+
+        key = (
+            "context:selection:" + hashlib.sha1(f"{article.id}:{text.lower()}".encode()).hexdigest()
+        )
+        cached = await self.cache.get(key)
+        if cached:
+            return SelectionResponse(**cached, cached=True)
+
+        start, end = (
+            max(0, at - SELECTION_EXCERPT_RADIUS),
+            at + len(text) + SELECTION_EXCERPT_RADIUS,
+        )
+        excerpt = story[start:end]
+        background, wiki_url = None, None
+        try:
+            wikidata_id = await self.wikimedia.search_wikidata(text)
+            wiki_url = await self.wikimedia.get_wikipedia_url(wikidata_id) if wikidata_id else None
+            background = await self.wikimedia.get_wikipedia_extract(wiki_url or "")
+        except Exception:
+            logger.warning("Wikipedia lookup failed for a selection", exc_info=True)
+        system, prompt = selection_prompt(
+            text=text,
+            article_title=article.title,
+            article_excerpt=("…" if start else "") + excerpt + ("…" if end < len(story) else ""),
+            background=background,
+        )
+        raw = await self.llm.generate(prompt, effort="low", system=system)
+        explanation, reliable, used_background = "", False, False
+        try:
+            cleaned = raw.strip()
+            if cleaned.startswith("```"):
+                cleaned = cleaned.split("\n", 1)[1].rsplit("```", 1)[0]
+            verdict = json.loads(cleaned.strip())
+            explanation = str(verdict.get("explanation") or "").strip()
+            reliable = verdict.get("reliable") is True and bool(explanation)
+            used_background = verdict.get("used_background") is True
+        except Exception:
+            logger.warning("Unreadable selection answer; treating it as unreliable", exc_info=True)
+        if not reliable:
+            explanation = ""
+
+        sources = [ContextSource(type="article", title=article.title, url=article.url)]
+        if reliable and used_background and wiki_url:
+            sources.append(ContextSource(type="wikipedia", title="Wikipedia", url=wiki_url))
+        result = SelectionResponse(
+            text=text,
+            explanation=explanation,
+            reliable=reliable,
+            generated_at=datetime.now(UTC),
+            sources=sources,
+        )
+        await self.cache.set(
+            key, result.model_dump(mode="json", exclude={"cached"}), ttl=self.context_ttl
+        )
         return result
 
     async def _mirofish_graph_context(self, entity: Entity) -> str:
