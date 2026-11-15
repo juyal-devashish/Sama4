@@ -126,6 +126,20 @@
 @layer components {
   /* A tappable term inside article text. Its underline colour comes from --term-color. */
   .term {
+    /* A real <button>, made to read as part of the sentence: inline so it wraps across
+       lines, and text can still be selected through it. */
+    display: inline;
+    appearance: none;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: inherit;
+    text-transform: inherit;
+    user-select: text;
+    -webkit-user-select: text;
     background: var(--entity-highlight);
     border-bottom: 1.5px solid var(--term-color, var(--accent-secondary));
     padding: 0 1px;

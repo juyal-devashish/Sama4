@@ -50,12 +50,18 @@ test("the explanation panel takes focus, keeps Tab inside it and gives focus bac
   // Wide windows show the margin beside the story (no trap); drawers must hold focus.
   const isDrawer = await page.evaluate(() => window.matchMedia("(max-width: 1479px)").matches);
   if (isDrawer) {
+    const trail: string[] = [];
     for (let i = 0; i < 25; i++) {
       await page.keyboard.press("Tab");
-      const inside = await page.evaluate(
-        () => !!document.activeElement?.closest("#context-margin"),
+      const where = await page.evaluate(() => {
+        const el = document.activeElement;
+        const tag = `${el?.tagName}.${el?.getAttribute("aria-label") ?? el?.textContent?.slice(0, 20)}`;
+        return el?.closest("#context-margin") ? `in:${tag}` : `OUT:${tag}`;
+      });
+      trail.push(where);
+      expect(where.startsWith("in:"), `Tab #${i + 1} left the panel: ${trail.join(" > ")}`).toBe(
+        true,
       );
-      expect(inside, `Tab #${i + 1} left the panel`).toBe(true);
     }
     for (let i = 0; i < 25; i++) {
       await page.keyboard.press("Shift+Tab");
