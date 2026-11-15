@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  displaySummary,
   entityColor,
   entityKind,
   formatExactTime,
@@ -74,5 +75,28 @@ describe("metaDescription", () => {
 
   it("drops trailing punctuation before the ellipsis", () => {
     expect(metaDescription("alpha beta, gamma delta", 13)).toBe("alpha beta…");
+  });
+});
+
+describe("displaySummary", () => {
+  it("hides fragments cut at an abbreviation", () => {
+    expect(displaySummary("Existing U.S.")).toBeNull();
+    expect(
+      displaySummary("A tanker ran aground near the coast, officials said, and Louisiana Gov."),
+    ).toBeNull();
+  });
+
+  it("hides empty and very short summaries", () => {
+    expect(displaySummary(null)).toBeNull();
+    expect(displaySummary("  ")).toBeNull();
+    expect(displaySummary("Markets fell.")).toBeNull();
+  });
+
+  it("keeps whole sentences, including ones ending in an ellipsis", () => {
+    const s = "The Fed held rates steady on Wednesday and signalled two cuts next year.";
+    expect(displaySummary(`  ${s} `)).toBe(s);
+    expect(displaySummary("The Senate passed the bill late on Tuesday with more than…")).toBe(
+      "The Senate passed the bill late on Tuesday with more than…",
+    );
   });
 });

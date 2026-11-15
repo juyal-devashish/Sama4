@@ -7,7 +7,7 @@ import { useSavedStories, type SavedStory } from "@/lib/preferences";
 import { Page } from "@/components/shell/Page";
 import { EmptyState } from "@/components/ui/states";
 import { StoryImage } from "@/components/ui/story-image";
-import { formatTimeAgo } from "@/lib/utils";
+import { displaySummary, formatTimeAgo } from "@/lib/utils";
 import { PublishedTime } from "@/components/ui/published-time";
 import { storyPath } from "@/lib/routes";
 
@@ -66,9 +66,9 @@ export default function SavedPage() {
                   <h2 className="mt-1.5 font-editorial text-[24px] leading-[1.08] tracking-[-0.025em] group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">
                     {s.title}
                   </h2>
-                  {s.summary && (
+                  {displaySummary(s.summary) && (
                     <p className="mt-2 line-clamp-2 text-[15px] leading-[1.4] text-text-secondary">
-                      {s.summary}
+                      {displaySummary(s.summary)}
                     </p>
                   )}
                 </div>

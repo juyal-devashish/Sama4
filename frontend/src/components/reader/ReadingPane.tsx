@@ -19,7 +19,7 @@ import { useArticle } from "@/hooks/useArticle";
 import { usePanelFocus } from "@/hooks/usePanelFocus";
 import { useOnboarding, useSavedStories, TOPIC_LABELS } from "@/lib/preferences";
 import { eligibleHint } from "@/lib/onboarding";
-import { cn } from "@/lib/utils";
+import { cn, displaySummary } from "@/lib/utils";
 import { PublishedTime } from "@/components/ui/published-time";
 import { ErrorState } from "@/components/ui/states";
 import { StoryImage } from "@/components/ui/story-image";
@@ -348,6 +348,7 @@ function Story({
   const select = (e: { id: string; text: string; type: string }) =>
     onSelectTerm({ id: e.id, name: e.text, type: e.type });
 
+  const summary = displaySummary(article.summary);
   return (
     <>
       <div
@@ -479,7 +480,7 @@ function Story({
           className="mt-8 aspect-[16/9] w-full text-[64px]"
         />
 
-        {article.summary && (
+        {summary && (
           <section
             aria-labelledby="summary-label"
             aria-describedby="summary-note"
@@ -496,7 +497,7 @@ function Story({
             </p>
             <p data-explainable className="mt-3 text-[17px] leading-[1.6] text-foreground">
               <MatchedText
-                text={article.summary}
+                text={summary}
                 entities={article.entities}
                 activeId={term?.id}
                 onSelect={select}
