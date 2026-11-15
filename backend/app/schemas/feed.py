@@ -21,6 +21,8 @@ class ArticleCard(BaseModel):
     reading_time_minutes: int | None = None
     categories: list[str] = []
     entity_count: int = 0
+    # Names of the terms in the story (people, places, organisations), for search.
+    entity_names: list[str] = []
 
 
 class FeedResponse(BaseModel):

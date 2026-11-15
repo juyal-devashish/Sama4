@@ -24,6 +24,15 @@ describe("search", () => {
     expect(matchQuery(STORIES, "  ")).toEqual([]);
   });
 
+  it("also matches the names of the people, places and organisations in a story", () => {
+    const withTerms: ArticleCard[] = [
+      { ...story("x", "BBC", "world", 1), title: "Talks resume", entity_names: ["Yo-Yo Ma"] },
+      { ...story("y", "BBC", "world", 2), title: "Talks stall" }, // an older server: no names
+    ];
+    expect(matchQuery(withTerms, "yo-yo").map((s) => s.id)).toEqual(["x"]);
+    expect(matchQuery(withTerms, "YO-YO MA").map((s) => s.id)).toEqual(["x"]);
+  });
+
   it("narrows by topic, source and date, newest first", () => {
     expect(applyFilters(STORIES, NO_FILTERS, NOW).map((s) => s.id)).toEqual(["a", "b", "c"]);
     expect(applyFilters(STORIES, { ...NO_FILTERS, topic: "world" }, NOW).map((s) => s.id)).toEqual([
