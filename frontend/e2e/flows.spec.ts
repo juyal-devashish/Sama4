@@ -44,6 +44,8 @@ test("the explanation panel takes focus, keeps Tab inside it and gives focus bac
   await page.keyboard.press("Enter");
   const panel = page.locator("#context-margin");
   await expect(panel).toBeFocused();
+  // A live region says when the explanation is ready, for screen-reader users.
+  await expect(page.locator("#explanation-status")).toHaveText(/^Explanation of .+ loaded\.$/);
 
   // Wide windows show the margin beside the story (no trap); drawers must hold focus.
   const isDrawer = await page.evaluate(() => window.matchMedia("(max-width: 1479px)").matches);

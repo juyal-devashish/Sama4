@@ -23,6 +23,8 @@ interface Props {
   onClose: () => void;
   /** First-run tip about follow-up questions; set while it should show. */
   followUpTip?: FollowUpTip;
+  /** Tell a screen-reader live region what just happened (loading, loaded, failed). */
+  onAnnounce?: (message: string) => void;
 }
 
 /** Explanation of one term, shown in the margin beside the story. */
@@ -39,10 +41,21 @@ export function ContextPanel({
   onOpenArticle,
   onClose,
   followUpTip,
+  onAnnounce,
 }: Props) {
   const { data, isLoading, isError, refetch } = useEntityContext(term.id);
   const { data: prediction } = usePrediction(articleId);
   const color = entityColor(term.type);
+
+  const name = data?.entity.name ?? term.name;
+  const hasText = !!data?.context.text.trim();
+  useEffect(() => {
+    if (!onAnnounce) return;
+    if (isLoading) onAnnounce(`Loading the explanation of ${name}.`);
+    else if (isError || !data) onAnnounce(`The explanation of ${name} didn't load.`);
+    else if (!hasText) onAnnounce(`No explanation of ${name} is available.`);
+    else onAnnounce(`Explanation of ${name} loaded.`);
+  }, [isLoading, isError, data, hasText, name, onAnnounce]);
 
   return (
     <div className="flex h-full flex-col">
