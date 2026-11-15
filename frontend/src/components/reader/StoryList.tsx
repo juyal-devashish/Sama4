@@ -117,6 +117,22 @@ export function StoryListSkeleton({ rows = 6 }: { rows?: number }) {
   );
 }
 
+function DateHeading({
+  as: Tag,
+  className,
+  children,
+}: {
+  as: "h1" | "h2";
+  className: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Tag className={className} suppressHydrationWarning>
+      {children}
+    </Tag>
+  );
+}
+
 interface StoryListProps {
   stories: ArticleCard[];
   isLoading: boolean;
@@ -158,12 +174,13 @@ export function StoryList({
     >
       <header className="mx-4 border-b border-border pb-4 pt-5">
         <p className="kicker">The daily edition</p>
-        <h1
+        {/* The date is the page's heading until a story opens; then the story's title is. */}
+        <DateHeading
+          as={selectedId ? "h2" : "h1"}
           className="mt-1 font-editorial text-[20px] leading-tight tracking-[-0.01em]"
-          suppressHydrationWarning
         >
           {formatLongDate()}
-        </h1>
+        </DateHeading>
         {topics.length > 0 && (
           <div className="mt-4">
             <TopicChips topics={topics} active={topic} onChange={onTopicChange} />
