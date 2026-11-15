@@ -56,6 +56,9 @@ class PredictionDetail(BaseModel):
     agent_perspectives: list[AgentPerspectiveOut] = []
     created_at: datetime
     completed_at: datetime | None = None
+    # True when Samā4 refused to write this outlook because the story is mainly about a
+    # private individual. The reader is told so and isn't offered a retry.
+    declined: bool = False
 
 
 class PredictionRequest(BaseModel):

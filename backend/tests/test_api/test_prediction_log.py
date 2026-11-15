@@ -84,3 +84,69 @@ async def test_the_log_outlives_the_story_and_is_listed_for_admins(client, conta
 async def test_the_log_needs_the_admin_secret(client):
     wrong = await client.get("/api/v1/admin/predictions/log", headers={"X-Admin-Secret": "nope"})
     assert wrong.status_code == 403
+
+
+# --- Private individuals: no outlook about them (item 61) -------------------------------
+
+
+async def _queued_for(db_session, title: str, *, people: list[tuple[str, str | None]]):
+    from tests.factories import make_article, make_entity
+
+    async with db_session() as db:
+        article = await make_article(db, title=title)
+        for name, wiki in people:
+            await make_entity(db, name=name, article=article, wikipedia_url=wiki)
+        prediction = Prediction(article_id=article.id, status=STATUS_QUEUED)
+        db.add(prediction)
+        await db.commit()
+        return prediction
+
+
+async def test_an_outlook_about_a_private_individual_is_declined(client, container, db_session):
+    queued = await _queued_for(
+        db_session, "Neighbour charged after dispute", people=[("Dana Roe", None)]
+    )
+    container.llm.default = REPLY
+    container.llm.replies = {"PRIVATE-INDIVIDUAL CHECK": '{"private_subject": true}'}
+
+    await run_simulation(container, str(queued.id))
+
+    detail = (await client.get(f"/api/v1/predictions/article/{queued.article_id}")).json()
+    assert (detail["status"], detail["declined"]) == ("failed", True)
+    assert detail["prediction_summary"] is None
+    assert await _entries(db_session) == []  # nothing was published, so nothing is logged
+    # The screen saw who the story names without a public profile.
+    screen = next(c for c in container.llm.calls if "PRIVATE-INDIVIDUAL CHECK" in c["prompt"])
+    assert "Dana Roe" in screen["prompt"]
+    assert len(container.llm.calls) == 1  # the outlook itself was never written
+    status = (await client.get(f"/api/v1/predictions/{queued.id}/status")).json()
+    assert status["progress_message"].startswith("Samā4 doesn't write outlooks about private")
+
+
+async def test_a_public_figure_story_still_gets_an_outlook(client, container, db_session):
+    queued = await _queued_for(
+        db_session,
+        "Senator proposes bill",
+        people=[("Jane Senator", "https://en.wikipedia.org/wiki/Jane_Senator")],
+    )
+    container.llm.default = REPLY
+    container.llm.replies = {"PRIVATE-INDIVIDUAL CHECK": '{"private_subject": false}'}
+
+    await run_simulation(container, str(queued.id))
+
+    detail = (await client.get(f"/api/v1/predictions/article/{queued.article_id}")).json()
+    assert (detail["status"], detail["declined"]) == ("completed", False)
+    outlook = container.llm.calls[-1]["prompt"]
+    assert "named private individual" in outlook  # the outlook prompt carries the rule too
+
+
+async def test_the_screen_fails_closed_when_its_answer_is_unreadable(client, container, db_session):
+    queued = await _queued_for(db_session, "Anything", people=[])
+    container.llm.default = REPLY
+    container.llm.replies = {"PRIVATE-INDIVIDUAL CHECK": "I think it is fine!"}
+
+    await run_simulation(container, str(queued.id))
+
+    detail = (await client.get(f"/api/v1/predictions/article/{queued.article_id}")).json()
+    assert (detail["status"], detail["declined"]) == ("failed", False)  # retryable
+    assert detail["prediction_summary"] is None

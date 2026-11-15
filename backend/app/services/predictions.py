@@ -25,12 +25,40 @@ from app.models.prediction import (
     Prediction,
 )
 from app.models.source import Source
+from app.repositories import entities as entity_repo
 from app.repositories import prediction_log as prediction_log_repo
 
 logger = logging.getLogger(__name__)
 
 
 CANCELLED_MESSAGE = "Cancelled by the reader."
+PRIVATE_SUBJECT_MESSAGE = (
+    "Samā4 doesn't write outlooks about private individuals. "
+    "This story is mainly about someone who isn't a public figure."
+)
+UNCHECKED_MESSAGE = "Samā4 couldn't check this story before writing an outlook. Please try again."
+
+PRIVATE_SUBJECT_PROMPT = """PRIVATE-INDIVIDUAL CHECK. You screen news stories before Samā4 \
+writes a speculative outlook (a projection of what may happen next).
+
+Decide whether the story is mainly about a named private individual: a person who is not a \
+public figure. Public figures hold or seek a public role or have a public profile: elected \
+officials, executives, celebrities, athletes, authors, activists and others the story names \
+in that capacity. Private individuals include crime victims, suspects, defendants or \
+witnesses who are not otherwise public figures, minors, patients, and private citizens in a \
+personal or legal dispute. A projection about how events could unfold for such a person \
+could harm them, so we don't write one.
+
+People named in the story whose names have no public profile on record: {unlinked}
+
+ARTICLE TITLE: {title}
+
+ARTICLE TEXT:
+{content}
+
+Answer with JSON only: {{"private_subject": true}} or {{"private_subject": false}}.
+Use true only when the outcome the story turns on concerns a named private individual. \
+A story that merely quotes or mentions a private person is false."""  # noqa: E501
 
 
 class RunCancelledError(Exception):
@@ -142,6 +170,13 @@ class PredictionService:
             await db.commit()
             return
 
+        blocked = await self._blocked_reason(article, db)
+        if blocked is not None:
+            prediction.status = STATUS_FAILED
+            prediction.error_message = blocked
+            await db.commit()
+            return
+
         # Check MiroFish availability
         is_healthy = await self.mirofish.health_check()
 
@@ -157,6 +192,34 @@ class PredictionService:
         except RunCancelledError:
             await db.rollback()  # drop any half-built result; the row stays "failed"
             logger.info("Prediction %s was cancelled; stopped", prediction_id)
+
+    async def _blocked_reason(self, article: Article, db: AsyncSession) -> str | None:
+        """Why no outlook may be written for this story, or None if it may.
+
+        Fails closed: if the screening call errors or its answer can't be read, the run
+        stops with a retryable message rather than projecting about someone unchecked.
+        """
+        people = await entity_repo.list_people_in_article(db, article.id)
+        unlinked = ", ".join(sorted(e.canonical_name for e in people if not e.wikipedia_url))
+        content = (article.cleaned_content or article.summary or article.title)[:3000]
+        prompt = PRIVATE_SUBJECT_PROMPT.format(
+            unlinked=unlinked or "(none)", title=article.title, content=content
+        )
+        try:
+            raw = await self.llm.generate(prompt, effort="low")
+            cleaned = raw.strip()
+            if cleaned.startswith("```"):
+                cleaned = cleaned.split("\n", 1)[1].rsplit("```", 1)[0]
+            verdict = json.loads(cleaned.strip())
+            if not isinstance(verdict, dict):
+                raise ValueError("not a JSON object")
+        except Exception:
+            logger.warning("Private-individual check failed for %s", article.id, exc_info=True)
+            return UNCHECKED_MESSAGE
+        if verdict.get("private_subject") is True:
+            logger.info("Outlook declined for %s: private individual", article.id)
+            return PRIVATE_SUBJECT_MESSAGE
+        return None
 
     async def _run_with_mirofish(
         self, prediction: Prediction, article: Article, db: AsyncSession
@@ -259,6 +322,7 @@ Provide your analysis in the following JSON format:
 }}
 
 Generate exactly 5 diverse agent perspectives covering different stakeholder viewpoints.
+Never speculate about what will happen to a named private individual (anyone who is not a public figure); refer to them only by role, such as "the suspect" or "the family".
 Return ONLY valid JSON, no markdown code blocks."""  # noqa: E501 (LLM prompt text)
 
             raw_response = await self.llm.generate(prompt, effort="medium")

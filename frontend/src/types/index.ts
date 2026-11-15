@@ -190,6 +190,8 @@ export interface PredictionDetail {
   agent_perspectives: AgentPerspective[];
   created_at: string;
   completed_at?: string;
+  /** True when Samā4 refused to write this outlook because the story is mainly about a private individual. */
+  declined?: boolean;
 }
 
 export interface PredictionStatus {

@@ -100,3 +100,30 @@ test("a running outlook shows its steps and can be cancelled", async ({ page }) 
   await expect(page.getByText(/You cancelled the outlook/)).toBeVisible();
   await expect(page.getByRole("button", { name: /Run outlook/ })).toBeEnabled();
 });
+
+test("an outlook declined for a private individual says so and offers no retry", async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.route("**/api/v1/predictions/article/**", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      headers: { "access-control-allow-origin": "*" },
+      body: JSON.stringify({
+        ...PREDICTION,
+        status: "failed",
+        declined: true,
+        prediction_summary: null,
+        agent_perspectives: [],
+      }),
+    }),
+  );
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(`/?article=${ARTICLE_ID}`);
+  const outlook = page.locator("#outlook");
+
+  await expect(outlook.getByText(/doesn.t write outlooks about private individuals/)).toBeVisible({
+    timeout: 10_000,
+  });
+  await expect(outlook.getByRole("button", { name: /Run outlook/ })).toHaveCount(0);
+});
