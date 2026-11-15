@@ -76,6 +76,23 @@ test("the explanation panel takes focus, keeps Tab inside it and gives focus bac
   await expect(term).toBeFocused();
 });
 
+test("More detail shows a longer explanation only when asked", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  const term = page.locator("p .term").first();
+  await expect(term).toBeVisible({ timeout: 10_000 });
+  await term.click();
+  const panel = page.locator("#context-margin");
+  await expect(panel.getByText("The longer explanation starts here.")).toHaveCount(0);
+
+  await panel.getByRole("button", { name: "More detail" }).click();
+
+  await expect(panel.getByText("The longer explanation starts here.")).toBeVisible();
+  await expect(panel.getByText("And it continues in a second paragraph.")).toBeVisible();
+  await expect(panel.getByText(/written by AI from the same sources/)).toBeVisible();
+});
+
 test("reference page is accessible", async ({ page }) => {
   await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));

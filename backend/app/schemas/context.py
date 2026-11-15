@@ -54,6 +54,14 @@ class ExplainRequest(BaseModel):
     question: str = Field(min_length=1, max_length=500)
 
 
+class MoreDetailResponse(BaseModel):
+    """The longer explanation behind "More detail"."""
+
+    text: str  # "" when nothing could be written
+    generated_at: datetime
+    cached: bool = False
+
+
 ReportReason = Literal["wrong_thing", "wrong_fact", "outdated", "other"]
 
 

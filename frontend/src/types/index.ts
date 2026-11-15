@@ -115,6 +115,13 @@ export interface ContextData {
   sources: ContextSource[];
 }
 
+/** The longer explanation behind "More detail". `text` is "" if none could be written. */
+export interface MoreDetailResponse {
+  text: string;
+  generated_at: string;
+  cached: boolean;
+}
+
 export interface ContextResponse {
   entity: EntityInfo;
   context: ContextData;

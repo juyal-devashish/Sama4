@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import { ArrowUpRight, Loader2, Send, X } from "lucide-react";
 import { useEntityContext } from "@/hooks/useEntityContext";
 import { useExplain } from "@/hooks/useExplain";
+import { useMoreDetail } from "@/hooks/useMoreDetail";
 import { usePrediction } from "@/hooks/usePrediction";
 import { EntityBadge } from "@/components/ui/entity-badge";
 import { Tip } from "@/components/onboarding/Tip";
@@ -103,6 +104,7 @@ export function ContextPanel({
                   {data.context.text}
                 </p>
                 <ExplanationSources context={data.context} />
+                <MoreDetail entityId={data.entity.id} />
                 <ReportError
                   key={term.id}
                   entityId={data.entity.id}
@@ -300,6 +302,55 @@ function ExplanationSources({ context }: { context: ContextData }) {
       )}
       .
     </p>
+  );
+}
+
+/** "More detail": a longer explanation, fetched only when the reader asks for it. */
+function MoreDetail({ entityId }: { entityId: string }) {
+  const [asked, setAsked] = useState(false);
+  const { data, isLoading, isError, refetch } = useMoreDetail(entityId, asked);
+
+  if (!asked) {
+    return (
+      <button
+        type="button"
+        onClick={() => setAsked(true)}
+        aria-expanded={false}
+        className="label-ui link-ui mt-4 inline-flex items-center gap-1 font-bold text-accent-secondary"
+      >
+        More detail
+      </button>
+    );
+  }
+  return (
+    <section aria-label="More detail" className="mt-5 border-t border-divider pt-4">
+      <h3 className="section-label">More detail</h3>
+      {isLoading ? (
+        <div className="mt-3 space-y-2.5" role="status" aria-label="Loading more detail">
+          <div className="skeleton h-4 w-full" />
+          <div className="skeleton h-4 w-full" />
+          <div className="skeleton h-4 w-4/5" />
+        </div>
+      ) : isError || !data?.text ? (
+        <div className="mt-3 text-[15px] leading-relaxed text-text-secondary">
+          <p>The longer explanation isn&apos;t available right now.</p>
+          <button type="button" onClick={() => refetch()} className="btn-outline mt-3">
+            Try again
+          </button>
+        </div>
+      ) : (
+        <>
+          {data.text.split(/\n{2,}/).map((para, i) => (
+            <p key={i} className="mt-3 text-[15.5px] leading-[1.6] text-foreground">
+              {para}
+            </p>
+          ))}
+          <p className="mt-3 font-ui text-[11.5px] leading-snug text-text-tertiary">
+            Longer explanation, written by AI from the same sources.
+          </p>
+        </>
+      )}
+    </section>
   );
 }
 
