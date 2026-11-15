@@ -229,7 +229,7 @@ function sourceLabel(s: ContextSource): string {
  * "Written by Samā4's AI from <story> and Wikipedia, as of Nov 11, 2026." Each source is
  * linked when it has a URL. The stored fallback is Wikipedia's own text, and says so.
  */
-function ExplanationSources({ context }: { context: ContextData }) {
+export function ExplanationSources({ context }: { context: ContextData }) {
   const fromWikipedia = context.source === "wikipedia_extract";
   const sources = fromWikipedia ? [] : (context.sources ?? []);
   const date = formatShortDate(context.generated_at);

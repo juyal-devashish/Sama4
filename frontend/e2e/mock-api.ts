@@ -73,6 +73,19 @@ export async function mockApi(page: Page) {
         confidence: 0.85,
       });
     }
+    if (path === "/context/selection") {
+      const { text } = route.request().postDataJSON() as { text: string };
+      // Text containing "mystery" gets the no-reliable-information answer.
+      const reliable = !/mystery/i.test(text);
+      return json(route, {
+        text,
+        explanation: reliable ? `"${text}" is explained here.` : "",
+        reliable,
+        generated_at: new Date().toISOString(),
+        cached: false,
+        sources: [{ type: "article", title: "The article", url: "https://example.com/story" }],
+      });
+    }
     if (path === "/predictions/trending") return json(route, fixtures.trending);
     if (path.startsWith("/predictions/article/")) return json(route, null);
 

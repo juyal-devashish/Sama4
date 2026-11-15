@@ -149,6 +149,21 @@ export interface ExplainResponse {
   confidence: number;
 }
 
+export interface SelectionRequest {
+  article_id: string;
+  text: string;
+}
+
+/** An explanation of text the reader selected. `reliable: false` means no explanation. */
+export interface SelectionResponse {
+  text: string;
+  explanation: string;
+  reliable: boolean;
+  generated_at: string;
+  cached: boolean;
+  sources: ContextSource[];
+}
+
 // ============ Predictions (MiroFish) ============
 
 export interface AgentPerspective {
