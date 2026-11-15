@@ -60,3 +60,14 @@ Or `make eval-context` from the repo root. Each run appends to `results/history.
 Scores are split into `all`, `ambiguous`, `plain` and `not_a_useful_term`.
 
 Baseline (2026-11-13, linker only): 58.5% overall, 45% on ambiguous names, 64% on the rest.
+
+## Same-name people and places (item 43)
+
+The 60 "ambiguous" items are all bare single words; **none is a true same-name pair** (no
+name in the set is linked to different pages in different stories), so this set cannot yet
+measure whether "Paris, Texas" is told apart from "Paris". Today the linker uses the term's
+text alone and keeps the top Wikidata hit, and entities are shared by (name, type) across
+stories. `tests/test_ingestion/test_disambiguation.py` pins that behaviour offline: the
+passing cases describe what happens now, and the two `xfail(strict=True)` cases (use story
+context; never link a disambiguation page) are the behaviour still to build. Before
+building it, add real same-name pairs to this set so the gain can be measured.
