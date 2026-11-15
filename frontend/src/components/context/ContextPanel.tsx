@@ -438,6 +438,7 @@ function FollowUp({
           disabled={disabled}
           placeholder={`Ask about ${term.name}`}
           autoComplete="off"
+          maxLength={500}
           className="h-10 min-w-0 flex-1 border border-border bg-background px-3 font-editorial text-[15px] text-foreground outline-none placeholder:italic placeholder:text-text-tertiary focus:border-foreground"
         />
         <button

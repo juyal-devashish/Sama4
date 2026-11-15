@@ -51,7 +51,7 @@ class ContextResponse(BaseModel):
 class ExplainRequest(BaseModel):
     entity_id: uuid.UUID
     article_id: uuid.UUID
-    question: str
+    question: str = Field(min_length=1, max_length=500)
 
 
 ReportReason = Literal["wrong_thing", "wrong_fact", "outdated", "other"]

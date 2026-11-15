@@ -17,7 +17,7 @@ from app.clients.vectors import VectorStore, article_id_from_vector_id
 from app.clients.wikimedia import WikimediaClient
 from app.models.article import Article
 from app.models.entity import ArticleEntity, Entity
-from app.prompts.templates import PROMPTS, entity_context_prompt
+from app.prompts.templates import entity_context_prompt, followup_prompt
 from app.repositories import entities as entity_repo
 from app.repositories import explanations as explanation_repo
 from app.repositories import predictions as prediction_repo
@@ -230,24 +230,21 @@ class ContextService:
         ]
         wikipedia_extract = await self.wikimedia.get_wikipedia_extract(entity.wikipedia_url or "")
 
-        outlook_block = ""
+        outlook_text = ""
         prediction = await prediction_repo.latest_completed_for_article(db, article.id)
         if prediction and prediction.prediction_summary:
-            outlook_block = (
-                "\n[outlook] Samā4's AI-GENERATED OUTLOOK (a projection, not fact):\n"
-                f"{prediction.prediction_summary}\n"
-            )
+            outlook_text = prediction.prediction_summary
 
-        prompt = PROMPTS["followup_question"]["v2"]["template"].format(
+        system, prompt = followup_prompt(
             article_title=article.title,
             article_text=article_text or "(no text)",
             entity_name=entity.canonical_name,
             explanation=explanation or "(none)",
             wikipedia=wikipedia_extract or "(none)",
-            outlook_block=outlook_block,
-            user_question=question,
+            outlook=outlook_text,
+            question=question,
         )
-        answer = await self.llm.generate(prompt, effort="medium")
+        answer = await self.llm.generate(prompt, effort="medium", system=system)
 
         sources = [ContextSource(type="article", title=article.title, url=article.url)]
         if explanation:
@@ -260,7 +257,7 @@ class ContextService:
             sources.append(
                 ContextSource(type="wikipedia", title="Wikipedia", url=entity.wikipedia_url)
             )
-        if outlook_block:
+        if outlook_text:
             sources.append(ContextSource(type="outlook", title="Samā4's AI outlook"))
 
         return ExplainResponse(
