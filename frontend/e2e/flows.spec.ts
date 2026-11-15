@@ -187,6 +187,27 @@ test("an explanation is requested for the story it is opened from", async ({ pag
   expect(asked.every((u) => new URL(u).searchParams.get("article_id") === ARTICLE_ID)).toBe(true);
 });
 
+test("the logo is a small WebP and loads in both themes", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  const sizes: Record<string, number> = {};
+  page.on("response", (r) => {
+    if (/logo-owl.*\.(png|webp)$/.test(r.url()))
+      sizes[r.url()] = Number(r.headers()["content-length"] ?? 0);
+  });
+  await page.goto("/saved");
+  await page.waitForLoadState("networkidle");
+
+  const logos = page.locator("img[src^='/logo-owl']");
+  expect(await logos.count()).toBeGreaterThan(0);
+  for (const src of await logos.evaluateAll((els) => els.map((e) => e.getAttribute("src")))) {
+    expect(src).toMatch(/\.webp$/);
+  }
+  const visible = page.locator("img[src='/logo-owl.webp']:visible").first();
+  expect(await visible.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+  for (const bytes of Object.values(sizes)) expect(bytes).toBeLessThan(15_000);
+});
+
 test("reference page is accessible", async ({ page }) => {
   await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));

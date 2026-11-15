@@ -28,7 +28,7 @@ export const LANDING_MARKUP = `<section class="hero">
         </span>
       </div>
       <div class="phone-app-header">
-        <span class="phone-app-icon"><img src="/logo-owl.png" alt="" class="app-owl logo-light" /><img src="/logo-owl-dark.png" alt="" class="app-owl logo-dark" /></span>
+        <span class="phone-app-icon"><img src="/logo-owl.webp" alt="" class="app-owl logo-light" /><img src="/logo-owl-dark.webp" alt="" class="app-owl logo-dark" /></span>
         <span class="phone-app-name">Samā4</span>
         <span class="phone-app-badge" id="appBadge" style="display:none">Active</span>
       </div>
@@ -200,7 +200,7 @@ export const LANDING_MARKUP = `<section class="hero">
   <p class="form-success" id="formSuccess" role="status">✓ You're on the list. We'll email you when sign-in opens.</p>
 </section>
 <footer>
-  <span class="footer-logo"><img src="/logo-owl.png" alt="" class="footer-owl logo-light" /><img src="/logo-owl-dark.png" alt="" class="footer-owl logo-dark" /><span>Samā4</span></span>
+  <span class="footer-logo"><img src="/logo-owl.webp" alt="" class="footer-owl logo-light" /><img src="/logo-owl-dark.webp" alt="" class="footer-owl logo-dark" /><span>Samā4</span></span>
   <ul class="footer-links">
     <li><a href="/about">About</a></li>
     <li><a href="/sources">Sources</a></li>
