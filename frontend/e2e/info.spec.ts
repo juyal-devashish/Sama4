@@ -71,3 +71,10 @@ test("Sources links each outlet's site and says what each link is", async ({ pag
   expect(texts.filter((t) => /^https?:\/\//.test(t.trim()))).toEqual([]);
   await expect(page.getByRole("link", { name: /RSS feed for Bloomberg, Markets/ })).toBeVisible();
 });
+
+test("Search is in the HTML before any script runs", async ({ request }) => {
+  const html = await (await request.get("/search")).text();
+  expect(html).toContain('role="search"');
+  expect(html).toContain('id="q"');
+  expect(html).toContain("Find stories by headline");
+});
