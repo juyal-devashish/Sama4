@@ -163,6 +163,10 @@ export function OutlookSection({
                 ? "Run outlook again"
                 : "Run outlook"}
           </PrimaryButton>
+          <p className="mt-2 max-w-[60ch] font-ui text-[11.5px] leading-snug text-text-tertiary">
+            A finished outlook is saved and shown to other readers on the Outlook page. It contains
+            nothing about you.
+          </p>
           {trigger.isError && (
             <p className="mt-2 font-ui text-[12.5px] text-error">
               The outlook didn&apos;t start. Check the server and try again.
