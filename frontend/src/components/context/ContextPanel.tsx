@@ -232,7 +232,9 @@ const hasWikipedia = (sources: ContextSource[] = []) =>
   sources.some((s) => s.type === "wikipedia" && s.url);
 
 function sourceLabel(s: ContextSource): string {
-  if (s.type === "wikipedia") return "Wikipedia";
+  // The article's own title shows which Wikipedia page the term was matched to, the most
+  // common cause of a wrong explanation (two things with the same name).
+  if (s.type === "wikipedia") return s.title ? `Wikipedia: ${s.title}` : "Wikipedia";
   if (s.type === "article") return s.title ? `“${s.title}”` : "a news story";
   return s.title ?? s.type;
 }
@@ -493,6 +495,12 @@ function FollowUp({
               )}
             </div>
           ))}
+          {turns.some((t) => t.a) && (
+            <p className="font-ui text-[11px] leading-snug text-text-tertiary">
+              The small labels after a sentence say where it came from: the article, the
+              explanation, Wikipedia or an outlook.
+            </p>
+          )}
         </div>
       )}
       <form
@@ -524,6 +532,9 @@ function FollowUp({
           <span className="sr-only">Ask</span>
         </button>
       </form>
+      <p className="px-4 pb-3 font-ui text-[11px] leading-snug text-text-tertiary">
+        Your question is sent to Samā4 and to Claude, which writes the answer. It isn&apos;t saved.
+      </p>
     </div>
   );
 }
