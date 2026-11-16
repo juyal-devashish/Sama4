@@ -1,12 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { BackToStories } from "@/components/shell/BackToStories";
 import { Page } from "@/components/shell/Page";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Privacy",
-  alternates: { canonical: "/privacy" },
+  path: "/privacy",
   description:
     "How Samā4 handles your data, in plain terms: the waitlist, what stays on your device, reports you send, error reports, limits on heavy use, and no tracking.",
-};
+});
 
 const SECTIONS: { title: string; body: React.ReactNode }[] = [
   {
@@ -89,6 +92,11 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
           build a profile of what you read.
         </p>
         <p>
+          Story pictures load straight from each publisher&apos;s servers, so that publisher can see
+          your IP address and browser type when its picture loads. Your browser is asked not to say
+          which Samā4 page you came from.
+        </p>
+        <p>
           We do keep daily totals of how the app is used: how many stories were opened, terms
           explained, selections explained, follow-up questions asked and outlooks started, each day.
           They are plain numbers on our server. No cookie, IP address or identifier is stored with
@@ -131,7 +139,7 @@ export default function PrivacyPage() {
   return (
     <Page
       title="Privacy"
-      description="How Samā4 handles your data, in plain terms. This describes what the app does today. Last updated 15 November 2026."
+      description="How Samā4 handles your data, in plain terms. This describes what the app does today. Last updated November 15, 2026."
     >
       <div className="max-w-[62ch] space-y-9">
         {SECTIONS.map((s) => (
@@ -144,11 +152,7 @@ export default function PrivacyPage() {
             </div>
           </section>
         ))}
-        <p>
-          <Link href="/" className="label-ui link-ui font-bold text-accent-secondary">
-            Back to today&apos;s stories
-          </Link>
-        </p>
+        <BackToStories />
       </div>
     </Page>
   );
