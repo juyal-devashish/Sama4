@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Monitor, Moon, Sun } from "lucide-react";
 import {
@@ -11,6 +12,7 @@ import {
   type ThemeChoice,
 } from "@/lib/preferences";
 import { Page } from "@/components/shell/Page";
+import { clearDeviceData } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 
 const THEMES: { value: ThemeChoice; label: string; icon: typeof Sun }[] = [
@@ -38,6 +40,46 @@ function Section({
       </div>
       <div>{children}</div>
     </section>
+  );
+}
+
+/** Two steps, so one slip can't wipe saved stories. */
+function ClearDeviceData() {
+  const [step, setStep] = useState<"idle" | "confirm" | "done">("idle");
+  return (
+    <>
+      <p className="max-w-[56ch] text-[16px] leading-relaxed text-text-secondary">
+        Your saved stories, theme, topics, recent searches, and whether you have seen the welcome
+        screen are kept in this browser, not on Samā4&apos;s servers. Clear them to start fresh.
+      </p>
+      {step === "confirm" ? (
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <p className="text-[15px] text-foreground">
+            Delete everything Samā4 keeps on this device? This can&apos;t be undone.
+          </p>
+          <button
+            type="button"
+            className="btn-ink"
+            onClick={() => {
+              clearDeviceData();
+              setStep("done");
+            }}
+          >
+            Yes, clear it
+          </button>
+          <button type="button" className="btn-outline" onClick={() => setStep("idle")}>
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <button type="button" className="btn-outline mt-4" onClick={() => setStep("confirm")}>
+          Clear data on this device
+        </button>
+      )}
+      <p role="status" className="mt-3 text-[15px] text-text-secondary empty:hidden">
+        {step === "done" ? "Cleared. Saved stories and your settings are back to the start." : ""}
+      </p>
+    </>
   );
 }
 
@@ -113,6 +155,10 @@ export default function SettingsPage() {
           </div>
         </Section>
       )}
+
+      <Section title="Data on this device">
+        <ClearDeviceData />
+      </Section>
 
       <Section title="About">
         <p className="max-w-[56ch] text-[16px] leading-relaxed text-text-secondary">

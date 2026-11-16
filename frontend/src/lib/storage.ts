@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import { ownKeys } from "./deviceData";
 
 /**
  * Tiny localStorage-backed store with cross-component (and cross-window) updates.
@@ -47,6 +48,23 @@ function subscribe(listener: () => void) {
     listeners.delete(listener);
     window.removeEventListener("storage", onStorage);
   };
+}
+
+/**
+ * Forget everything Samā4 keeps in this browser (every `sama4_` key, in local and session
+ * storage) and tell every component, so theme, saved stories and the rest reset at once.
+ */
+export function clearDeviceData() {
+  for (const area of ["localStorage", "sessionStorage"] as const) {
+    try {
+      const storage = window[area];
+      ownKeys(storage).forEach((k) => storage.removeItem(k));
+    } catch {
+      // Storage unavailable: nothing to clear.
+    }
+  }
+  cache.clear();
+  listeners.forEach((l) => l());
 }
 
 export function useStoredValue<T>(key: string, fallback: T) {
