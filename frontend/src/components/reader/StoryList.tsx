@@ -4,7 +4,8 @@ import { forwardRef } from "react";
 import { Newspaper } from "lucide-react";
 import type { ArticleCard } from "@/types";
 import { StoryImage } from "@/components/ui/story-image";
-import { cn, displaySummary, formatLongDate } from "@/lib/utils";
+import { cn, displaySummary } from "@/lib/utils";
+import { ClientDate } from "@/components/ui/client-date";
 import { PublishedTime } from "@/components/ui/published-time";
 import { TOPIC_LABELS } from "@/lib/preferences";
 import { useNewSince } from "@/hooks/useNewSince";
@@ -189,13 +190,12 @@ export function StoryList({
       )}
     >
       <header className="mx-4 border-b border-border pb-4 pt-5">
-        <p className="kicker">The daily edition</p>
         {/* The date is the page's heading until a story opens; then the story's title is. */}
         <DateHeading
           as={selectedId ? "h2" : "h1"}
-          className="mt-1 font-editorial text-[20px] leading-tight tracking-[-0.01em]"
+          className="font-editorial text-[20px] leading-tight tracking-[-0.01em]"
         >
-          {formatLongDate()}
+          <ClientDate format="long" />
         </DateHeading>
         {topics.length > 0 && (
           <div className="mt-4">

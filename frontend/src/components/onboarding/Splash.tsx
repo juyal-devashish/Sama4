@@ -18,7 +18,7 @@ export function Splash() {
         </span>
         <span className="rule-thick mt-4 w-[240px]" />
       </div>
-      <p className="splash-tagline label-ui text-text-secondary">News, understood.</p>
+      <p className="splash-tagline label-ui text-text-secondary">News, explained inline.</p>
     </div>
   );
 }

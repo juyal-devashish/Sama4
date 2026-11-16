@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   displaySummary,
+  formatFullDate,
+  formatLongDate,
+  formatWeekday,
   entityColor,
   entityKind,
   formatExactTime,
@@ -98,5 +101,20 @@ describe("displaySummary", () => {
     expect(displaySummary("The Senate passed the bill late on Tuesday with more than…")).toBe(
       "The Senate passed the bill late on Tuesday with more than…",
     );
+  });
+});
+
+describe("dates follow the reader's time zone", () => {
+  // 21:00 on Saturday 14 November in New York is already Sunday in UTC, where the server
+  // renders. The audit caught the page saying Sunday.
+  const evening = new Date("2026-11-15T02:00:00Z");
+
+  it("names Saturday in New York and Sunday in UTC", () => {
+    const ny = { locale: "en-US", timeZone: "America/New_York" };
+    const utc = { locale: "en-US", timeZone: "UTC" };
+    expect(formatWeekday(evening, ny)).toBe("Saturday");
+    expect(formatFullDate(evening, ny)).toBe("November 14, 2026");
+    expect(formatLongDate(evening, ny)).toBe("Saturday, November 14");
+    expect(formatWeekday(evening, utc)).toBe("Sunday");
   });
 });
