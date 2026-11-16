@@ -175,7 +175,7 @@ export function Landing() {
             const message =
               res.status === "exists"
                 ? "✓ You're already on the list."
-                : (success.textContent ?? "");
+                : "✓ You're on the list. We'll email you when sign-in opens.";
             success.style.display = "block";
             success.textContent = "";
             requestAnimationFrame(() => (success.textContent = message));
