@@ -336,12 +336,15 @@ function Story({
   };
 
   const copyLink = async () => {
+    const url = `${window.location.origin}${storyPath(article.id)}`;
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}${storyPath(article.id)}`);
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      /* clipboard blocked; nothing to do */
+      // Clipboard blocked (an insecure page, a locked-down browser): show the link
+      // selected, so it can still be copied by hand.
+      window.prompt("Copy this link", url);
     }
   };
 

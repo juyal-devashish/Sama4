@@ -211,7 +211,7 @@ function SearchView() {
             <ul className="-mx-4 divide-y divide-divider">
               {results.map((s) => (
                 <li key={s.id}>
-                  <StoryRow story={s} onClick={() => open(s.id)} />
+                  <StoryRow story={s} href={storyPath(s.id)} onClick={() => open(s.id)} />
                 </li>
               ))}
             </ul>
