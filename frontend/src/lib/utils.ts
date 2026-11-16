@@ -43,11 +43,34 @@ export function formatShortDate(dateStr?: string): string {
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
-export function formatLongDate(date = new Date()): string {
-  return date.toLocaleDateString(undefined, {
+export interface DateFormatOptions {
+  locale?: string;
+  /** IANA zone. Omit to use the reader's own (the browser's). */
+  timeZone?: string;
+}
+
+/** "Saturday, November 14" */
+export function formatLongDate(date = new Date(), { locale, timeZone }: DateFormatOptions = {}) {
+  return date.toLocaleDateString(locale, {
     weekday: "long",
     month: "long",
     day: "numeric",
+    timeZone,
+  });
+}
+
+/** "Saturday" */
+export function formatWeekday(date = new Date(), { locale, timeZone }: DateFormatOptions = {}) {
+  return date.toLocaleDateString(locale, { weekday: "long", timeZone });
+}
+
+/** "November 14, 2026" */
+export function formatFullDate(date = new Date(), { locale, timeZone }: DateFormatOptions = {}) {
+  return date.toLocaleDateString(locale, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone,
   });
 }
 

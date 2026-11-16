@@ -5,15 +5,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSavedStories, useTheme } from "@/lib/preferences";
 import { Logo } from "@/components/ui/logo";
+import { ClientDate } from "@/components/ui/client-date";
 import { NAV } from "./Sidebar";
-
-function weekday(date = new Date()) {
-  return date.toLocaleDateString(undefined, { weekday: "long" });
-}
-
-function shortDate(date = new Date()) {
-  return date.toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" });
-}
 
 /**
  * The broadsheet header on every page: the Samā4 nameplate between the edition and the
@@ -24,6 +17,9 @@ export function Masthead() {
   const pathname = usePathname() ?? "/";
   const { saved } = useSavedStories();
   const { isDark, setTheme } = useTheme();
+  // The edition's tagline and date head Today and its stories. Every other page keeps
+  // only the nameplate: the date means nothing on About or Sources.
+  const edition = pathname === "/" || pathname.startsWith("/article");
 
   return (
     <header className="flex-shrink-0 bg-background px-4 sm:px-6 xl:px-10">
@@ -52,6 +48,15 @@ export function Masthead() {
                 </li>
               );
             })}
+            <li>
+              <Link
+                href="/about"
+                aria-current={pathname === "/about" ? "page" : undefined}
+                className="label-ui block whitespace-nowrap px-1.5 py-1 text-text-secondary hover:text-foreground sm:px-2"
+              >
+                About
+              </Link>
+            </li>
             <li className="pl-1 sm:pl-2">
               <button
                 type="button"
@@ -59,7 +64,7 @@ export function Masthead() {
                 aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
                 className="btn-outline whitespace-nowrap"
               >
-                Theme
+                {isDark ? "Light theme" : "Dark theme"}
               </button>
             </li>
             <li>
@@ -76,11 +81,15 @@ export function Masthead() {
       </div>
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 py-3">
-        <p className="label-ui hidden leading-[1.6] text-text-secondary sm:block">
-          The daily edition
-          <br />
-          News, explained inline
-        </p>
+        {edition ? (
+          <p className="label-ui hidden leading-[1.6] text-text-secondary sm:block">
+            The daily edition
+            <br />
+            News, explained inline
+          </p>
+        ) : (
+          <span aria-hidden />
+        )}
         <Link
           href="/"
           aria-label="Samā4, go to Today"
@@ -92,14 +101,13 @@ export function Masthead() {
           </span>
           Samā4
         </Link>
-        <p
-          className="label-ui hidden text-right leading-[1.6] text-text-secondary sm:block"
-          suppressHydrationWarning
-        >
-          {weekday()}
-          <br />
-          {shortDate()}
-        </p>
+        {edition && (
+          <p className="label-ui hidden text-right leading-[1.6] text-text-secondary sm:block">
+            <ClientDate format="weekday" />
+            <br />
+            <ClientDate format="full" />
+          </p>
+        )}
       </div>
       <div className="rule-thick" aria-hidden />
     </header>

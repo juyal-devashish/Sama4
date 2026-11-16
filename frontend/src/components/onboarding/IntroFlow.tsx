@@ -91,7 +91,7 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
                   tabIndex={-1}
                   className="headline text-[40px] focus-visible:outline-none"
                 >
-                  News, understood.
+                  News, explained inline.
                 </h2>
                 <p className="mt-4 max-w-[44ch] text-[18px] leading-[1.45] text-text-secondary">
                   Stories assume you already know the people, places and ideas in them. Samā4

@@ -102,7 +102,7 @@ test("readers from before the tips never see them", async ({ page }) => {
 test("no tips over the intro; the first one waits until it ends", async ({ page }) => {
   await mockApi(page);
   await page.goto("/");
-  await expect(page.getByRole("dialog", { name: /news, understood/i })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: /news, explained inline/i })).toBeVisible();
   await expect(termTip(page)).toHaveCount(0);
   await page.keyboard.press("Escape");
   // On a desktop-width window the first story opens by itself, and the tip follows.
