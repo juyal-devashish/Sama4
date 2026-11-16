@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { TRUST_LINKS } from "./trustLinks";
 
 /** Scrolling page for the non-reader screens. */
 export function Page({
@@ -32,6 +34,22 @@ export function Page({
           {actions && <div className="flex-shrink-0">{actions}</div>}
         </header>
         {children}
+        <footer className="mt-16 border-t border-border pt-6">
+          <nav aria-label="About Samā4">
+            <ul className="flex flex-wrap gap-x-6 gap-y-2">
+              {TRUST_LINKS.map((l) => (
+                <li key={l.href}>
+                  <Link
+                    href={l.href}
+                    className="label-ui text-text-secondary underline-offset-4 hover:text-foreground hover:underline"
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </footer>
       </div>
     </div>
   );
