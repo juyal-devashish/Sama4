@@ -50,18 +50,18 @@ No-ops to close with a one-line note in the PR that covers their area: T005, T00
 
 | Task | Verdict | Batch | Note |
 |---|---|---|---|
-| T001 Clamp summaries | Real (backend) | 1 | CSS clamp already exists; fix `cap_words`; no regenerate (D8) |
-| T002 Hide fragment summaries | Real | 1 | Frontend guard only |
-| T003 Masthead date in reader's timezone | Real, different fix | 2 | Client-only date; no server fallback |
-| T004 Today heading date | Real | 2 | Same `ClientDate` |
+| T001 Clamp summaries | Real (backend) | 1 | CSS clamp already exists; fix `cap_words`; no regenerate (D8) **Shipped #85** |
+| T002 Hide fragment summaries | Real | 1 | Frontend guard only **Shipped #85** |
+| T003 Masthead date in reader's timezone | Real, different fix | 2 | Client-only date; no server fallback **Shipped #87** |
+| T004 Today heading date | Real | 2 | Same `ClientDate` **Shipped #87** |
 | T005 /privacy on shared layout | Done | — | Live page uses `Page` |
 | T006 Brand on /privacy | Done | — | |
-| T007 Trust links in footer | Misread → Real | 2 | No footer exists; D1: rail + `Page` footer |
-| T008 Remove second footer | Misread | 4 | Only the landing footer exists; drop its bare-domain link |
-| T009 Cards as anchors | Real | 3 | `StoryRow` is a `<button>` |
+| T007 Trust links in footer | Misread → Real | 2 | No footer exists; D1: rail + `Page` footer **Shipped #87** |
+| T008 Remove second footer | Misread | 4 | Only the landing footer exists; drop its bare-domain link **Shipped #89** |
+| T009 Cards as anchors | Real | 3 | `StoryRow` is a `<button>` **Shipped #88** |
 | T010 Skip link | Done | — | a11y.spec.ts: "the first Tab stop skips the navigation and lands in the content" |
 | T011 Name the logo link | Done | — | `aria-label="Samā4, go to Today"` |
-| T012 Waitlist success after success | Verify | 4 | Node is in the HTML with `role="status"` |
+| T012 Waitlist success after success | Verify | 4 | Node is in the HTML with `role="status"` **Shipped #89** |
 | T013 Error-report section on /privacy | Verify | 5 | The description mentions "reports you send" |
 | T014 Waitlist wording | Done | — | Privacy says "when sign-in opens" |
 | T015 Outlook out of nav | Decided: Beta tag | 2 | D3: stays in nav, tagged "Beta" |
@@ -69,48 +69,48 @@ No-ops to close with a one-line note in the PR that covers their area: T005, T00
 | T017 Search query in URL | Real | 6 | `useState` only |
 | T018 Panel focus | Done | — | flows.spec.ts: panel takes focus, traps Tab as a drawer, returns focus |
 | T019 Outlook states | Verify | 8 | |
-| T020 Server-render search form | Verify | 6 | |
-| T021 Label AI summaries | Real (Today) | 3 | Story page already labelled |
-| T022 Theme control name | Real | 2 | Visible "Theme" vs name "Switch to dark theme" |
-| T023 Demote demo headline | Real | 4 | |
-| T024 Section headings | Real | 4 | |
+| T020 Server-render search form | Verify | 6 | **Shipped #91** |
+| T021 Label AI summaries | Real (Today) | 3 | Story page already labelled **Shipped #88** |
+| T022 Theme control name | Real | 2 | Visible "Theme" vs name "Switch to dark theme" **Shipped #87** |
+| T023 Demote demo headline | Real | 4 | **Shipped #89** |
+| T024 Section headings | Real | 4 | **Shipped #89** |
 | T025 Title attributes | Decide (keep) | 2 | Tooltip on the icon-only rail; drop only at `xwide`, where the label shows |
 | T026 Publisher/time separator | Real | 3 | `<time>` exists; add separator and spoken label |
 | T027 No-referrer images | Done | — | |
-| T028 Disclose image requests | Real | 5 | |
+| T028 Disclose image requests | Real | 5 | **Shipped #90** |
 | T029 Reserve thumbnail space | Done | — | Fixed box with `object-cover` |
-| T030 Lazy-load | Done; add priority | 3 | `fetchpriority` on the first image |
+| T030 Lazy-load | Done; add priority | 3 | `fetchpriority` on the first image **Shipped #88** |
 | T031 Search claim | Misread | 6 | Filters exist; align Search's description |
-| T032 Follow-up claim | Real | 4 | |
+| T032 Follow-up claim | Real | 4 | **Shipped #89** |
 | T033 Letter placeholder | Done | — | `aria-hidden` |
-| T034 Demo resting state | Real | 4 | |
-| T035 Hide phone chrome | Real | 4 | |
-| T036 Duplicate date/eyebrow | Real | 2 | |
-| T037 Slim header on utility pages | Real | 2 | D4: nameplate only off-reader |
-| T038 One tagline | Real, elsewhere | 2 | D2: "News, explained inline"; change Splash/IntroFlow |
-| T039 Sentence case | Real | 4 | |
-| T040 One date format | Verify | 5 | |
-| T041 Full publisher names | Real (backend) | 1 | Names come from `sources.py` |
-| T042 Same closing links | Real | 5 | |
-| T043 Distinct feed labels | Real (backend) | 1 | |
-| T044 Link outlets, not XML | Real | 5 | |
-| T045 Merge duplicate cards | Real | 4 | |
-| T046 Contact section | Real | 5 | |
-| T047 SVG feature icons | Real | 4 | lucide icons already a dependency |
+| T034 Demo resting state | Real | 4 | **Shipped #89** |
+| T035 Hide phone chrome | Real | 4 | **Shipped #89** |
+| T036 Duplicate date/eyebrow | Real | 2 | **Shipped #87** |
+| T037 Slim header on utility pages | Real | 2 | D4: nameplate only off-reader **Shipped #87** |
+| T038 One tagline | Real, elsewhere | 2 | D2: "News, explained inline"; change Splash/IntroFlow **Shipped #87** |
+| T039 Sentence case | Real | 4 | **Shipped #89** |
+| T040 One date format | Verify | 5 | **Shipped #90** |
+| T041 Full publisher names | Real (backend) | 1 | Names come from `sources.py` **Shipped #85** |
+| T042 Same closing links | Real | 5 | **Shipped #90** |
+| T043 Distinct feed labels | Real (backend) | 1 | **Shipped #85** |
+| T044 Link outlets, not XML | Real | 5 | **Shipped #90** |
+| T045 Merge duplicate cards | Real | 4 | **Shipped #89** |
+| T046 Contact section | Real | 5 | **Shipped #90** |
+| T047 SVG feature icons | Real | 4 | lucide icons already a dependency **Shipped #89** |
 | T048 SVG logo | Real, blocked | 2 | D7: needs owl vector artwork |
 | T049 Words before numbers | Verify | 8 | e2e says the figures are explained |
 | T050 New since last visit | New | 9 | |
 | T051 Resized thumbnails | Deferred | — | D5 |
-| T052 Screenshot matrix | New | 0 | |
-| T053 Story/panel screenshots | New | 0 | |
-| T054 Keyboard walkthrough | New | 0 | |
-| T055 axe dark + 375 | Mostly done | 0 | Suite covers 6 routes × themes × 1440/375; add open panel at 375 dark |
-| T056 Layout-shift budget | New | 0 | |
-| T057 Relative times on client | Real | 2 | `suppressHydrationWarning` keeps server value |
-| T058 Edition build time | Real (UI only) | 3 | D6 revised: no API change; newest card `added_at` is the edition time |
-| T059 "Earlier" divider | Real | 3 | |
-| T060 Count for Load more | Real (UI only) | 3 | D6 revised: `pagination.total` already exists |
-| T061 Focus after Load more | Real | 3 | |
+| T052 Screenshot matrix | New | 0 | **Shipped #86** |
+| T053 Story/panel screenshots | New | 0 | **Shipped #86** |
+| T054 Keyboard walkthrough | New | 0 | **Shipped #86** |
+| T055 axe dark + 375 | Mostly done | 0 | Suite covers 6 routes × themes × 1440/375; add open panel at 375 dark **Shipped #86** |
+| T056 Layout-shift budget | New | 0 | **Shipped #86** |
+| T057 Relative times on client | Real | 2 | `suppressHydrationWarning` keeps server value **Shipped #87** |
+| T058 Edition build time | Real (UI only) | 3 | D6 revised: no API change; newest card `added_at` is the edition time **Shipped #88** |
+| T059 "Earlier" divider | Real | 3 | **Shipped #88** |
+| T060 Count for Load more | Real (UI only) | 3 | D6 revised: `pagination.total` already exists **Shipped #88** |
+| T061 Focus after Load more | Real | 3 | **Shipped #88** |
 | T062 Server-render chips | Verify | 3 | |
 | T063 Chip state | Done | — | `aria-pressed` |
 | T064 Topic in URL | Done | — | e2e covers it |
@@ -127,29 +127,43 @@ No-ops to close with a one-line note in the PR that covers their area: T005, T00
 | T075 Announce result count | Done | — | `aria-live` on the count |
 | T076 Email field attributes | Verify | 4 | e2e covers the label |
 | T077 Waitlist pending/error | Verify | 4 | e2e covers inline errors |
-| T078 Useful 404 | Real (partial) | 5 | Add a Search link |
+| T078 Useful 404 | Real (partial) | 5 | Add a Search link **Shipped #90** |
 | T079 Outlook definitions | Real | 8 | |
 | T080 AI projection badge | Done | — | e2e |
-| T081 Disclose before outlook | Verify | 8 | |
-| T082 Disclose at follow-up | Verify | 7 | |
+| T081 Disclose before outlook | Verify | 8 | **Shipped #95** |
+| T082 Disclose at follow-up | Verify | 7 | **Shipped #92** |
 | T083 Terms are buttons | Verify | 7 | `role="button"` span with `aria-pressed` |
 | T084 Not colour alone | Done | — | Bottom border on every term |
 | T085 Intro dismissible | Done; verify focus | 7 | Esc skips the intro (e2e) |
 | T086 Panel loading/error | Mostly done | 7 | Retry exists (e2e) |
-| T087 Matched Wikipedia article | Real | 7 | May need an API field |
+| T087 Matched Wikipedia article | Real | 7 | May need an API field **Shipped #92** |
 | T088 Fallback badge | Done | — | "Wikipedia's own text, and says so" |
 | T089 "Version used" link | Done | — | sr-only text names it |
-| T090 Clear device data | New | 9 | |
+| T090 Clear device data | New | 9 | **Shipped #94** |
 | T091 Report confirmation | Verify | 7 | `ReportError` has a status line |
 | T092 Follow-up live region | Done | — | e2e |
-| T093 Source label legend | Verify | 7 | |
+| T093 Source label legend | Verify | 7 | **Shipped #92** |
 | T094 Bottom sheet on mobile | Verify | 7 | |
 | T095 Save state and undo | Partial | 9 | `aria-pressed` and label done; add undo toast |
-| T096 Copy link | Partial | 3 | Status done; add fallback |
+| T096 Copy link | Partial | 3 | Status done; add fallback **Shipped #88** |
 | T097 Read original names publisher | Done | — | |
-| T098 Saved device note | Partial | 9 | Empty state exists |
-| T099 Export/import saved | New | 9 | |
+| T098 Saved device note | Partial | 9 | Empty state exists **Shipped #94** |
+| T099 Export/import saved | New | 9 | **Shipped #94** |
 | T100 System theme | Done | — | "Match system" + pre-paint script |
+
+## Outcome (Nov 15, 2026)
+
+Shipped in ten PRs, all merged with merge commits: #85 (summaries, outlet names, feed labels), #86 (test harness), #87 (dates, trust links, masthead), #88 (story cards), #89 (early-access page), #90 (info pages, share tags), #91 (Search HTML), #92 (explanation panel), #95 (Outlook), #94 (Saved and Settings), plus #93 (a date-test race found when #91 merged before its e2e job had finished). The backend part of #85 is deployed; **#90 added `site` to `/api/v1/sources` and is not yet deployed**: the Sources page works without it (outlet names are plain text until then).
+
+**Open, not done:**
+
+- **T048 SVG logo**: needs vector artwork of the owl (D7).
+- **T051 resized thumbnails**: deferred (D5).
+- **T073 top back-link on early access**: kept. An e2e test asserts it, and on phones it is the page's only way back.
+- **T025 title attributes on the rail**: kept; they are the tooltips for icon-only links.
+- **T015 Outlook Beta tag, T072 rename "Early access"**: moot. Main took Outlook out of the nav (3c0cffc); "Early access" keeps its name.
+- **T062 server-rendered topic chips, T071 one set of landmarks, T068 distinct nav labels**: not checked or changed. Chips are hidden while sections are off (`SECTIONS_ENABLED = false`), the two navs are `display:none` at the other breakpoint.
+- The 78 screenshots from #86 (CI artifact `screens`) have not been reviewed beyond a few. They are where new layout and contrast findings should come from.
 
 ## Not covered by this plan
 
