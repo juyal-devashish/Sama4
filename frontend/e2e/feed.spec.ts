@@ -14,10 +14,12 @@ test("every story card is a real link to the story", async ({ page }) => {
   expect(hrefs.length).toBeGreaterThan(0);
   for (const h of hrefs) expect(h).toMatch(/^\/article\/.+/);
 
-  // A plain click still opens it in place; the list stays mounted.
+  // A plain click still opens it in place, without a page load.
+  await page.evaluate(() => ((window as unknown as { __kept: boolean }).__kept = true));
   await cards.nth(1).click();
   await expect(page).toHaveURL(hrefs[1]!);
-  await expect(page.locator('section[aria-label="Stories"]')).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { __kept?: boolean }).__kept)).toBe(true);
 });
 
 test("the feed says it is AI-written, how many stories, and when it was updated", async ({
