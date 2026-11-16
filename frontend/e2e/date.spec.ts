@@ -18,7 +18,11 @@ test.describe("the date follows the reader", () => {
     await page.goto("/");
     await expect(page.locator("header").first()).toContainText("Saturday");
     await expect(page.locator("header").first()).toContainText("November 14, 2026");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Saturday, November 14");
+    // On a wide window Today opens the first story once the feed loads, which turns this
+    // heading from an h1 into an h2: find it by place, not by level.
+    await expect(page.locator('section[aria-label="Stories"] header')).toContainText(
+      "Saturday, November 14",
+    );
     await expect(page.locator("body")).not.toContainText("Sunday");
   });
 
