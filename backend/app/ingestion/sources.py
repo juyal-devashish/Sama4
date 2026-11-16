@@ -14,7 +14,8 @@ never fetched, and the reader shows the feed's own text and image. A positive nu
 lets the pipeline read the page and keep at most that many words of its opening.
 
 `name` is the outlet's full name as readers see it on cards and the Sources page;
-`label` says which of its feeds this is ("Markets", "Explained").
+`site` is the outlet's home page, linked from the Sources page; `label` says which of its
+feeds this is ("Markets", "Explained").
 """
 
 
@@ -27,6 +28,7 @@ NEWS_SOURCES = [
     # ---- United States ----
     {
         "name": "PBS NewsHour",
+        "site": "https://www.pbs.org/newshour",
         "url": "https://www.pbs.org/newshour/feeds/rss/headlines",
         "label": "Headlines",
         "category": "general",
@@ -35,6 +37,7 @@ NEWS_SOURCES = [
     },
     {
         "name": "The New York Times",
+        "site": "https://www.nytimes.com",
         "url": "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml",
         "label": "Home page",
         "category": "general",
@@ -43,6 +46,7 @@ NEWS_SOURCES = [
     },
     {
         "name": "The New York Times",
+        "site": "https://www.nytimes.com",
         "url": "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
         "label": "U.S.",
         "category": "general",
@@ -52,6 +56,7 @@ NEWS_SOURCES = [
     # ---- India ----
     {
         "name": "The Hindu",
+        "site": "https://www.thehindu.com",
         "url": "https://www.thehindu.com/news/national/feeder/default.rss",
         "label": "National",
         "category": "world",
@@ -60,6 +65,7 @@ NEWS_SOURCES = [
     },
     {
         "name": "Indian Express",
+        "site": "https://indianexpress.com",
         "url": "https://indianexpress.com/section/india/feed/",
         "label": "India",
         "category": "world",
@@ -68,6 +74,7 @@ NEWS_SOURCES = [
     },
     {
         "name": "Indian Express",
+        "site": "https://indianexpress.com",
         "url": "https://indianexpress.com/section/explained/feed/",
         "label": "Explained",
         "category": "world",
@@ -77,6 +84,7 @@ NEWS_SOURCES = [
     # ---- World ----
     {
         "name": "The New York Times",
+        "site": "https://www.nytimes.com",
         "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
         "label": "World",
         "category": "world",
@@ -85,6 +93,7 @@ NEWS_SOURCES = [
     },
     {
         "name": "BBC",
+        "site": "https://www.bbc.com/news",
         "url": "https://feeds.bbci.co.uk/news/rss.xml",
         "label": "Top stories",
         "category": "world",
@@ -93,6 +102,7 @@ NEWS_SOURCES = [
     },
     {
         "name": "Al Jazeera",
+        "site": "https://www.aljazeera.com",
         "url": "https://www.aljazeera.com/xml/rss/all.xml",
         "label": "All news",
         "category": "world",
@@ -101,6 +111,7 @@ NEWS_SOURCES = [
     },
     {
         "name": "The Economist",
+        "site": "https://www.economist.com",
         "url": "https://www.economist.com/latest/rss.xml",
         "label": "Latest",
         "category": "world",
@@ -110,6 +121,7 @@ NEWS_SOURCES = [
     # ---- Business and markets ----
     {
         "name": "Bloomberg",
+        "site": "https://www.bloomberg.com",
         "url": "https://feeds.bloomberg.com/markets/news.rss",
         "label": "Markets",
         "category": "business",
@@ -118,6 +130,7 @@ NEWS_SOURCES = [
     },
     {
         "name": "Financial Times",
+        "site": "https://www.ft.com",
         "url": "https://www.ft.com/rss/home",
         "label": "Home page",
         "category": "business",
@@ -127,6 +140,7 @@ NEWS_SOURCES = [
     # ---- Tech ----
     {
         "name": "Bloomberg",
+        "site": "https://www.bloomberg.com",
         "url": "https://feeds.bloomberg.com/technology/news.rss",
         "label": "Technology",
         "category": "tech",
@@ -135,6 +149,7 @@ NEWS_SOURCES = [
     },
     {
         "name": "MIT Technology Review",
+        "site": "https://www.technologyreview.com",
         "url": "https://www.technologyreview.com/feed/",
         "label": "All stories",
         "category": "tech",
