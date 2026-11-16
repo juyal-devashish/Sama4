@@ -99,6 +99,10 @@ test("a running outlook shows its steps and can be cancelled", async ({ page }) 
 
   await expect(page.getByText(/You cancelled the outlook/)).toBeVisible();
   await expect(page.getByRole("button", { name: /Run outlook/ })).toBeEnabled();
+  // Next to the control: what happens to a finished outlook.
+  await expect(
+    page.getByText(/saved and shown to other readers on the Outlook page/),
+  ).toBeVisible();
 });
 
 test("an outlook declined for a private individual says so and offers no retry", async ({
