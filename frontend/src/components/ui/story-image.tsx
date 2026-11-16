@@ -13,12 +13,15 @@ export function StoryImage({
   source,
   className,
   loading,
+  priority,
 }: {
   src: string | null | undefined;
   /** Outlet name, shown on the placeholder. */
   source: string;
   className?: string;
   loading?: "lazy" | "eager";
+  /** The largest thing on screen at load: fetch it before the rest. */
+  priority?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
   // A new story reuses this element: forget the previous story's failure.
@@ -35,6 +38,7 @@ export function StoryImage({
         src={src}
         alt=""
         loading={loading}
+        fetchPriority={priority ? "high" : undefined}
         referrerPolicy="no-referrer"
         onError={() => setFailed(true)}
         className={cn("flex-shrink-0 bg-background-secondary object-cover", className)}
