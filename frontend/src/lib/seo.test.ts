@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SHARE_IMAGE, jsonLd, storyMetadata, storyStructuredData } from "./seo";
+import {
+  DEFAULT_SHARE_IMAGE,
+  jsonLd,
+  pageMetadata,
+  storyMetadata,
+  storyStructuredData,
+} from "./seo";
 import type { ArticleDetail } from "@/types";
 
 const story: ArticleDetail = {
@@ -59,5 +65,18 @@ describe("jsonLd", () => {
     const out = jsonLd({ headline: "</script><script>alert(1)</script>" });
     expect(out).not.toContain("<");
     expect(JSON.parse(out)).toEqual({ headline: "</script><script>alert(1)</script>" });
+  });
+});
+
+describe("pageMetadata", () => {
+  it("gives the page its own share title and description, not the home page's", () => {
+    const m = pageMetadata({ title: "About", description: "Who makes it.", path: "/about" });
+    expect(m.title).toBe("About");
+    expect(m.alternates?.canonical).toBe("/about");
+    expect(m.openGraph?.title).toBe("About · Samā4");
+    expect(m.openGraph?.description).toBe("Who makes it.");
+    expect(m.openGraph?.url).toBe("/about");
+    expect(m.twitter?.title).toBe("About · Samā4");
+    expect(m.twitter?.description).toBe("Who makes it.");
   });
 });

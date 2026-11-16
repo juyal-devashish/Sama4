@@ -79,3 +79,17 @@ async def test_ensure_renames_an_outlet_whose_name_changed(db_session):
         await source_repo.ensure(db, [{**cfg, "name": "The New York Times"}])
         row = await source_repo.get_by_feed_url(db, cfg["url"])
     assert row is not None and row.name == "The New York Times"
+
+
+def test_every_outlet_has_one_home_page():
+    sites: dict[str, set[str]] = {}
+    for s in NEWS_SOURCES:
+        sites.setdefault(s["name"], set()).add(s.get("site", ""))
+    for name, found in sites.items():
+        assert len(found) == 1 and next(iter(found)).startswith("https://"), name
+
+
+async def test_the_outlet_home_page_is_in_the_response(client):
+    body = (await client.get(URL)).json()
+    sites = {o["name"]: o["site"] for o in body["outlets"]}
+    assert sites["The New York Times"] == "https://www.nytimes.com"

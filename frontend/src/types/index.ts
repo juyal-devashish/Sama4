@@ -284,6 +284,8 @@ export interface SourceFeed {
 
 export interface SourceOutlet {
   name: string;
+  /** The outlet's home page; "" from older backends. */
+  site: string;
   feeds: SourceFeed[];
 }
 

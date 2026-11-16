@@ -10,6 +10,7 @@ class SourceFeed(BaseModel):
 
 class SourceOutlet(BaseModel):
     name: str
+    site: str = ""  # the outlet's home page
     feeds: list[SourceFeed]
 
 
