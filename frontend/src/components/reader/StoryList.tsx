@@ -1,12 +1,17 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useRef } from "react";
+import Link from "next/link";
 import { Newspaper } from "lucide-react";
 import type { ArticleCard } from "@/types";
 import { StoryImage } from "@/components/ui/story-image";
-import { cn, formatLongDate } from "@/lib/utils";
+import { cn, displaySummary } from "@/lib/utils";
+import { ClientDate } from "@/components/ui/client-date";
 import { PublishedTime } from "@/components/ui/published-time";
 import { TOPIC_LABELS } from "@/lib/preferences";
+import { useNewSince } from "@/hooks/useNewSince";
+import { firstEarlierIndex, newestEditionAt } from "@/lib/edition";
+import { isNewSince } from "@/lib/lastVisit";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 
 export function TopicChips({
@@ -51,17 +56,35 @@ export function TopicChips({
 }
 
 export const StoryRow = forwardRef<
-  HTMLButtonElement,
-  { story: ArticleCard; selected?: boolean; onClick: () => void; dense?: boolean }
->(function StoryRow({ story, selected, onClick, dense }, ref) {
+  HTMLAnchorElement,
+  {
+    story: ArticleCard;
+    /** The story's own address: opens in a new tab, copies, and works without script. */
+    href: string;
+    selected?: boolean;
+    onClick: () => void;
+    dense?: boolean;
+    /** Stored since the reader's last visit: shows a "New" marker. */
+    isNew?: boolean;
+    /** The first card on screen: its image loads at once instead of lazily. */
+    priority?: boolean;
+  }
+>(function StoryRow({ story, href, selected, onClick, dense, isNew, priority }, ref) {
+  const summary = displaySummary(story.summary);
   return (
-    <button
+    <a
       ref={ref}
-      type="button"
-      onClick={onClick}
+      href={href}
+      onClick={(e) => {
+        // Plain clicks select the story in place; modified ones (new tab, window) are the browser's.
+        if (e.defaultPrevented || e.button !== 0) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        onClick();
+      }}
       aria-current={selected ? "true" : undefined}
       className={cn(
-        "group relative flex w-full gap-4 px-4 text-left transition-colors",
+        "group relative flex w-full gap-4 px-4 text-left no-underline transition-colors",
         dense ? "py-3.5" : "py-5",
         selected ? "bg-background-secondary/70" : "hover:bg-background-secondary/40",
       )}
@@ -70,6 +93,11 @@ export const StoryRow = forwardRef<
       <div className="min-w-0 flex-1">
         <div className="mb-1.5 flex items-baseline gap-2">
           <span className="kicker truncate">{story.source.name}</span>
+          {isNew && (
+            <span className="label-ui flex-shrink-0 font-bold text-accent-secondary">
+              New<span className="sr-only"> since your last visit</span>
+            </span>
+          )}
           <PublishedTime
             at={story.published_at}
             className="label-ui flex-shrink-0 text-text-tertiary"
@@ -83,19 +111,20 @@ export const StoryRow = forwardRef<
         >
           {story.title}
         </h2>
-        {!dense && story.summary && (
+        {!dense && summary && (
           <p className="mt-2 line-clamp-2 font-editorial text-[14px] leading-[1.4] text-text-secondary">
-            {story.summary}
+            {summary}
           </p>
         )}
       </div>
       <StoryImage
         src={story.image_url}
         source={story.source.name}
-        loading="lazy"
+        loading={priority ? "eager" : "lazy"}
+        priority={priority}
         className={dense ? "h-14 w-14 text-[10px]" : "h-[72px] w-[72px] text-[12px]"}
       />
-    </button>
+    </a>
   );
 });
 
@@ -117,6 +146,22 @@ export function StoryListSkeleton({ rows = 6 }: { rows?: number }) {
   );
 }
 
+function DateHeading({
+  as: Tag,
+  className,
+  children,
+}: {
+  as: "h1" | "h2";
+  className: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Tag className={className} suppressHydrationWarning>
+      {children}
+    </Tag>
+  );
+}
+
 interface StoryListProps {
   stories: ArticleCard[];
   isLoading: boolean;
@@ -124,6 +169,10 @@ interface StoryListProps {
   onRetry: () => void;
   selectedId?: string;
   onSelect: (id: string) => void;
+  /** Address of a story in the current topic, for each card's link. */
+  hrefFor: (id: string) => string;
+  /** How many stories the feed holds in all, for "Showing 10 of 42". */
+  total?: number;
   topics: string[];
   topic: string;
   onTopicChange: (t: string) => void;
@@ -140,6 +189,8 @@ export function StoryList({
   onRetry,
   selectedId,
   onSelect,
+  hrefFor,
+  total,
   topics,
   topic,
   onTopicChange,
@@ -148,6 +199,25 @@ export function StoryList({
   onLoadMore,
   className,
 }: StoryListProps) {
+  const since = useNewSince();
+  const listRef = useRef<HTMLUListElement>(null);
+  const earlierAt = firstEarlierIndex(stories);
+  const edition = newestEditionAt(stories);
+
+  // After "Load more", move focus to the first new story so keyboard and screen-reader
+  // readers continue where the new stories start instead of at the top.
+  const shown = useRef(0);
+  const loadedMore = useRef(false);
+  useEffect(() => {
+    if (loadingMore) loadedMore.current = true;
+  }, [loadingMore]);
+  useEffect(() => {
+    if (loadedMore.current && !loadingMore && stories.length > shown.current && shown.current > 0) {
+      listRef.current?.querySelectorAll<HTMLAnchorElement>("a")[shown.current]?.focus();
+      loadedMore.current = false;
+    }
+    shown.current = stories.length;
+  }, [stories.length, loadingMore]);
   return (
     <section
       aria-label="Stories"
@@ -157,17 +227,41 @@ export function StoryList({
       )}
     >
       <header className="mx-4 border-b border-border pb-4 pt-5">
-        <p className="kicker">The daily edition</p>
-        <h1
-          className="mt-1 font-editorial text-[20px] leading-tight tracking-[-0.01em]"
-          suppressHydrationWarning
+        {/* The date is the page's heading until a story opens; then the story's title is. */}
+        <DateHeading
+          as={selectedId ? "h2" : "h1"}
+          className="font-editorial text-[20px] leading-tight tracking-[-0.01em]"
         >
-          {formatLongDate()}
-        </h1>
+          <ClientDate format="long" />
+        </DateHeading>
         {topics.length > 0 && (
           <div className="mt-4">
             <TopicChips topics={topics} active={topic} onChange={onTopicChange} />
           </div>
+        )}
+        <p className="mt-3 font-ui text-[11.5px] leading-snug text-text-tertiary">
+          Summaries are written by Samā4&rsquo;s AI from each outlet&rsquo;s own text.{" "}
+          <Link href="/how-explanations-work" className="underline underline-offset-2">
+            How it works
+          </Link>
+        </p>
+        {stories.length > 0 && (
+          <p
+            role="status"
+            className="label-ui mt-2 flex flex-wrap gap-x-2 text-text-tertiary"
+            suppressHydrationWarning
+          >
+            <span>
+              {total && total > stories.length
+                ? `Showing ${stories.length} of ${total} stories`
+                : `${stories.length} ${stories.length === 1 ? "story" : "stories"}`}
+            </span>
+            {edition !== null && (
+              <span>
+                · Updated <PublishedTime at={new Date(edition).toISOString()} />
+              </span>
+            )}
+          </p>
         )}
       </header>
 
@@ -182,13 +276,19 @@ export function StoryList({
           </EmptyState>
         ) : (
           <>
-            <ul className="divide-y divide-divider">
-              {stories.map((s) => (
+            <ul ref={listRef} className="divide-y divide-divider">
+              {stories.map((s, i) => (
                 <li key={s.id}>
+                  {i === earlierAt && (
+                    <p className="kicker border-t border-border px-4 pb-1 pt-4">Earlier editions</p>
+                  )}
                   <StoryRow
                     story={s}
+                    href={hrefFor(s.id)}
                     selected={s.id === selectedId}
                     onClick={() => onSelect(s.id)}
+                    isNew={isNewSince(s, since)}
+                    priority={i === 0}
                   />
                 </li>
               ))}

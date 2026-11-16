@@ -85,14 +85,14 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
           >
             {step === "welcome" ? (
               <>
-                <h1
+                <h2
                   id="intro-title"
                   ref={focusOnMount}
                   tabIndex={-1}
                   className="headline text-[40px] focus-visible:outline-none"
                 >
-                  News, understood.
-                </h1>
+                  News, explained inline.
+                </h2>
                 <p className="mt-4 max-w-[44ch] text-[18px] leading-[1.45] text-text-secondary">
                   Stories assume you already know the people, places and ideas in them. Samā4
                   explains them as you read.
@@ -103,14 +103,14 @@ export function IntroFlow({ onFinish }: { onFinish: (topics: string[] | null) =>
               </>
             ) : (
               <>
-                <h1
+                <h2
                   id="intro-title"
                   ref={focusOnMount}
                   tabIndex={-1}
                   className="headline text-[40px] focus-visible:outline-none"
                 >
                   What do you want to follow?
-                </h1>
+                </h2>
                 <p className="mt-4 max-w-[44ch] text-[18px] leading-[1.45] text-text-secondary">
                   Pick a few, or keep them all. You can change this any time in Settings.
                 </p>

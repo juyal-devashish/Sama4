@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BackToStories } from "@/components/shell/BackToStories";
 import { Page } from "@/components/shell/Page";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "How explanations are made",
-  alternates: { canonical: "/how-explanations-work" },
+  path: "/how-explanations-work",
   description:
     "How Samā4 picks the terms it highlights, what Claude is given to explain them, how sources and dates are shown, and how to report a mistake.",
-};
+});
 
 const LINK = "text-accent-secondary underline underline-offset-2";
 
@@ -104,11 +106,7 @@ export default function HowExplanationsWorkPage() {
             </div>
           </section>
         ))}
-        <p>
-          <Link href="/" className="label-ui link-ui font-bold text-accent-secondary">
-            Back to today&apos;s stories
-          </Link>
-        </p>
+        <BackToStories />
       </div>
     </Page>
   );

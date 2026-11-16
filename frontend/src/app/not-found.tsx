@@ -14,9 +14,14 @@ export default function NotFound() {
       title="Page not found"
       description="This page or story doesn't exist. Stories can be removed when they leave the feed."
     >
-      <Link href="/" className="btn-outline inline-flex">
-        Back to today&apos;s stories
-      </Link>
+      <div className="flex flex-wrap gap-3">
+        <Link href="/" className="btn-outline inline-flex">
+          Back to today&apos;s stories
+        </Link>
+        <Link href="/search" className="btn-outline inline-flex">
+          Search stories
+        </Link>
+      </div>
     </Page>
   );
 }

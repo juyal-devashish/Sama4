@@ -4,6 +4,7 @@ import {
   bodySpans,
   cleanSpans,
   findMentions,
+  limitPerParagraph,
   paragraphRanges,
   segmentRange,
   uniqueEntities,
@@ -134,5 +135,50 @@ describe("bodySpans", () => {
     const content = "A short teaser about chemistry.";
     const spans = bodySpans(content, [ent("Hideki Shirakawa", 0), ent("chemistry", 21)]);
     expect(spans.map((s) => s.entity.text)).toEqual(["chemistry"]);
+  });
+});
+
+describe("limitPerParagraph", () => {
+  const content = "Ada met Babbage and Byron in London.\n\nAda wrote to Ada about Ada.";
+  const spans = (es: EntityInArticle[]) => bodySpans(content, es);
+
+  it("keeps the most important terms in a paragraph, in reading order", () => {
+    const es = [
+      ent("Ada", 0, "low", "ada"),
+      ent("Babbage", 8, "high", "babbage"),
+      ent("Byron", 20, "medium", "byron"),
+      ent("London", 29, "high", "london"),
+    ];
+    const kept = limitPerParagraph(content, spans(es), 3).map((s) => s.entity.text);
+    // Low-priority Ada is the one dropped; the rest stay in the order they appear.
+    expect(kept).toEqual(["Babbage", "Byron", "London"]);
+  });
+
+  it("highlights a term once per paragraph", () => {
+    const second = content.indexOf("Ada wrote");
+    const es = [
+      ent("Ada", second, "high", "ada"),
+      ent("Ada", second + 13, "high", "ada"),
+      ent("Ada", second + 23, "high", "ada"),
+    ];
+    expect(limitPerParagraph(content, spans(es), 3).map((s) => s.start)).toEqual([second]);
+  });
+
+  it("counts each paragraph separately", () => {
+    const second = content.indexOf("Ada wrote");
+    const es = [ent("Babbage", 8, "high", "babbage"), ent("Ada", second, "high", "ada")];
+    expect(limitPerParagraph(content, spans(es), 1)).toHaveLength(2);
+  });
+
+  it("defaults to a small number per paragraph", () => {
+    const text = "One Two Three Four Five";
+    const es = ["One", "Two", "Three", "Four", "Five"].map((w) =>
+      ent(w, text.indexOf(w), "medium", w),
+    );
+    expect(limitPerParagraph(text, bodySpans(text, es)).map((s) => s.entity.text)).toEqual([
+      "One",
+      "Two",
+      "Three",
+    ]);
   });
 });

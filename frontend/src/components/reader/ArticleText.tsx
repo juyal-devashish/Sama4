@@ -3,6 +3,7 @@
 import { Fragment } from "react";
 import {
   bodySpans,
+  limitPerParagraph,
   findMentions,
   paragraphRanges,
   segmentRange,
@@ -29,11 +30,11 @@ function Term({
   onSelect: (e: EntityInArticle) => void;
 }) {
   return (
-    <span
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
       className="term"
       data-priority={entity.priority}
+      data-entity-id={entity.id}
       aria-pressed={active}
       title={`Explain ${entity.text}`}
       style={{ ["--term-color" as string]: entityColor(entity.type) }}
@@ -41,15 +42,9 @@ function Term({
         ev.stopPropagation();
         onSelect(entity);
       }}
-      onKeyDown={(ev) => {
-        if (ev.key === "Enter" || ev.key === " ") {
-          ev.preventDefault();
-          onSelect(entity);
-        }
-      }}
     >
       {text}
-    </span>
+    </button>
   );
 }
 
@@ -88,7 +83,7 @@ export function ArticleBody({
   /** Open the first paragraph with a drop cap, like the start of a printed story. */
   dropCap?: boolean;
 }) {
-  const spans = bodySpans(content, entities);
+  const spans = limitPerParagraph(content, bodySpans(content, entities));
 
   const paragraphs = paragraphRanges(content);
 

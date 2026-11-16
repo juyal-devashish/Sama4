@@ -126,6 +126,24 @@
 @layer components {
   /* A tappable term inside article text. Its underline colour comes from --term-color. */
   .term {
+    /* A real <button> made to read as part of the sentence. Browsers lay a button out as
+       one unbreakable box, so a name stays together on a line (it never splits mid-name);
+       max-width lets a name longer than the line wrap inside the box instead of
+       overflowing it. Text can still be selected through it. */
+    display: inline-block;
+    max-width: 100%;
+    vertical-align: baseline;
+    appearance: none;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: inherit;
+    text-transform: inherit;
+    user-select: text;
+    -webkit-user-select: text;
     background: var(--entity-highlight);
     border-bottom: 1.5px solid var(--term-color, var(--accent-secondary));
     padding: 0 1px;

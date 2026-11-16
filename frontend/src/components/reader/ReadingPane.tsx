@@ -12,15 +12,20 @@ import {
   Library,
   Link2,
   ListTree,
+  Search,
+  Share2,
 } from "lucide-react";
 import { useArticle } from "@/hooks/useArticle";
+import { usePanelFocus } from "@/hooks/usePanelFocus";
 import { useOnboarding, useSavedStories, TOPIC_LABELS } from "@/lib/preferences";
 import { eligibleHint } from "@/lib/onboarding";
-import { cn } from "@/lib/utils";
+import { cn, displaySummary } from "@/lib/utils";
 import { PublishedTime } from "@/components/ui/published-time";
 import { ErrorState } from "@/components/ui/states";
 import { StoryImage } from "@/components/ui/story-image";
 import { ContextPanel, KeyTerms } from "@/components/context/ContextPanel";
+import { SelectionPanel } from "@/components/context/SelectionPanel";
+import { useTextSelection } from "@/hooks/useTextSelection";
 import { OutlookSection } from "@/components/outlook/OutlookSection";
 import { TermHint } from "@/components/onboarding/TermHint";
 import { useDesktop, useIntroShowing } from "@/components/onboarding/useHintContext";
@@ -40,12 +45,33 @@ interface Props {
 export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }: Props) {
   const { data: article, isLoading, isError, refetch } = useArticle(articleId, initialArticle);
   const [term, setTerm] = useState<SelectedTerm | null>(null);
+  // Text the reader selected themselves, shown in the margin instead of a term.
+  const [selection, setSelection] = useState<string | null>(null);
+  const pickTerm = useCallback((t: SelectedTerm | null) => {
+    setSelection(null);
+    setTerm(t);
+  }, []);
+  const pending = useTextSelection();
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [progress, setProgress] = useState(0);
   // Below the wide breakpoint the margin is a drawer: it opens for a selected term, or
   // on the term list itself (the toolbar's Terms button), so the list stays reachable.
   const [listOpen, setListOpen] = useState(false);
-  const drawerOpen = !!term || listOpen;
+  const drawerOpen = !!term || !!selection || listOpen;
+  const marginRef = useRef<HTMLElement>(null);
+  // Spoken by screen readers when an explanation starts loading and when it is ready.
+  const [announcement, setAnnouncement] = useState("");
+  useEffect(() => {
+    if (!term && !selection) setAnnouncement("");
+  }, [term, selection]);
+  const lastTermId = useRef<string | null>(null);
+  if (term) lastTermId.current = term.id;
+  usePanelFocus(
+    marginRef,
+    drawerOpen,
+    term?.id ?? (selection ? `selection:${selection}` : "terms"),
+    lastTermId.current ? `[data-entity-id="${lastTermId.current}"]` : null,
+  );
 
   // First-run hints: at most one at a time (rules in lib/onboarding.ts).
   const { state: onboarding, dispatch } = useOnboarding();
@@ -75,12 +101,14 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
   }, [term, dispatch]);
   const closeDrawer = () => {
     setTerm(null);
+    setSelection(null);
     setListOpen(false);
   };
 
   // New story: clear the margin and go back to the top.
   useEffect(() => {
     setTerm(null);
+    setSelection(null);
     setListOpen(false);
     setProgress(0);
     scrollRef.current?.scrollTo({ top: 0 });
@@ -90,11 +118,12 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       if (term) setTerm(null);
+      else if (selection) setSelection(null);
       else if (listOpen) setListOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [term, listOpen]);
+  }, [term, selection, listOpen]);
 
   const onScroll = () => {
     const el = scrollRef.current;
@@ -105,6 +134,9 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
 
   return (
     <div className="flex min-w-0 flex-1">
+      <p id="explanation-status" role="status" aria-live="polite" className="sr-only">
+        {announcement}
+      </p>
       <div
         ref={setScroller}
         onScroll={onScroll}
@@ -124,7 +156,7 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
           <Story
             article={article}
             term={term}
-            onSelectTerm={setTerm}
+            onSelectTerm={pickTerm}
             onBack={onBack}
             scrolled={progress > 0}
             listOpen={listOpen}
@@ -144,6 +176,30 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
         )}
       </div>
 
+      {/* Any text selected in the story can be explained, not only the highlighted terms. */}
+      {pending && pending.text !== selection && (
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()} // keep the selection while pressing
+          onClick={() => {
+            setTerm(null);
+            setSelection(pending.text);
+            window.getSelection()?.removeAllRanges();
+          }}
+          style={{
+            top: Math.min(pending.rect.bottom + 8, window.innerHeight - 48),
+            left: Math.max(
+              8,
+              Math.min(pending.rect.left + pending.rect.width / 2 - 56, window.innerWidth - 128),
+            ),
+          }}
+          className="label-ui fixed z-50 flex h-9 items-center gap-1.5 bg-foreground px-3 text-background shadow-[var(--shadow-panel)]"
+        >
+          <Search size={13} aria-hidden /> Explain
+          <span className="sr-only"> the selected text</span>
+        </button>
+      )}
+
       {/* Context margin. Inline column on wide windows; a drawer over the story otherwise. */}
       {article && (
         <>
@@ -162,10 +218,18 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
             )}
           </AnimatePresence>
           <aside
+            ref={marginRef}
+            tabIndex={-1}
             id="context-margin"
-            aria-label={term ? `About ${term.name}` : "Terms in this story"}
+            aria-label={
+              term
+                ? `About ${term.name}`
+                : selection
+                  ? `About “${selection}”`
+                  : "Terms in this story"
+            }
             className={cn(
-              "z-40 w-[380px] flex-shrink-0 border-l bg-background",
+              "z-40 w-[380px] flex-shrink-0 border-l bg-background focus:outline-none",
               "fixed inset-y-0 right-0 shadow-[var(--shadow-panel)] transition-transform duration-200 ease-out",
               "wide:static wide:translate-x-0 wide:shadow-none",
               drawerOpen ? "translate-x-0" : "invisible translate-x-full wide:visible",
@@ -173,7 +237,7 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
           >
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
-                key={term?.id ?? "terms"}
+                key={term?.id ?? (selection ? `selection:${selection}` : "terms")}
                 className="h-full"
                 initial={{ opacity: 0, x: 12 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -184,9 +248,10 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
                   <ContextPanel
                     term={term}
                     articleId={article.id}
-                    onSelectTerm={setTerm}
+                    onSelectTerm={pickTerm}
                     onOpenArticle={onOpenArticle}
                     onClose={() => setTerm(null)}
+                    onAnnounce={setAnnouncement}
                     followUpTip={
                       hint === "ask-follow-up"
                         ? {
@@ -197,10 +262,17 @@ export function ReadingPane({ articleId, initialArticle, onBack, onOpenArticle }
                         : undefined
                     }
                   />
+                ) : selection ? (
+                  <SelectionPanel
+                    text={selection}
+                    articleId={article.id}
+                    onClose={() => setSelection(null)}
+                    onAnnounce={setAnnouncement}
+                  />
                 ) : (
                   <KeyTerms
                     article={article}
-                    onSelect={setTerm}
+                    onSelect={pickTerm}
                     onClose={listOpen ? () => setListOpen(false) : undefined}
                   />
                 )}
@@ -248,19 +320,38 @@ function Story({
       source: article.source.name,
     });
 
-  const copyLink = async () => {
+  // The system share sheet (phones, Safari, some desktop browsers); read after mount.
+  const [canShare, setCanShare] = useState(false);
+  useEffect(() => setCanShare(typeof navigator.share === "function"), []);
+  const share = async () => {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}${storyPath(article.id)}`);
+      await navigator.share({
+        title: article.title,
+        text: article.summary ?? undefined,
+        url: `${window.location.origin}${storyPath(article.id)}`,
+      });
+    } catch {
+      /* dismissed, or sharing isn't available: the Copy link button is still there */
+    }
+  };
+
+  const copyLink = async () => {
+    const url = `${window.location.origin}${storyPath(article.id)}`;
+    try {
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      /* clipboard blocked; nothing to do */
+      // Clipboard blocked (an insecure page, a locked-down browser): show the link
+      // selected, so it can still be copied by hand.
+      window.prompt("Copy this link", url);
     }
   };
 
   const select = (e: { id: string; text: string; type: string }) =>
     onSelectTerm({ id: e.id, name: e.text, type: e.type });
 
+  const summary = displaySummary(article.summary);
   return (
     <>
       <div
@@ -306,6 +397,17 @@ function Story({
           >
             <Library size={14} /> <span className="hidden sm:inline">References</span>
           </Link>
+          {canShare && (
+            <button
+              type="button"
+              onClick={share}
+              aria-label="Share"
+              className="label-ui flex h-9 items-center gap-1.5 px-2.5 text-text-secondary transition-colors hover:text-foreground"
+            >
+              <Share2 size={14} />
+              <span className="hidden sm:inline">Share</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={copyLink}
@@ -381,7 +483,7 @@ function Story({
           className="mt-8 aspect-[16/9] w-full text-[64px]"
         />
 
-        {article.summary && (
+        {summary && (
           <section
             aria-labelledby="summary-label"
             aria-describedby="summary-note"
@@ -396,9 +498,9 @@ function Story({
             >
               AI summary written by Samā4 from the article. Check the original for detail.
             </p>
-            <p className="mt-3 text-[17px] leading-[1.6] text-foreground">
+            <p data-explainable className="mt-3 text-[17px] leading-[1.6] text-foreground">
               <MatchedText
-                text={article.summary}
+                text={summary}
                 entities={article.entities}
                 activeId={term?.id}
                 onSelect={select}
@@ -410,6 +512,7 @@ function Story({
         <section
           aria-labelledby="body-label"
           aria-describedby="body-note"
+          data-explainable
           className="mt-10 text-[19px] leading-[1.7] text-foreground"
         >
           <h2 id="body-label" className="section-label">

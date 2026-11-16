@@ -62,6 +62,33 @@ class Cache:
             logger.warning("Redis hit counter failed", exc_info=True)
             return None
 
+    async def add(self, key: str, amount: int, ttl_seconds: int) -> int | None:
+        """Add to a counter that expires `ttl_seconds` after it was created.
+
+        Returns the new total, or None if Redis is unavailable.
+        """
+        if not self._redis:
+            return None
+        try:
+            total = await self._redis.incrby(key, amount)
+            if total == amount:
+                await self._redis.expire(key, ttl_seconds)
+            return int(total)
+        except Exception:
+            logger.warning("Redis add failed", exc_info=True)
+            return None
+
+    async def counter(self, key: str) -> int | None:
+        """A counter's value (0 if unset), or None if Redis is unavailable."""
+        if not self._redis:
+            return None
+        try:
+            value = await self._redis.get(key)
+            return int(value) if value else 0
+        except Exception:
+            logger.warning("Redis counter read failed", exc_info=True)
+            return None
+
     async def delete(self, key: str) -> None:
         """Delete a cached value."""
         if not self._redis:

@@ -4,18 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bookmark,
+  Info,
   Megaphone,
   Moon,
   Newspaper,
   Search,
   Settings,
   Sun,
-  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSavedStories, useTheme } from "@/lib/preferences";
 import { Logo } from "@/components/ui/logo";
+import { TRUST_LINKS } from "./trustLinks";
 
 export type NavItem = {
   href: string;
@@ -34,7 +35,6 @@ export const NAV: NavItem[] = [
   },
   { href: "/search", label: "Search", icon: Search, match: (p) => p.startsWith("/search") },
   { href: "/saved", label: "Saved", icon: Bookmark, match: (p) => p.startsWith("/saved") },
-  { href: "/outlook", label: "Outlook", icon: TrendingUp, match: (p) => p.startsWith("/outlook") },
   { href: "/settings", label: "Settings", icon: Settings, match: (p) => p.startsWith("/settings") },
 ];
 
@@ -142,6 +142,29 @@ export function Sidebar() {
           )}
           <span className="hidden xwide:inline">{isDark ? "Light theme" : "Dark theme"}</span>
         </button>
+        {/* About, Sources, how explanations are made, Privacy: one icon on the narrow rail. */}
+        <div role="group" aria-label="About Samā4" className="px-3 pt-2">
+          <Link
+            href="/about"
+            aria-label="About Samā4"
+            title="About, Sources, Privacy"
+            className="flex h-10 items-center justify-center text-text-secondary hover:text-foreground xwide:hidden"
+          >
+            <Info size={17} strokeWidth={1.7} aria-hidden />
+          </Link>
+          <ul className="hidden flex-col gap-1 xwide:flex">
+            {TRUST_LINKS.map((l) => (
+              <li key={l.href}>
+                <Link
+                  href={l.href}
+                  className="label-ui block py-0.5 text-text-secondary hover:text-foreground hover:underline"
+                >
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
         <div className="px-3 pt-3">
           <Link
             href={EARLY_ACCESS.href}

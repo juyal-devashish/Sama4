@@ -14,12 +14,16 @@ def list_sources(sources: list[dict] | None = None, blocked: str = "") -> Source
     publishers' feeds are left out, as the pipeline skips them."""
     sources = allowed_sources(NEWS_SOURCES if sources is None else sources, parse_domains(blocked))
     by_outlet: dict[str, list[SourceFeed]] = {}
+    site_of: dict[str, str] = {}
     for s in sources:
+        site_of.setdefault(s["name"], s.get("site", ""))
         by_outlet.setdefault(s["name"], []).append(
-            SourceFeed(url=s["url"], category=s["category"], region=s["region"])
+            SourceFeed(
+                url=s["url"], label=s.get("label", ""), category=s["category"], region=s["region"]
+            )
         )
     outlets = [
-        SourceOutlet(name=name, feeds=feeds)
+        SourceOutlet(name=name, site=site_of[name], feeds=feeds)
         for name, feeds in sorted(by_outlet.items(), key=lambda kv: kv[0].lower())
     ]
     return SourcesResponse(outlets=outlets, feed_count=len(sources))

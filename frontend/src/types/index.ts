@@ -12,9 +12,13 @@ export interface ArticleCard {
   image_url?: string;
   source: ArticleCardSource;
   published_at?: string;
+  /** When Samā4 stored the story; absent from older servers. */
+  added_at?: string;
   reading_time_minutes?: number;
   categories: string[];
   entity_count: number;
+  /** Names of the terms in the story; search matches on them. Absent from older servers. */
+  entity_names?: string[];
 }
 
 export interface PaginationMeta {
@@ -111,6 +115,13 @@ export interface ContextData {
   sources: ContextSource[];
 }
 
+/** The longer explanation behind "More detail". `text` is "" if none could be written. */
+export interface MoreDetailResponse {
+  text: string;
+  generated_at: string;
+  cached: boolean;
+}
+
 export interface ContextResponse {
   entity: EntityInfo;
   context: ContextData;
@@ -143,6 +154,21 @@ export interface ExplainResponse {
   explanation: string;
   sources: ContextSource[];
   confidence: number;
+}
+
+export interface SelectionRequest {
+  article_id: string;
+  text: string;
+}
+
+/** An explanation of text the reader selected. `reliable: false` means no explanation. */
+export interface SelectionResponse {
+  text: string;
+  explanation: string;
+  reliable: boolean;
+  generated_at: string;
+  cached: boolean;
+  sources: ContextSource[];
 }
 
 // ============ Predictions (MiroFish) ============
@@ -190,6 +216,8 @@ export interface PredictionDetail {
   agent_perspectives: AgentPerspective[];
   created_at: string;
   completed_at?: string;
+  /** True when Samā4 refused to write this outlook because the story is mainly about a private individual. */
+  declined?: boolean;
 }
 
 export interface PredictionStatus {
@@ -248,12 +276,16 @@ export interface WaitlistResponse {
 
 export interface SourceFeed {
   url: string;
+  /** Which of the outlet's feeds this is ("Markets", "Explained"); "" from older backends. */
+  label: string;
   category: string;
   region: string;
 }
 
 export interface SourceOutlet {
   name: string;
+  /** The outlet's home page; "" from older backends. */
+  site: string;
   feeds: SourceFeed[];
 }
 

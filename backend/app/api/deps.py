@@ -90,3 +90,23 @@ async def rate_limit(
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS, message, headers={"Retry-After": str(window)}
         )
+
+
+def per_ip_limit(bucket: str, limit: int, window: int = 3600):
+    """A route dependency allowing `limit` calls per IP per `window` seconds (429 after).
+
+    Use it on every endpoint that can spend Claude tokens:
+        @router.post("/x", dependencies=[per_ip_limit("x", 30)])
+    """
+
+    async def dependency(request: Request, c: ContainerDep) -> None:
+        await rate_limit(
+            c,
+            request,
+            bucket=bucket,
+            limit=limit,
+            window=window,
+            message="You're going a little fast. Try again in a few minutes.",
+        )
+
+    return Depends(dependency)

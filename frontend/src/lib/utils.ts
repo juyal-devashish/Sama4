@@ -43,11 +43,34 @@ export function formatShortDate(dateStr?: string): string {
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
-export function formatLongDate(date = new Date()): string {
-  return date.toLocaleDateString(undefined, {
+export interface DateFormatOptions {
+  locale?: string;
+  /** IANA zone. Omit to use the reader's own (the browser's). */
+  timeZone?: string;
+}
+
+/** "Saturday, November 14" */
+export function formatLongDate(date = new Date(), { locale, timeZone }: DateFormatOptions = {}) {
+  return date.toLocaleDateString(locale, {
     weekday: "long",
     month: "long",
     day: "numeric",
+    timeZone,
+  });
+}
+
+/** "Saturday" */
+export function formatWeekday(date = new Date(), { locale, timeZone }: DateFormatOptions = {}) {
+  return date.toLocaleDateString(locale, { weekday: "long", timeZone });
+}
+
+/** "November 14, 2026" */
+export function formatFullDate(date = new Date(), { locale, timeZone }: DateFormatOptions = {}) {
+  return date.toLocaleDateString(locale, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone,
   });
 }
 
@@ -103,4 +126,29 @@ export function metaDescription(text: string, max = 160): string {
   const cut = clean.slice(0, max - 1);
   const space = cut.lastIndexOf(" ");
   return `${(space > max / 2 ? cut.slice(0, space) : cut).replace(/[\s,;:.-]+$/, "")}…`;
+}
+
+// Words whose full stop doesn't end a sentence. Mirrors backend/app/text.py.
+const ABBREVIATIONS = new Set(
+  "mr mrs ms dr prof sr jr st mt ft gov sen rep pres gen lt col maj capt sgt cmdr adm supt insp det rev hon jan feb mar apr jun jul aug sep sept oct nov dec vs inc corp co ltd bros dept univ approx est fig".split(
+    " ",
+  ),
+);
+const INITIALISM = /^(?:[A-Za-z]\.)+[A-Za-z]?\.?$/;
+
+/**
+ * A summary worth showing, or null. Summaries written before the backend learned about
+ * abbreviations can be cut to a fragment ("Existing U.S.", "…and Louisiana Gov."): hide
+ * those, and anything too short to say what the story is.
+ */
+export function displaySummary(summary: string | null | undefined): string | null {
+  const text = summary?.trim();
+  if (!text || text.length < 40) return null;
+  const last = text.split(/\s+/).pop() ?? "";
+  if (
+    last.endsWith(".") &&
+    (INITIALISM.test(last) || ABBREVIATIONS.has(last.slice(0, -1).toLowerCase()))
+  )
+    return null;
+  return text;
 }

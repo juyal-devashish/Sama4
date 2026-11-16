@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 from sqlalchemy import func, select
 
+from app.clients.llm import batch_job
 from app.container import Container
 from app.database import async_session
 from app.ingestion.blocklist import is_blocked, parse_domains
@@ -29,6 +30,7 @@ SUMMARY_CONCURRENCY = 5
 AUTO_SIMULATIONS_PER_RUN = 5
 
 
+@batch_job
 async def run_ingestion(container: Container) -> int:
     """Fetch and process all news sources once; then auto-simulate if enabled."""
     try:
@@ -49,6 +51,7 @@ async def run_ingestion(container: Container) -> int:
     return count
 
 
+@batch_job
 async def regenerate_summaries(container: Container) -> tuple[int, int]:
     """Rewrite every Article.summary with the current prompt. Returns (updated, total).
 
@@ -104,6 +107,7 @@ def needs_enrichment(article: Article) -> bool:
     return not article.image_url or words < TEASER_WORDS
 
 
+@batch_job
 async def enrich_articles(
     container: Container, limit: int = 100, *, only_unfinished: bool = False
 ) -> EnrichReport:

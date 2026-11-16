@@ -6,10 +6,13 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.routers import admin, articles, context, feed, predictions, search, sources, waitlist
+from app.clients.counters import EVENTS, UsageCounters
+from app.clients.usage import DailyBudgetExceeded
 from app.config import Settings, settings
 from app.container import get_container
 from app.database import create_tables
@@ -133,6 +136,26 @@ def create_app(s: Settings = settings) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.middleware("http")
+    async def count_usage(request: Request, call_next):
+        """Add a successful story open, explanation, question or outlook to the day's totals."""
+        response = await call_next(request)
+        route = request.scope.get("route")
+        event = EVENTS.get((request.method, getattr(route, "path", "")))
+        if event and response.status_code < 400:
+            provide = request.app.dependency_overrides.get(get_container, get_container)
+            await UsageCounters(provide().cache).count(event)
+        return response
+
+    @app.exception_handler(DailyBudgetExceeded)
+    async def over_budget(request: Request, exc: DailyBudgetExceeded) -> JSONResponse:
+        return JSONResponse(
+            status_code=503,
+            content={"detail": str(exc) + " Please try again tomorrow."},
+            headers={"Retry-After": str(exc.retry_after)},
+        )
+
     app.include_router(admin.router, prefix=f"{API_PREFIX}/admin", tags=["admin"])
     app.include_router(feed.router, prefix=f"{API_PREFIX}/feed", tags=["feed"])
     app.include_router(articles.router, prefix=f"{API_PREFIX}/articles", tags=["articles"])

@@ -27,7 +27,7 @@ const PREDICTION = {
   completed_at: new Date().toISOString(),
 };
 
-test("a finished outlook is labelled as an AI projection and explains its figures", async ({
+test("a finished outlook is labelled as an AI projection and shows no impact or confidence scores", async ({
   page,
 }) => {
   await mockApi(page);
@@ -45,8 +45,10 @@ test("a finished outlook is labelled as an AI projection and explains its figure
 
   await expect(outlook.getByText(/AI-generated projection by Samā4/)).toBeVisible();
   await expect(outlook.getByText(/Based only on the \d+-word text Samā4 has from/)).toBeVisible();
-  await expect(outlook.getByText(/not a measured probability/)).toBeVisible();
-  await expect(outlook.getByText(/it does not say how important or true/)).toBeVisible();
+  // The model's own impact and confidence numbers are not evidence: never show them.
+  await expect(outlook.getByText(/confidence/i)).toHaveCount(0);
+  await expect(outlook.getByText(/Impact \(estimate\)/)).toHaveCount(0);
+  await expect(outlook.getByText(/\/ 100/)).toHaveCount(0);
   // The fallback simulated nothing: never show "500 simulated".
   await expect(outlook.getByText("Viewpoints written")).toBeVisible();
   await expect(outlook.getByText("500")).toHaveCount(0);
@@ -97,4 +99,35 @@ test("a running outlook shows its steps and can be cancelled", async ({ page }) 
 
   await expect(page.getByText(/You cancelled the outlook/)).toBeVisible();
   await expect(page.getByRole("button", { name: /Run outlook/ })).toBeEnabled();
+  // Next to the control: what happens to a finished outlook.
+  await expect(
+    page.getByText(/saved and shown to other readers on the Outlook page/),
+  ).toBeVisible();
+});
+
+test("an outlook declined for a private individual says so and offers no retry", async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.route("**/api/v1/predictions/article/**", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      headers: { "access-control-allow-origin": "*" },
+      body: JSON.stringify({
+        ...PREDICTION,
+        status: "failed",
+        declined: true,
+        prediction_summary: null,
+        agent_perspectives: [],
+      }),
+    }),
+  );
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(`/?article=${ARTICLE_ID}`);
+  const outlook = page.locator("#outlook");
+
+  await expect(outlook.getByText(/doesn.t write outlooks about private individuals/)).toBeVisible({
+    timeout: 10_000,
+  });
+  await expect(outlook.getByRole("button", { name: /Run outlook/ })).toHaveCount(0);
 });

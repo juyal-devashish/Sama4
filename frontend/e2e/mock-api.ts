@@ -73,6 +73,19 @@ export async function mockApi(page: Page) {
         confidence: 0.85,
       });
     }
+    if (path === "/context/selection") {
+      const { text } = route.request().postDataJSON() as { text: string };
+      // Text containing "mystery" gets the no-reliable-information answer.
+      const reliable = !/mystery/i.test(text);
+      return json(route, {
+        text,
+        explanation: reliable ? `"${text}" is explained here.` : "",
+        reliable,
+        generated_at: new Date().toISOString(),
+        cached: false,
+        sources: [{ type: "article", title: "The article", url: "https://example.com/story" }],
+      });
+    }
     if (path === "/predictions/trending") return json(route, fixtures.trending);
     if (path.startsWith("/predictions/article/")) return json(route, null);
 
@@ -85,6 +98,13 @@ export async function mockApi(page: Page) {
     if (m) {
       const body = (fixtures.articles as Record<string, unknown>)[m[1]];
       return body ? json(route, body) : json(route, { detail: "Not found" }, 404);
+    }
+    if (/^\/context\/[^/]+\/more$/.test(path)) {
+      return json(route, {
+        text: "The longer explanation starts here.\n\nAnd it continues in a second paragraph.",
+        generated_at: new Date().toISOString(),
+        cached: false,
+      });
     }
     m = path.match(/^\/context\/([^/]+)$/);
     if (m) {

@@ -45,7 +45,13 @@ function useReaderNav() {
     [params, router, articleId],
   );
 
-  return { articleId, topic, go, pending };
+  // A story's own address in this topic, for each card's link.
+  const hrefFor = useCallback(
+    (id: string) => readerHref(id, new URLSearchParams(params.toString())),
+    [params],
+  );
+
+  return { articleId, topic, go, hrefFor, pending };
 }
 
 /**
@@ -59,7 +65,7 @@ export function Reader({
   initialFeed?: FeedResponse;
   children: React.ReactNode;
 }) {
-  const { articleId, topic, go, pending } = useReaderNav();
+  const { articleId, topic, go, hrefFor, pending } = useReaderNav();
   const [topics] = useTopics();
 
   const feed = useFeedPages(topic, FEED_LIMIT, topic === "all" ? initialFeed : undefined);
@@ -75,6 +81,8 @@ export function Reader({
         onRetry={() => feed.refetch()}
         selectedId={articleId}
         onSelect={(id) => go({ article: id })}
+        hrefFor={hrefFor}
+        total={feed.data?.pages[0]?.pagination.total}
         topics={SECTIONS_ENABLED ? topics : []}
         topic={topic}
         onTopicChange={(t) => go({ topic: t, article: null })}

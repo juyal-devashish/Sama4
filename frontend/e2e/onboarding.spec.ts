@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { ARTICLE_ID, mockApi } from "./mock-api";
 
 const intro = (page: import("@playwright/test").Page) =>
-  page.getByRole("dialog", { name: /news, understood/i });
+  page.getByRole("dialog", { name: /news, explained inline/i });
 
 test("first visit: splash, try a highlight, then the reader; never again", async ({ page }) => {
   await mockApi(page);

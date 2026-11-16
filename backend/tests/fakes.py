@@ -7,8 +7,10 @@ Build a test container with `make_container()`; override fields per test, e.g.
 from dataclasses import dataclass, field
 
 from app.clients.cache import Cache
+from app.clients.llm import StreamEnd
 from app.clients.mirofish import MirofishClient
 from app.clients.pages import PageContent
+from app.clients.usage import DailyBudgetExceeded
 from app.clients.wikimedia import WikipediaPage
 from app.config import Settings
 from app.container import Container
@@ -22,13 +24,32 @@ class FakeLLM:
     default: str = "Generated text."
     replies: dict[str, str] = field(default_factory=dict)  # substring-of-prompt -> reply
     calls: list[dict] = field(default_factory=list)
+    exhausted: bool = False  # simulate today's token budget being used up
 
-    async def generate(self, prompt: str, **kwargs) -> str:
-        self.calls.append({"prompt": prompt, **kwargs})
+    async def over_budget(self) -> bool:
+        return self.exhausted
+
+    def _reply(self, prompt: str) -> str:
         for needle, reply in self.replies.items():
             if needle in prompt:
                 return reply
         return self.default
+
+    async def generate(self, prompt: str, **kwargs) -> str:
+        if self.exhausted:
+            raise DailyBudgetExceeded(60)
+        self.calls.append({"prompt": prompt, **kwargs})
+        return self._reply(prompt)
+
+    async def stream(self, prompt: str, **kwargs):
+        """Yields the reply a word at a time, then StreamEnd, like LLMClient.stream."""
+        if self.exhausted:
+            raise DailyBudgetExceeded(60)
+        self.calls.append({"prompt": prompt, "streamed": True, **kwargs})
+        reply = self._reply(prompt)
+        for word in reply.split(" "):
+            yield word + " "
+        yield StreamEnd(reply)
 
     async def aclose(self) -> None:
         pass
@@ -64,7 +85,7 @@ class FakeWikimedia:
     async def get_wikipedia_url(self, wikidata_id: str) -> str | None:
         return None
 
-    async def get_wikipedia_page(self, url: str) -> WikipediaPage | None:
+    async def get_wikipedia_page(self, url: str, *, sentences: int = 2) -> WikipediaPage | None:
         if not self.extract:
             return None
         title = url.split("/wiki/")[-1] if url else ""
@@ -106,6 +127,13 @@ class MemoryCache(Cache):
 
     async def delete(self, key: str) -> None:
         self.store.pop(key, None)
+
+    async def add(self, key: str, amount: int, ttl_seconds: int) -> int | None:
+        self.store[key] = int(self.store.get(key, 0)) + amount  # type: ignore[arg-type]
+        return int(self.store[key])  # type: ignore[arg-type]
+
+    async def counter(self, key: str) -> int | None:
+        return int(self.store.get(key, 0))  # type: ignore[arg-type]
 
     async def hit(self, key: str, window_seconds: int) -> int | None:
         self.store[key] = int(self.store.get(key, 0)) + 1  # type: ignore[arg-type]

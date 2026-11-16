@@ -7,7 +7,8 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.api.deps import ContainerDep, DbSession, PredictionServiceDep
+from app.api.deps import ContainerDep, DbSession, PredictionServiceDep, per_ip_limit
+from app.clients.usage import DailyBudgetExceeded, seconds_until_utc_midnight
 from app.ingestion import jobs
 from app.models.article import Article
 from app.models.prediction import (
@@ -32,13 +33,22 @@ from app.schemas.prediction import (
     PredictionSummary,
     TrendingPrediction,
 )
-from app.services.predictions import CANCELLED_MESSAGE
+from app.services.predictions import CANCELLED_MESSAGE, PRIVATE_SUBJECT_MESSAGE
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/simulate", response_model=PredictionSummary)
+# Per IP per hour. Starting an outlook is the most expensive call in the app.
+OUTLOOKS_PER_IP = 10
+OUTLOOK_QUESTIONS_PER_IP = 40
+
+
+@router.post(
+    "/simulate",
+    response_model=PredictionSummary,
+    dependencies=[per_ip_limit("outlook", OUTLOOKS_PER_IP)],
+)
 async def trigger_simulation(
     request: PredictionRequest,
     background_tasks: BackgroundTasks,
@@ -47,6 +57,8 @@ async def trigger_simulation(
     c: ContainerDep,
 ) -> PredictionSummary:
     """Trigger a MiroFish simulation for an article."""
+    if await c.llm.over_budget():
+        raise DailyBudgetExceeded(seconds_until_utc_midnight())
     # Verify article exists
     article = await db.get(Article, request.article_id)
     if not article:
@@ -119,6 +131,8 @@ async def get_article_prediction(
         ],
         created_at=prediction.created_at,
         completed_at=prediction.completed_at,
+        declined=prediction.status == STATUS_FAILED
+        and prediction.error_message == PRIVATE_SUBJECT_MESSAGE,
     )
 
 
@@ -140,7 +154,11 @@ async def get_prediction_status(
         STATUS_SIMULATING: f"Running simulation with {prediction.agent_count} agents...",
         STATUS_GENERATING_REPORT: "Analyzing simulation results...",
         STATUS_COMPLETED: "Prediction complete!",
-        STATUS_FAILED: f"Simulation failed: {prediction.error_message or 'Unknown error'}",
+        STATUS_FAILED: (
+            prediction.error_message
+            if prediction.error_message == PRIVATE_SUBJECT_MESSAGE
+            else f"Simulation failed: {prediction.error_message or 'Unknown error'}"
+        ),
     }
 
     return PredictionStatusOut(
@@ -167,7 +185,11 @@ async def cancel_prediction(
     )
 
 
-@router.post("/chat", response_model=PredictionChatResponse)
+@router.post(
+    "/chat",
+    response_model=PredictionChatResponse,
+    dependencies=[per_ip_limit("outlook-chat", OUTLOOK_QUESTIONS_PER_IP)],
+)
 async def chat_with_prediction(
     request: PredictionChatRequest,
     db: DbSession,
@@ -190,7 +212,11 @@ async def chat_with_prediction(
     )
 
 
-@router.post("/interview", response_model=AgentInterviewResponse)
+@router.post(
+    "/interview",
+    response_model=AgentInterviewResponse,
+    dependencies=[per_ip_limit("outlook-interview", OUTLOOK_QUESTIONS_PER_IP)],
+)
 async def interview_agent(
     request: AgentInterviewRequest,
     db: DbSession,

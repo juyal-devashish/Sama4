@@ -54,6 +54,31 @@ class ExplainRequest(BaseModel):
     question: str = Field(min_length=1, max_length=500)
 
 
+class MoreDetailResponse(BaseModel):
+    """The longer explanation behind "More detail"."""
+
+    text: str  # "" when nothing could be written
+    generated_at: datetime
+    cached: bool = False
+
+
+class SelectionRequest(BaseModel):
+    article_id: uuid.UUID
+    text: str = Field(min_length=2, max_length=120)
+
+
+class SelectionResponse(BaseModel):
+    """An explanation of text the reader selected (not one of the highlighted terms)."""
+
+    text: str  # the selection, as the reader sees it
+    # "" when reliable is False: the app then says there is no reliable information.
+    explanation: str
+    reliable: bool
+    generated_at: datetime
+    cached: bool = False
+    sources: list[ContextSource] = []
+
+
 ReportReason = Literal["wrong_thing", "wrong_fact", "outdated", "other"]
 
 

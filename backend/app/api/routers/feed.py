@@ -26,9 +26,11 @@ async def get_feed(
                 image_url=r.article.image_url,
                 source=ArticleCardSource(name=r.source.name if r.source else "Unknown"),
                 published_at=r.article.published_at,
+                added_at=r.article.created_at,
                 reading_time_minutes=r.article.reading_time_minutes,
                 categories=r.article.categories or [],
                 entity_count=r.entity_count,
+                entity_names=r.entity_names,
             )
             for r in rows
         ],

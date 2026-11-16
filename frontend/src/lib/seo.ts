@@ -8,6 +8,37 @@ import type { ArticleDetail } from "@/types";
 export const DEFAULT_SHARE_IMAGE = "/logo-owl.png";
 
 /**
+ * Title, description, canonical URL, Open Graph and Twitter card for an ordinary page.
+ * Next replaces the layout's openGraph/twitter objects rather than merging them, so a
+ * page that only sets `title` would share the home page's title and description.
+ */
+export function pageMetadata({
+  title,
+  description,
+  path,
+}: {
+  title: string;
+  description: string;
+  path: string;
+}): Metadata {
+  const full = `${title} · ${SITE_NAME}`;
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: "website",
+      siteName: SITE_NAME,
+      url: path,
+      title: full,
+      description,
+      images: [DEFAULT_SHARE_IMAGE],
+    },
+    twitter: { card: "summary", title: full, description, images: [DEFAULT_SHARE_IMAGE] },
+  };
+}
+
+/**
  * Title, description, Open Graph and Twitter card for a story page. Next replaces a
  * parent's openGraph/twitter objects rather than merging them, so every field is set.
  */

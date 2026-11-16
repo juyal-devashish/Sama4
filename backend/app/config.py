@@ -83,6 +83,11 @@ class Settings(BaseSettings):
     # Default effort for short, high-volume calls (summaries, entity context, NER)
     anthropic_effort: Literal["low", "medium", "high", "xhigh", "max"] = "low"
 
+    # Daily Claude budget in tokens (input + output, UTC day). At 80% and 100% an error is
+    # logged and sent to Sentry; at 100% reader-facing AI features pause until the next UTC
+    # day. Nightly ingestion is counted but never blocked. 0 turns the cap off.
+    llm_daily_token_cap: int = 5_000_000
+
     # Admin (X-Admin-Secret header). The default is rejected when environment=production.
     admin_secret: str = "change-me-in-production"
 
@@ -95,6 +100,8 @@ class Settings(BaseSettings):
     mirofish_auto_simulate: bool = False  # auto-simulate high-impact articles
     mirofish_impact_threshold: int = 5  # min entity count to auto-simulate
     prediction_cache_ttl: int = 43200  # 12 hours
+    # Each published projection is logged with a date by which to check it against events.
+    prediction_resolve_days: int = 30
     # A running prediction whose row hasn't changed for this long is treated as dead
     # (its background task died with a deploy or crash) and marked failed.
     prediction_stale_minutes: int = 60

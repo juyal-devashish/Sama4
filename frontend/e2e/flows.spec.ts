@@ -32,6 +32,272 @@ test("selecting a highlighted term opens its explanation and stays accessible", 
   await expect(term).toHaveAttribute("aria-pressed", "false");
 });
 
+test("the explanation panel takes focus, keeps Tab inside it and gives focus back", async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  const term = page.locator("p .term").first();
+  await expect(term).toBeVisible({ timeout: 10_000 });
+  await term.focus();
+  await page.keyboard.press("Enter");
+  const panel = page.locator("#context-margin");
+  await expect(panel).toBeFocused();
+  // A live region says when the explanation is ready, for screen-reader users.
+  await expect(page.locator("#explanation-status")).toHaveText(/^Explanation of .+ loaded\.$/);
+
+  // Wide windows show the margin beside the story (no trap); drawers must hold focus.
+  const isDrawer = await page.evaluate(() => window.matchMedia("(max-width: 1479px)").matches);
+  if (isDrawer) {
+    const trail: string[] = [];
+    for (let i = 0; i < 25; i++) {
+      await page.keyboard.press("Tab");
+      const where = await page.evaluate(() => {
+        const el = document.activeElement;
+        const tag = `${el?.tagName}.${el?.getAttribute("aria-label") ?? el?.textContent?.slice(0, 20)}`;
+        return el?.closest("#context-margin") ? `in:${tag}` : `OUT:${tag}`;
+      });
+      trail.push(where);
+      expect(where.startsWith("in:"), `Tab #${i + 1} left the panel: ${trail.join(" > ")}`).toBe(
+        true,
+      );
+    }
+    for (let i = 0; i < 25; i++) {
+      await page.keyboard.press("Shift+Tab");
+      const inside = await page.evaluate(
+        () => !!document.activeElement?.closest("#context-margin"),
+      );
+      expect(inside, `Shift+Tab #${i + 1} left the panel`).toBe(true);
+    }
+  }
+
+  await page.keyboard.press("Escape");
+  await expect(term).toBeFocused();
+});
+
+test("any selected text can be explained, and honest when nothing is known", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  await expect(page.locator("p .term").first()).toBeVisible({ timeout: 10_000 });
+
+  // Select two plain words from the story body (no highlighted term inside).
+  const selectTwoPlainWords = () =>
+    page.evaluate(() => {
+      const walker = document.createTreeWalker(
+        document.querySelector("section[data-explainable]:not(:has(h2#summary-label)) p")!,
+        NodeFilter.SHOW_TEXT,
+      );
+      let node: Node | null;
+      while ((node = walker.nextNode())) {
+        const text = node.textContent ?? "";
+        const m = /([A-Za-z]{4,}) ([A-Za-z]{4,})/.exec(text);
+        if (m && !(node.parentElement?.closest(".term") ?? false)) {
+          const range = document.createRange();
+          range.setStart(node, m.index);
+          range.setEnd(node, m.index + m[0].length);
+          const sel = window.getSelection()!;
+          sel.removeAllRanges();
+          sel.addRange(range);
+          return m[0];
+        }
+      }
+      return null;
+    });
+
+  const words = await selectTwoPlainWords();
+  expect(words).toBeTruthy();
+  const explain = page.getByRole("button", { name: /Explain/ });
+  await expect(explain).toBeVisible();
+  await explain.click();
+
+  const panel = page.locator("#context-margin");
+  await expect(panel.getByText("Selected text")).toBeVisible();
+  await expect(panel.getByText(`"${words}" is explained here.`)).toBeVisible();
+  await expect(panel.getByText(/Written by AI/)).toBeVisible();
+  await expect(page.locator("#explanation-status")).toHaveText(/loaded\./);
+  await page.keyboard.press("Escape");
+  await expect(panel.getByText("Selected text")).toHaveCount(0);
+});
+
+test("selected text with no reliable information says so instead of guessing", async ({ page }) => {
+  await mockApi(page);
+  await page.route("**/api/v1/context/selection", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      headers: { "access-control-allow-origin": "*" },
+      body: JSON.stringify({
+        text: "some words",
+        explanation: "",
+        reliable: false,
+        generated_at: new Date().toISOString(),
+        cached: false,
+        sources: [],
+      }),
+    }),
+  );
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  await expect(page.locator("p .term").first()).toBeVisible({ timeout: 10_000 });
+  await page.evaluate(() => {
+    const body = document.querySelector("section[data-explainable]:not(:has(h2#summary-label)) p")!;
+    const range = document.createRange();
+    const node = body.firstChild!;
+    range.setStart(node, 0);
+    range.setEnd(node, Math.min(12, node.textContent!.length));
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(range);
+  });
+  await page.getByRole("button", { name: /Explain/ }).click();
+  await expect(page.locator("#context-margin").getByText(/no reliable information/)).toBeVisible();
+});
+
+test("More detail shows a longer explanation only when asked", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  const term = page.locator("p .term").first();
+  await expect(term).toBeVisible({ timeout: 10_000 });
+  await term.click();
+  const panel = page.locator("#context-margin");
+  await expect(panel.getByText("The longer explanation starts here.")).toHaveCount(0);
+
+  await panel.getByRole("button", { name: "More detail" }).click();
+
+  await expect(panel.getByText("The longer explanation starts here.")).toBeVisible();
+  await expect(panel.getByText("And it continues in a second paragraph.")).toBeVisible();
+  await expect(panel.getByText(/written by AI from the same sources/)).toBeVisible();
+});
+
+test("an explanation is requested for the story it is opened from", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  const asked: string[] = [];
+  page.on("request", (r) => {
+    if (/\/api\/v1\/context\/[0-9a-f-]{36}(\?|$)/.test(r.url())) asked.push(r.url());
+  });
+  await page.goto(ARTICLE);
+  const term = page.locator("p .term").first();
+  await expect(term).toBeVisible({ timeout: 10_000 });
+  await term.click();
+  await expect(page.locator("#explanation-status")).toHaveText(/loaded\./);
+
+  expect(asked.length).toBeGreaterThan(0);
+  expect(asked.every((u) => new URL(u).searchParams.get("article_id") === ARTICLE_ID)).toBe(true);
+});
+
+test("the logo is a small WebP and loads in both themes", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  const sizes: Record<string, number> = {};
+  page.on("response", (r) => {
+    if (/logo-owl.*\.(png|webp)$/.test(r.url()))
+      sizes[r.url()] = Number(r.headers()["content-length"] ?? 0);
+  });
+  await page.goto("/saved");
+  await page.waitForLoadState("networkidle");
+
+  const logos = page.locator("img[src^='/logo-owl']");
+  expect(await logos.count()).toBeGreaterThan(0);
+  for (const src of await logos.evaluateAll((els) => els.map((e) => e.getAttribute("src")))) {
+    expect(src).toMatch(/\.webp$/);
+  }
+  const visible = page.locator("img[src='/logo-owl.webp']:visible").first();
+  expect(await visible.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+  for (const bytes of Object.values(sizes)) expect(bytes).toBeLessThan(15_000);
+});
+
+const sseEvent = (event: string, data: unknown) =>
+  `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+
+/** Answer the explanation stream for any term with `text`, built from that term's fixture. */
+async function streamExplanations(
+  page: import("@playwright/test").Page,
+  text: string,
+  respond: "stream" | "not-found" | "not-a-stream" = "stream",
+) {
+  await page.route(/\/api\/v1\/context\/[0-9a-f-]{36}\/stream/, (route) => {
+    const cors = { "access-control-allow-origin": "*" };
+    if (respond === "not-found") return route.fulfill({ status: 404, headers: cors, body: "" });
+    if (respond === "not-a-stream")
+      return route.fulfill({ status: 200, headers: cors, contentType: "text/html", body: "<p>" });
+    const id = new URL(route.request().url()).pathname.split("/")[4];
+    const full = (fixtures.context as Record<string, { context: { text: string } }>)[id];
+    const done = { ...full, context: { ...full.context, text, cached: false } };
+    const words = text.split(" ");
+    return route.fulfill({
+      status: 200,
+      headers: { ...cors, "cache-control": "no-cache" },
+      contentType: "text/event-stream",
+      body:
+        words
+          .map((w, i) => sseEvent("delta", { text: w + (i < words.length - 1 ? " " : "") }))
+          .join("") + sseEvent("done", done),
+    });
+  });
+}
+
+test("an explanation streams in and the finished text replaces it", async ({ page }) => {
+  await mockApi(page);
+  await streamExplanations(page, "Streamed explanation text for this term.");
+  let plainGets = 0;
+  page.on("request", (r) => {
+    if (/\/api\/v1\/context\/[0-9a-f-]{36}(\?|$)/.test(r.url())) plainGets++;
+  });
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(ARTICLE);
+  const term = page.locator("p .term").first();
+  await expect(term).toBeVisible({ timeout: 10_000 });
+  await term.click();
+
+  await expect(
+    page.locator("#context-margin").getByText("Streamed explanation text for this term."),
+  ).toBeVisible();
+  await expect(page.locator("#explanation-status")).toHaveText(/loaded\./);
+  expect(plainGets).toBe(0); // the stream was enough
+});
+
+for (const respond of ["not-found", "not-a-stream"] as const) {
+  test(`if the stream is unavailable (${respond}) the plain request still explains the term`, async ({
+    page,
+  }) => {
+    await mockApi(page);
+    await streamExplanations(page, "never shown", respond);
+    await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+    await page.goto(ARTICLE);
+    const term = page.locator("p .term").first();
+    await expect(term).toBeVisible({ timeout: 10_000 });
+    await term.click();
+
+    await expect(page.locator("#explanation-status")).toHaveText(/loaded\./);
+    await expect(page.locator("#context-margin").getByText("never shown")).toHaveCount(0);
+    await expect(page.locator("#context-margin").getByText("Try again")).toHaveCount(0);
+  });
+}
+
+test("a term longer than the line wraps inside its box instead of overflowing", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto(`/article/${ARTICLE_ID}`);
+  await expect(page.locator("p .term").first()).toBeVisible({ timeout: 10_000 });
+
+  const fit = await page.evaluate(() => {
+    const term = document.querySelector<HTMLElement>("p .term")!;
+    term.textContent = "The United States Department of Health and Human Services Administration";
+    const line = term.closest("p")!.getBoundingClientRect();
+    return {
+      overflowsLine: term.getBoundingClientRect().right > line.right + 0.5,
+      pageScrollsSideways: document.documentElement.scrollWidth > window.innerWidth,
+    };
+  });
+
+  expect(fit).toEqual({ overflowsLine: false, pageScrollsSideways: false });
+});
+
 test("reference page is accessible", async ({ page }) => {
   await mockApi(page);
   await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
@@ -250,6 +516,8 @@ test("privacy page explains how data is handled", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Privacy", level: 1 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "The waitlist" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "No tracking" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Limits on heavy use" })).toBeVisible();
+  await expect(page.getByText(/daily totals of how the app is used/)).toBeVisible();
 });
 
 test("search results can be narrowed by topic, source and date", async ({ page }) => {
@@ -272,6 +540,77 @@ test("search results can be narrowed by topic, source and date", async ({ page }
   await expect(count).toHaveText(new RegExp(`^${total} stor`));
   await expect(page.getByLabel("Topic")).toHaveValue("all");
   await expect(page.getByLabel("Date")).toHaveValue("any");
+});
+
+test("the search query lives in the address and a shared link reopens it", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  await page.goto("/search");
+  const box = page.getByLabel("Search stories");
+  await box.fill("art");
+  await expect(page).toHaveURL(/\/search\?q=art$/);
+
+  await box.fill("");
+  await expect(page).toHaveURL(/\/search$/);
+
+  await page.goto("/search?q=art");
+  await expect(box).toHaveValue("art");
+  await expect(page.getByText(/\d+ stor(y|ies)( of \d+)? · newest first/)).toBeVisible({
+    timeout: 10_000,
+  });
+});
+
+test("Share hands the story's own address to the system share sheet", async ({ page }) => {
+  await mockApi(page);
+  await page.addInitScript(() => {
+    localStorage.setItem("sama4_onboarded", "true");
+    (window as unknown as { shared: unknown[] }).shared = [];
+    navigator.share = async (data) => {
+      (window as unknown as { shared: unknown[] }).shared.push(data);
+    };
+  });
+  await page.goto(`/article/${ARTICLE_ID}`);
+  await page.getByRole("button", { name: "Share" }).click();
+  const shared = (await page.evaluate(
+    () => (window as unknown as { shared: unknown[] }).shared,
+  )) as {
+    title: string;
+    url: string;
+  }[];
+  expect(shared).toHaveLength(1);
+  expect(shared[0].url).toBe(new URL(`/article/${ARTICLE_ID}`, page.url()).href);
+  expect(shared[0].title.length).toBeGreaterThan(0);
+});
+
+test("stories stored since the reader's last visit are marked New, and only then", async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.addInitScript(() => localStorage.setItem("sama4_onboarded", "true"));
+  // First ever visit: nothing is marked.
+  await page.goto("/");
+  await expect(page.locator("section[aria-label=Stories] li").first()).toBeVisible({
+    timeout: 10_000,
+  });
+  await expect(page.getByText("since your last visit")).toHaveCount(0);
+
+  // Returning after a long time (an earlier visit is on record): everything newer is marked.
+  const returning = await page.context().newPage();
+  await mockApi(returning);
+  await returning.addInitScript(() => {
+    localStorage.setItem("sama4_onboarded", "true");
+    if (!sessionStorage.getItem("sama4_visit_baseline"))
+      localStorage.setItem("sama4_last_visit", "1");
+  });
+  await returning.goto("/");
+  await expect(returning.getByText("since your last visit").first()).toBeAttached({
+    timeout: 10_000,
+  });
+  // A reload in the same session keeps the markers.
+  await returning.reload();
+  await expect(returning.getByText("since your last visit").first()).toBeAttached({
+    timeout: 10_000,
+  });
 });
 
 test("removing a saved story can be undone, back in its place", async ({ page }) => {

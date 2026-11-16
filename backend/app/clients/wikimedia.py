@@ -36,15 +36,15 @@ def title_from_url(url: str) -> str:
     return unquote(url.split("/wiki/")[-1].split("#")[0])
 
 
-def parse_extract_response(data: dict) -> WikipediaPage | None:
-    """First two sentences of the intro plus revision ids, from an extracts|revisions query."""
+def parse_extract_response(data: dict, sentences: int = 2) -> WikipediaPage | None:
+    """The first `sentences` sentences of the intro plus revision ids, from an
+    extracts|revisions query."""
     pages = (data.get("query") or {}).get("pages") or {}
     for page in pages.values():
         text = (page.get("extract") or "").strip()
         if not text:
             return None
-        sentences = text.split(". ")[:2]
-        extract = ". ".join(sentences)
+        extract = ". ".join(text.split(". ")[:sentences])
         if not extract.endswith("."):
             extract += "."
         revisions = page.get("revisions") or [{}]
@@ -105,8 +105,9 @@ class WikimediaClient:
         entity = response.json().get("entities", {}).get(wikidata_id, {})
         return entity.get("sitelinks", {}).get("enwiki", {}).get("url")
 
-    async def get_wikipedia_page(self, url: str) -> WikipediaPage | None:
-        """The first two sentences of a Wikipedia article and its current revision, or None."""
+    async def get_wikipedia_page(self, url: str, *, sentences: int = 2) -> WikipediaPage | None:
+        """The first sentences (two by default) of a Wikipedia article and its current
+        revision, or None."""
         if not url:
             return None
         response = await self._http.get(
@@ -125,7 +126,7 @@ class WikimediaClient:
         if response.status_code != 200:
             logger.warning("Wikipedia extract returned %s", response.status_code)
             return None
-        return parse_extract_response(response.json())
+        return parse_extract_response(response.json(), sentences)
 
     async def get_wikipedia_extract(self, url: str) -> str | None:
         """Return the first two sentences of a Wikipedia article, or None."""

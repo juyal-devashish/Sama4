@@ -1,18 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BackToStories } from "@/components/shell/BackToStories";
 import { Page } from "@/components/shell/Page";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "About",
-  alternates: { canonical: "/about" },
+  path: "/about",
   description:
     "What Samā4 is, who makes it and how it's built: the news pipeline, entity linking and Claude.",
-};
+});
 
 const LINK = "text-accent-secondary underline underline-offset-2";
 const CONTACT_EMAIL = "djuyal23@gmail.com";
 
-const SECTIONS: { title: string; body: React.ReactNode }[] = [
+const mail = (subject: string) => `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}`;
+
+const SECTIONS: { id?: string; title: string; body: React.ReactNode }[] = [
   {
     title: "What Samā4 is",
     body: (
@@ -27,12 +31,11 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
     title: "Who makes it",
     body: (
       <p>
-        Samā4 is made by Devashish Juyal and Shreyas Methi. Questions, corrections and publisher
-        requests go to{" "}
-        <a href={`mailto:${CONTACT_EMAIL}`} className={LINK}>
-          {CONTACT_EMAIL}
-        </a>
-        .
+        Samā4 is made by Devashish Juyal and Shreyas Methi. See{" "}
+        <a href="#contact" className={LINK}>
+          how to reach us
+        </a>{" "}
+        for corrections and publisher requests.
       </p>
     ),
   },
@@ -64,6 +67,38 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
       </>
     ),
   },
+  {
+    id: "contact",
+    title: "Contact",
+    body: (
+      <>
+        <p>
+          Found a mistake in a summary or an explanation? Use <em>Report an error</em> under the
+          explanation, or write to us.
+        </p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            <a href={mail("Samā4 correction")} className={LINK}>
+              Send a correction
+            </a>
+          </li>
+          <li>
+            <a href={mail("Samā4 publisher request")} className={LINK}>
+              Make a publisher request
+            </a>{" "}
+            (to remove a feed or story)
+          </li>
+        </ul>
+        <p>
+          Both go to{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`} className={LINK}>
+            {CONTACT_EMAIL}
+          </a>
+          .
+        </p>
+      </>
+    ),
+  },
 ];
 
 export default function AboutPage() {
@@ -71,7 +106,7 @@ export default function AboutPage() {
     <Page title="About" description="What Samā4 is, who makes it and how it's built.">
       <div className="max-w-[62ch] space-y-9">
         {SECTIONS.map((s) => (
-          <section key={s.title}>
+          <section key={s.title} id={s.id} className="scroll-mt-6">
             <h2 className="font-editorial text-[24px] leading-tight tracking-[-0.02em]">
               {s.title}
             </h2>
@@ -80,11 +115,7 @@ export default function AboutPage() {
             </div>
           </section>
         ))}
-        <p>
-          <Link href="/" className="label-ui link-ui font-bold text-accent-secondary">
-            Back to today&apos;s stories
-          </Link>
-        </p>
+        <BackToStories />
       </div>
     </Page>
   );

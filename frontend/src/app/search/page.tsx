@@ -19,9 +19,29 @@ import { StoryRow } from "@/components/reader/StoryList";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 import { storyPath } from "@/lib/routes";
 
+/**
+ * The search box is mirrored in the address (?q=), so a search can be shared or reopened.
+ * The address is read after mount, not with useSearchParams: that hook makes a statically
+ * rendered page ship empty until script runs, and the box, heading and hint should be in
+ * the HTML.
+ */
 export default function SearchPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    setQuery(new URLSearchParams(window.location.search).get("q") ?? "");
+    setReady(true);
+  }, []);
+  // Keep ?q= in step with the box, without adding a history entry per keystroke.
+  useEffect(() => {
+    if (!ready) return;
+    const url = new URL(window.location.href);
+    const q = query.trim();
+    if (q) url.searchParams.set("q", q);
+    else url.searchParams.delete("q");
+    if (url.href !== window.location.href) window.history.replaceState(null, "", url);
+  }, [query, ready]);
   const inputRef = useRef<HTMLInputElement>(null);
   const { recent, add, clear } = useRecentSearches();
   // Search runs over the latest stories until semantic search ships on the server.
@@ -51,7 +71,10 @@ export default function SearchPage() {
   };
 
   return (
-    <Page title="Search" description="Find stories by headline, summary or source.">
+    <Page
+      title="Search"
+      description="Find stories by headline, summary, source or a name in the story."
+    >
       <form
         role="search"
         onSubmit={(e) => {
@@ -189,7 +212,7 @@ export default function SearchPage() {
             <ul className="-mx-4 divide-y divide-divider">
               {results.map((s) => (
                 <li key={s.id}>
-                  <StoryRow story={s} onClick={() => open(s.id)} />
+                  <StoryRow story={s} href={storyPath(s.id)} onClick={() => open(s.id)} />
                 </li>
               ))}
             </ul>

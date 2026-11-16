@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import { ArrowUpRight, Loader2, Send, X } from "lucide-react";
 import { useEntityContext } from "@/hooks/useEntityContext";
 import { useExplain } from "@/hooks/useExplain";
+import { useMoreDetail } from "@/hooks/useMoreDetail";
 import { usePrediction } from "@/hooks/usePrediction";
 import { EntityBadge } from "@/components/ui/entity-badge";
 import { Tip } from "@/components/onboarding/Tip";
@@ -23,6 +24,8 @@ interface Props {
   onClose: () => void;
   /** First-run tip about follow-up questions; set while it should show. */
   followUpTip?: FollowUpTip;
+  /** Tell a screen-reader live region what just happened (loading, loaded, failed). */
+  onAnnounce?: (message: string) => void;
 }
 
 /** Explanation of one term, shown in the margin beside the story. */
@@ -39,10 +42,21 @@ export function ContextPanel({
   onOpenArticle,
   onClose,
   followUpTip,
+  onAnnounce,
 }: Props) {
-  const { data, isLoading, isError, refetch } = useEntityContext(term.id);
+  const { data, isLoading, isError, refetch, partialText } = useEntityContext(term.id, articleId);
   const { data: prediction } = usePrediction(articleId);
   const color = entityColor(term.type);
+
+  const name = data?.entity.name ?? term.name;
+  const hasText = !!data?.context.text.trim();
+  useEffect(() => {
+    if (!onAnnounce) return;
+    if (isLoading) onAnnounce(`Loading the explanation of ${name}.`);
+    else if (isError || !data) onAnnounce(`The explanation of ${name} didn't load.`);
+    else if (!hasText) onAnnounce(`No explanation of ${name} is available.`);
+    else onAnnounce(`Explanation of ${name} loaded.`);
+  }, [isLoading, isError, data, hasText, name, onAnnounce]);
 
   return (
     <div className="flex h-full flex-col">
@@ -63,7 +77,17 @@ export function ContextPanel({
       <div className="scroll-thin flex-1 overflow-y-auto px-6 pb-6">
         <h2 className="headline mt-1 text-[30px]">{data?.entity.name ?? term.name}</h2>
 
-        {isLoading ? (
+        {isLoading && partialText ? (
+          // Streaming in: show the text as it is written. The live region is not told
+          // about each piece; it announces once, when the explanation is complete.
+          <p className="mt-4 text-[16.5px] leading-[1.6] text-foreground" aria-busy="true">
+            {partialText}
+            <span
+              className="ml-0.5 inline-block h-[1em] w-[2px] translate-y-[2px] animate-pulse bg-foreground align-baseline"
+              aria-hidden
+            />
+          </p>
+        ) : isLoading ? (
           <div
             className="mt-5 space-y-2.5"
             role="status"
@@ -90,6 +114,7 @@ export function ContextPanel({
                   {data.context.text}
                 </p>
                 <ExplanationSources context={data.context} />
+                <MoreDetail entityId={data.entity.id} articleId={articleId} />
                 <ReportError
                   key={term.id}
                   entityId={data.entity.id}
@@ -207,7 +232,9 @@ const hasWikipedia = (sources: ContextSource[] = []) =>
   sources.some((s) => s.type === "wikipedia" && s.url);
 
 function sourceLabel(s: ContextSource): string {
-  if (s.type === "wikipedia") return "Wikipedia";
+  // The article's own title shows which Wikipedia page the term was matched to, the most
+  // common cause of a wrong explanation (two things with the same name).
+  if (s.type === "wikipedia") return s.title ? `Wikipedia: ${s.title}` : "Wikipedia";
   if (s.type === "article") return s.title ? `“${s.title}”` : "a news story";
   return s.title ?? s.type;
 }
@@ -216,7 +243,7 @@ function sourceLabel(s: ContextSource): string {
  * "Written by Samā4's AI from <story> and Wikipedia, as of Nov 11, 2026." Each source is
  * linked when it has a URL. The stored fallback is Wikipedia's own text, and says so.
  */
-function ExplanationSources({ context }: { context: ContextData }) {
+export function ExplanationSources({ context }: { context: ContextData }) {
   const fromWikipedia = context.source === "wikipedia_extract";
   const sources = fromWikipedia ? [] : (context.sources ?? []);
   const date = formatShortDate(context.generated_at);
@@ -287,6 +314,55 @@ function ExplanationSources({ context }: { context: ContextData }) {
       )}
       .
     </p>
+  );
+}
+
+/** "More detail": a longer explanation, fetched only when the reader asks for it. */
+function MoreDetail({ entityId, articleId }: { entityId: string; articleId: string }) {
+  const [asked, setAsked] = useState(false);
+  const { data, isLoading, isError, refetch } = useMoreDetail(entityId, articleId, asked);
+
+  if (!asked) {
+    return (
+      <button
+        type="button"
+        onClick={() => setAsked(true)}
+        aria-expanded={false}
+        className="label-ui link-ui mt-4 inline-flex items-center gap-1 font-bold text-accent-secondary"
+      >
+        More detail
+      </button>
+    );
+  }
+  return (
+    <section aria-label="More detail" className="mt-5 border-t border-divider pt-4">
+      <h3 className="section-label">More detail</h3>
+      {isLoading ? (
+        <div className="mt-3 space-y-2.5" role="status" aria-label="Loading more detail">
+          <div className="skeleton h-4 w-full" />
+          <div className="skeleton h-4 w-full" />
+          <div className="skeleton h-4 w-4/5" />
+        </div>
+      ) : isError || !data?.text ? (
+        <div className="mt-3 text-[15px] leading-relaxed text-text-secondary">
+          <p>The longer explanation isn&apos;t available right now.</p>
+          <button type="button" onClick={() => refetch()} className="btn-outline mt-3">
+            Try again
+          </button>
+        </div>
+      ) : (
+        <>
+          {data.text.split(/\n{2,}/).map((para, i) => (
+            <p key={i} className="mt-3 text-[15.5px] leading-[1.6] text-foreground">
+              {para}
+            </p>
+          ))}
+          <p className="mt-3 font-ui text-[11.5px] leading-snug text-text-tertiary">
+            Longer explanation, written by AI from the same sources.
+          </p>
+        </>
+      )}
+    </section>
   );
 }
 
@@ -419,6 +495,12 @@ function FollowUp({
               )}
             </div>
           ))}
+          {turns.some((t) => t.a) && (
+            <p className="font-ui text-[11px] leading-snug text-text-tertiary">
+              The small labels after a sentence say where it came from: the article, the
+              explanation, Wikipedia or an outlook.
+            </p>
+          )}
         </div>
       )}
       <form
@@ -450,6 +532,9 @@ function FollowUp({
           <span className="sr-only">Ask</span>
         </button>
       </form>
+      <p className="px-4 pb-3 font-ui text-[11px] leading-snug text-text-tertiary">
+        Your question is sent to Samā4 and to Claude, which writes the answer. It isn&apos;t saved.
+      </p>
     </div>
   );
 }

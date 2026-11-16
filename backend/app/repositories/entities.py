@@ -78,3 +78,30 @@ async def latest_mention(db: AsyncSession, entity: Entity) -> tuple[Article, Art
         )
     ).first()
     return (row[0], row[1]) if row else None
+
+
+async def mention_in_article(
+    db: AsyncSession, entity: Entity, article_id: uuid.UUID
+) -> tuple[Article, ArticleEntity] | None:
+    """The first mention of `entity` in one specific story, or None if it isn't in it."""
+    row = (
+        await db.execute(
+            select(Article, ArticleEntity)
+            .join(ArticleEntity, ArticleEntity.article_id == Article.id)
+            .where(ArticleEntity.entity_id == entity.id, Article.id == article_id)
+            .order_by(ArticleEntity.start_position)
+            .limit(1)
+        )
+    ).first()
+    return (row[0], row[1]) if row else None
+
+
+async def list_people_in_article(db: AsyncSession, article_id: uuid.UUID) -> Sequence[Entity]:
+    """Distinct person entities mentioned in a story."""
+    rows = await db.execute(
+        select(Entity)
+        .join(ArticleEntity, ArticleEntity.entity_id == Entity.id)
+        .where(ArticleEntity.article_id == article_id, Entity.entity_type == "PERSON")
+        .distinct()
+    )
+    return rows.scalars().all()

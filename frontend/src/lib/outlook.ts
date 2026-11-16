@@ -4,12 +4,6 @@ import type { PredictionMethod } from "@/types";
 export const OUTLOOK_DISCLAIMER =
   "AI-generated projection by Samā4. These are estimates of what could happen, not reporting or confirmed events.";
 
-export const CONFIDENCE_HELP =
-  "The model's own rating of its main projection. It is not a measured probability and has not been checked against outcomes.";
-
-export const IMPACT_HELP =
-  "The model's 0–100 estimate of how much the outcome could affect people. It ranks the Outlook list; it does not say how important or true the story is.";
-
 export const REACTION_HELP =
   "Estimated by the model. Not a poll, survey or measurement of real people.";
 

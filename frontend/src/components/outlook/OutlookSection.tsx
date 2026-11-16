@@ -12,8 +12,6 @@ import {
 } from "@/hooks/usePrediction";
 import { RUNNING_PREDICTION_STATES, cn } from "@/lib/utils";
 import {
-  CONFIDENCE_HELP,
-  IMPACT_HELP,
   OUTLOOK_DISCLAIMER,
   PERSONA_HELP,
   REACTION_HELP,
@@ -139,6 +137,11 @@ export function OutlookSection({
             </p>
           )}
         </div>
+      ) : prediction?.declined ? (
+        <p className="mt-3 max-w-[60ch] text-[16.5px] leading-relaxed text-text-secondary">
+          Samā4 doesn&apos;t write outlooks about private individuals, and this story is mainly
+          about someone who isn&apos;t a public figure.
+        </p>
       ) : (
         <div className="mt-3">
           <p className="max-w-[60ch] text-[16.5px] leading-relaxed text-text-secondary">
@@ -160,6 +163,10 @@ export function OutlookSection({
                 ? "Run outlook again"
                 : "Run outlook"}
           </PrimaryButton>
+          <p className="mt-2 max-w-[60ch] font-ui text-[11.5px] leading-snug text-text-tertiary">
+            A finished outlook is saved and shown to other readers on the Outlook page. It contains
+            nothing about you.
+          </p>
           {trigger.isError && (
             <p className="mt-2 font-ui text-[12.5px] text-error">
               The outlook didn&apos;t start. Check the server and try again.
@@ -194,8 +201,6 @@ function OutlookReport({
   basis: OutlookBasis;
 }) {
   const sentiment = parseSentiment(prediction.sentiment_distribution);
-  const confidence =
-    prediction.confidence_score != null ? Math.round(prediction.confidence_score * 100) : null;
   const method = methodSummary(
     prediction.method,
     prediction.agent_count,
@@ -212,15 +217,7 @@ function OutlookReport({
         {prediction.prediction_summary && (
           <p className="drop-cap text-[19px] leading-[1.55]">{prediction.prediction_summary}</p>
         )}
-        <dl className="mt-6 grid gap-x-8 gap-y-5 sm:grid-cols-3">
-          {confidence != null && (
-            <Stat label="Model confidence" value={`${confidence}%`} help={CONFIDENCE_HELP} />
-          )}
-          <Stat
-            label="Impact (estimate)"
-            value={`${Math.round(prediction.impact_score)} / 100`}
-            help={IMPACT_HELP}
-          />
+        <dl className="mt-6">
           <Stat label={method.label} value={method.value} help={method.help} />
         </dl>
       </div>
