@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useStoredValue } from "./storage";
+import { mergeSaved } from "./deviceData";
 import { normalizeOnboarding, reduceOnboarding, type OnboardingEvent } from "./onboarding";
 import type { ArticleCard } from "@/types";
 
@@ -131,7 +132,13 @@ export function useSavedStories() {
     [setSaved],
   );
 
-  return { saved, isSaved, toggle, remove, restore };
+  /** Add stories from an exported file, keeping the reader's own copy of any already saved. */
+  const addMany = useCallback(
+    (stories: SavedStory[]) => setSaved((prev) => mergeSaved(prev, stories)),
+    [setSaved],
+  );
+
+  return { saved, isSaved, toggle, remove, restore, addMany };
 }
 
 // ---------- Recent searches ----------

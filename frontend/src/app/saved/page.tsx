@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Bookmark, X } from "lucide-react";
 import { useSavedStories, type SavedStory } from "@/lib/preferences";
+import { exportSaved, parseSavedImport } from "@/lib/deviceData";
 import { Page } from "@/components/shell/Page";
 import { EmptyState } from "@/components/ui/states";
 import { StoryImage } from "@/components/ui/story-image";
@@ -12,7 +13,8 @@ import { PublishedTime } from "@/components/ui/published-time";
 import { storyPath } from "@/lib/routes";
 
 export default function SavedPage() {
-  const { saved, remove, restore } = useSavedStories();
+  const { saved, remove, restore, addMany } = useSavedStories();
+  const [importNote, setImportNote] = useState<{ text: string; error: boolean } | null>(null);
   const [removed, setRemoved] = useState<SavedStory | null>(null);
   const undoRef = useRef<HTMLButtonElement>(null);
 
@@ -21,13 +23,67 @@ export default function SavedPage() {
     if (removed) undoRef.current?.focus();
   }, [removed]);
 
+  const download = () => {
+    const url = URL.createObjectURL(new Blob([exportSaved(saved)], { type: "application/json" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sama4-saved-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const upload = async (file: File | undefined) => {
+    if (!file) return;
+    const result = parseSavedImport(await file.text());
+    if (!result.ok) return setImportNote({ text: result.error, error: true });
+    const before = saved.length;
+    const known = new Set(saved.map((s) => s.id));
+    const fresh = result.stories.filter((s) => !known.has(s.id)).length;
+    addMany(result.stories);
+    setImportNote({
+      text:
+        fresh === 0
+          ? "Nothing new: those stories are already saved."
+          : `Added ${fresh} ${fresh === 1 ? "story" : "stories"} (${before + fresh} saved now).`,
+      error: false,
+    });
+  };
+
   return (
     <Page
       title="Saved"
-      description={
-        saved.length > 0 ? "Stories you kept for later. They stay on this computer." : undefined
+      description="Stories you kept for later. They are saved on this device only: move them to another browser with Export and Import."
+      actions={
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={download}
+            disabled={saved.length === 0}
+            className="btn-outline"
+          >
+            Export
+          </button>
+          <label className="btn-outline cursor-pointer focus-within:outline focus-within:outline-2">
+            Import
+            <input
+              type="file"
+              accept="application/json,.json"
+              className="sr-only"
+              onChange={(e) => {
+                void upload(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+          </label>
+        </div>
       }
     >
+      <p
+        role="status"
+        className={`empty:hidden mb-4 text-[15px] ${importNote?.error ? "text-error" : "text-text-secondary"}`}
+      >
+        {importNote?.text}
+      </p>
       <div role="status" className="empty:hidden">
         {removed && (
           <div className="mb-4 flex items-center gap-3 border-y border-foreground bg-background-secondary px-4 py-2.5 text-[15px]">
@@ -47,8 +103,16 @@ export default function SavedPage() {
         )}
       </div>
       {saved.length === 0 ? (
-        <EmptyState icon={Bookmark} title="Nothing saved yet">
-          Select Save above any story, or press S while reading, to keep it here.
+        <EmptyState
+          icon={Bookmark}
+          title="Nothing saved yet"
+          action={
+            <Link href="/" className="btn-ink">
+              Go to today&apos;s stories
+            </Link>
+          }
+        >
+          Select Save above a story to keep it here.
         </EmptyState>
       ) : (
         <ul className="divide-y divide-divider border-b border-border">
