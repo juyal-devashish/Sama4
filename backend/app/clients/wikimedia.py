@@ -31,6 +31,28 @@ class WikipediaPage:
         return f"https://en.wikipedia.org/w/index.php?oldid={self.revision_id}"
 
 
+@dataclass(frozen=True)
+class WikidataCandidate:
+    """One Wikidata search hit: what a term might refer to."""
+
+    id: str
+    label: str
+    description: str
+
+
+def parse_search_response(data: dict) -> list[WikidataCandidate]:
+    """Search hits in Wikidata's order, without disambiguation pages (never a real answer)."""
+    hits = []
+    for r in data.get("search") or []:
+        description = r.get("description") or ""
+        if "disambiguation page" in description.lower():
+            continue
+        hits.append(
+            WikidataCandidate(id=r["id"], label=r.get("label") or "", description=description)
+        )
+    return hits
+
+
 def title_from_url(url: str) -> str:
     """ "https://en.wikipedia.org/wiki/Caf%C3%A9" -> "Café" (the API wants it decoded)."""
     return unquote(url.split("/wiki/")[-1].split("#")[0])
@@ -86,6 +108,24 @@ class WikimediaClient:
             return None
         results = response.json().get("search")
         return results[0]["id"] if results else None
+
+    async def search_candidates(self, text: str, limit: int = 7) -> list[WikidataCandidate]:
+        """What `text` might refer to, most popular first. The top hit is often not what a
+        news story means ("ICE" is first a German train), so callers choose among these."""
+        response = await self._http.get(
+            WIKIDATA_API,
+            params={
+                "action": "wbsearchentities",
+                "search": text,
+                "language": "en",
+                "format": "json",
+                "limit": limit,
+            },
+        )
+        if response.status_code != 200:
+            logger.warning("Wikidata search returned %s for %r", response.status_code, text)
+            return []
+        return parse_search_response(response.json())
 
     async def get_wikipedia_url(self, wikidata_id: str) -> str | None:
         """Return the English Wikipedia URL for a Wikidata id, or None."""

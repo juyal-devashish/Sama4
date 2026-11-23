@@ -9,7 +9,8 @@ from pydantic import BaseModel
 from app.api.deps import AdminOnly, ContainerDep, DbSession
 from app.clients.counters import UsageCounters
 from app.ingestion import canonicalize as entity_cleanup
-from app.ingestion import jobs
+from app.ingestion import jobs, relink
+from app.ingestion.linker import EntityLinker
 from app.repositories import prediction_log as prediction_log_repo
 from app.repositories import reports as report_repo
 from app.schemas.context import ReportOut
@@ -127,6 +128,46 @@ async def canonicalize_entities(
             status.HTTP_500_INTERNAL_SERVER_ERROR, "Entity cleanup failed; nothing was changed."
         ) from exc
     return EntityCleanupResponse(**vars(report))
+
+
+class RelinkResponse(BaseModel):
+    stories: int
+    entities: int
+    changed: int
+    unchanged: int
+    unanswered: int
+    cache_keys_cleared: int
+    dry_run: bool
+    changes: list[str]
+
+
+@router.post("/entities/relink", response_model=RelinkResponse)
+async def relink_entities(
+    db: DbSession,
+    c: ContainerDep,
+    stories: int = Query(30, ge=1, le=200),
+    dry_run: bool = True,
+) -> RelinkResponse:
+    """Re-choose the Wikipedia page of every term in the newest `stories` stories.
+
+    Fixes links made from Wikidata's top hit ("ICE" as a German train). Claude picks the
+    page each story means, or none. Dry run by default (lists the first 100 changes);
+    dry_run=false writes the new links and extracts and clears the cached explanations
+    that cited the old page. A term left with no page shows "Not explained yet" on
+    References until its explanation is opened.
+    """
+    linker = EntityLinker(c.wikimedia, c.llm)
+    if not c.llm.available:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Re-linking needs Claude.")
+    try:
+        report = await relink.relink_entities(db, linker, c.cache, stories=stories, dry_run=dry_run)
+    except Exception as exc:
+        logger.error("Entity relink failed", exc_info=True)
+        await db.rollback()
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "Relink failed; nothing was changed."
+        ) from exc
+    return RelinkResponse(**vars(report))
 
 
 @router.get("/reports", response_model=list[ReportOut])

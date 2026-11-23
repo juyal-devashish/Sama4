@@ -11,7 +11,7 @@ from app.clients.llm import StreamEnd
 from app.clients.mirofish import MirofishClient
 from app.clients.pages import PageContent
 from app.clients.usage import DailyBudgetExceeded
-from app.clients.wikimedia import WikipediaPage
+from app.clients.wikimedia import WikidataCandidate, WikipediaPage
 from app.config import Settings
 from app.container import Container
 
@@ -81,6 +81,9 @@ class FakeWikimedia:
 
     async def search_wikidata(self, text: str) -> str | None:
         return None
+
+    async def search_candidates(self, text: str, limit: int = 7) -> list[WikidataCandidate]:
+        return []
 
     async def get_wikipedia_url(self, wikidata_id: str) -> str | None:
         return None

@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import delete, func, select, text
+from sqlalchemy import delete, func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import IS_SQLITE
@@ -31,10 +31,21 @@ class FeedRow:
     entity_names: list[str] = field(default_factory=list)
 
 
+def _has_something_to_read():
+    """The story has text or a brief. One with neither is an empty page in the reader."""
+    return or_(
+        func.length(func.coalesce(Article.cleaned_content, "")) > 0,
+        func.length(func.coalesce(Article.raw_content, "")) > 0,
+        func.length(func.coalesce(Article.summary, "")) > 0,
+    )
+
+
 async def list_feed(
     db: AsyncSession, *, page: int, limit: int, category: str | None = None
 ) -> tuple[list[FeedRow], int]:
     """Completed articles with their entity counts. Returns (rows, total).
+
+    Stories with no text and no brief are left out: the outlet gave us nothing to show.
 
     Newest scrape first: the latest nightly run's stories (grouped by the UTC day they
     were stored) sit on top, newest-published first within that day. Articles with no
@@ -49,7 +60,7 @@ async def list_feed(
         select(Article, Source, func.coalesce(entity_counts.c.n, 0))
         .join(Source, Article.source_id == Source.id, isouter=True)
         .join(entity_counts, entity_counts.c.article_id == Article.id, isouter=True)
-        .where(Article.processing_status == STATUS_COMPLETED)
+        .where(Article.processing_status == STATUS_COMPLETED, _has_something_to_read())
         .order_by(
             func.date(Article.created_at).desc(),
             Article.published_at.desc().nulls_last(),

@@ -67,7 +67,7 @@ class IngestionPipeline:
         self.dedup = DeduplicationService()
         self.cleaner = CleanerService()
         self.ner = NERService(llm=container.llm)
-        self.linker = EntityLinker(container.wikimedia)
+        self.linker = EntityLinker(container.wikimedia, container.llm)
         self.summarizer = SummarizerService(container.llm)
         self.ranker = StoryRanker(
             container.llm,
@@ -271,7 +271,9 @@ class IngestionPipeline:
         extracted = await self.ner.extract_entities_hybrid(
             cleaned, article.title, categories=categories
         )
-        for linked in await self.linker.link_entities(extracted):
+        for linked in await self.linker.link_entities(
+            extracted, content=cleaned, title=article.title
+        ):
             # The reader highlights cleaned_content[start:end]; never store a miss.
             if not is_aligned(cleaned, linked.text, linked.start, linked.end):
                 logger.warning(

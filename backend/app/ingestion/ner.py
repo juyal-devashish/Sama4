@@ -430,16 +430,26 @@ def canonical_mention(text: str, content: str) -> str:
     return base if plain.search(content) else text
 
 
+def _is_word_char(char: str) -> bool:
+    return char.isalnum() or char == "_"
+
+
 def is_aligned(content: str, text: str, start: int, end: int) -> bool:
-    """True when content[start:end] is `text` (ignoring case), i.e. safe to highlight."""
-    return 0 <= start < end <= len(content) and content[start:end].lower() == text.lower()
+    """True when content[start:end] is `text` (ignoring case), i.e. safe to highlight.
+
+    The span may not begin in the middle of a word: "ICE" inside "officers" is not ICE.
+    """
+    if not (0 <= start < end <= len(content)) or content[start:end].lower() != text.lower():
+        return False
+    return start == 0 or not (_is_word_char(text[0]) and _is_word_char(content[start - 1]))
 
 
 def locate_mention(content: str, text: str, hint: int | None = None) -> tuple[int, int] | None:
     """Find [start, end) of `text` in `content`, or None if it isn't there.
 
     Uses `hint` when the text really is at that offset; otherwise searches, preferring an
-    exact-case whole-word match, then case-insensitive, then a match inside a longer word.
+    exact-case whole-word match, then case-insensitive, then the start of a longer word
+    ("Democrat" in "Democrats"). A match never begins in the middle of a word.
     """
     if not text:
         return None
@@ -450,7 +460,7 @@ def locate_mention(content: str, text: str, hint: int | None = None) -> tuple[in
     for pattern, flags in (
         (whole_word, 0),
         (whole_word, re.IGNORECASE),
-        (escaped, re.IGNORECASE),
+        (rf"(?<!\w){escaped}", re.IGNORECASE),
     ):
         match = re.search(pattern, content, flags)
         if match and is_aligned(content, text, match.start(), match.end()):
