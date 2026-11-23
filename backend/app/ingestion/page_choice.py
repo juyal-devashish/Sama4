@@ -62,7 +62,7 @@ def _prompt(batch: list[TermToLink]) -> str:
         )
     return (
         "\n\n".join(blocks)
-        + '\n\nReturn one JSON object mapping each term key to the chosen id or null, e.g. '
+        + "\n\nReturn one JSON object mapping each term key to the chosen id or null, e.g. "
         '{"t1": "Q458", "t2": null}.'
     )
 
@@ -111,6 +111,8 @@ async def choose_pages(llm: LLMClient, terms: list[TermToLink]) -> dict[str, str
             break
         found = _parse(raw, batch)
         if len(found) < len(batch):
-            logger.warning("Page choice: %d of %d terms unanswered", len(batch) - len(found), len(batch))
+            logger.warning(
+                "Page choice: %d of %d terms unanswered", len(batch) - len(found), len(batch)
+            )
         answers.update(found)
     return answers

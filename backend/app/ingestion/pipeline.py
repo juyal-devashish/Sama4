@@ -271,7 +271,9 @@ class IngestionPipeline:
         extracted = await self.ner.extract_entities_hybrid(
             cleaned, article.title, categories=categories
         )
-        for linked in await self.linker.link_entities(extracted, content=cleaned, title=article.title):
+        for linked in await self.linker.link_entities(
+            extracted, content=cleaned, title=article.title
+        ):
             # The reader highlights cleaned_content[start:end]; never store a miss.
             if not is_aligned(cleaned, linked.text, linked.start, linked.end):
                 logger.warning(

@@ -89,7 +89,11 @@ class EntityLinker:
         found = await asyncio.gather(*(lookup(e) for e, _ in pairs))
         terms = [
             TermToLink(
-                key=f"t{i}", text=e.text, type=e.type, headline=headline, context=ctx,
+                key=f"t{i}",
+                text=e.text,
+                type=e.type,
+                headline=headline,
+                context=ctx,
                 candidates=cands,
             )  # fmt: skip
             for i, ((e, ctx), cands) in enumerate(zip(pairs, found, strict=True))

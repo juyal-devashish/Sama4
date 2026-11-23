@@ -47,7 +47,9 @@ def parse_search_response(data: dict) -> list[WikidataCandidate]:
         description = r.get("description") or ""
         if "disambiguation page" in description.lower():
             continue
-        hits.append(WikidataCandidate(id=r["id"], label=r.get("label") or "", description=description))
+        hits.append(
+            WikidataCandidate(id=r["id"], label=r.get("label") or "", description=description)
+        )
     return hits
 
 

@@ -56,6 +56,34 @@ async def get_or_create(
     return entity
 
 
+async def mentions_in_newest_stories(
+    db: AsyncSession, stories: int
+) -> list[tuple[Entity, Article, ArticleEntity]]:
+    """Every mention in the `stories` newest completed stories, newest story first."""
+    newest = (
+        select(Article.id)
+        .where(Article.processing_status == "completed")
+        .order_by(Article.created_at.desc())
+        .limit(stories)
+    )
+    rows = await db.execute(
+        select(Entity, Article, ArticleEntity)
+        .join(ArticleEntity, ArticleEntity.entity_id == Entity.id)
+        .join(Article, Article.id == ArticleEntity.article_id)
+        .where(Article.id.in_(newest))
+        .order_by(Article.created_at.desc(), ArticleEntity.start_position)
+    )
+    return [(e, a, m) for e, a, m in rows.all()]
+
+
+async def article_ids_mentioning(db: AsyncSession, entity_id: uuid.UUID) -> list[uuid.UUID]:
+    """Every story `entity_id` is highlighted in."""
+    rows = await db.execute(
+        select(ArticleEntity.article_id).where(ArticleEntity.entity_id == entity_id).distinct()
+    )
+    return list(rows.scalars().all())
+
+
 async def list_mentions_with_content(db: AsyncSession) -> Sequence[tuple[ArticleEntity, str]]:
     """Every stored mention with its article's cleaned_content (the text it highlights)."""
     rows = await db.execute(
