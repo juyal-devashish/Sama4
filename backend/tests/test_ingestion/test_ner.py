@@ -416,6 +416,14 @@ class TestLocateMention:
         assert locate_mention(content, "ICE") is None
         assert not is_aligned(content, "ICE", start, start + 3)
 
+    def test_a_unit_right_after_a_number_is_still_found(self):
+        content = "Law requires 25Mbps home Internet."
+        assert locate_mention(content, "Mbps") == (15, 19)
+
+    def test_never_matches_inside_a_contraction_or_word(self):
+        assert locate_mention("Scientists haven’t endorsed it.", "n’t") is None
+        assert locate_mention("Kelp in a warming climate.", "mate") is None
+
     def test_still_matches_the_start_of_a_longer_word(self):
         content = "The Democrats won the House."
         assert locate_mention(content, "Democrat") == (4, 12)
