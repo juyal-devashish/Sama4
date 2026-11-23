@@ -30,6 +30,7 @@ async def test_feed_lists_completed_articles_newest_first_with_entity_counts(cli
     assert body["articles"][1]["entity_names"] == []
     assert body["articles"][1]["entity_count"] == 0
     assert body["articles"][0]["source"]["name"] == "BBC"
+    assert body["articles"][0]["feed_text"] == "Some article text."  # shown when there's no brief
     assert body["pagination"] == {"page": 1, "limit": 20, "total": 2, "has_next": False}
     assert str(old.id) == body["articles"][1]["id"]
 

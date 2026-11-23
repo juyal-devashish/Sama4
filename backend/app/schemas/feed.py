@@ -15,6 +15,9 @@ class ArticleCard(BaseModel):
     id: uuid.UUID
     title: str
     summary: str | None = None
+    # The publisher's own description from its feed, unaltered. Cards show it when a story
+    # has no brief (`summary`).
+    feed_text: str | None = None
     image_url: str | None = None
     source: ArticleCardSource
     published_at: datetime | None = None

@@ -23,6 +23,7 @@ async def get_feed(
                 id=r.article.id,
                 title=r.article.title,
                 summary=r.article.summary,
+                feed_text=r.article.cleaned_content or r.article.raw_content,
                 image_url=r.article.image_url,
                 source=ArticleCardSource(name=r.source.name if r.source else "Unknown"),
                 published_at=r.article.published_at,

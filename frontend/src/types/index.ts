@@ -9,6 +9,8 @@ export interface ArticleCard {
   id: string;
   title: string;
   summary?: string;
+  /** The publisher's own description from its feed; cards show it when there's no brief. */
+  feed_text?: string;
   image_url?: string;
   source: ArticleCardSource;
   published_at?: string;
