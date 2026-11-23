@@ -47,10 +47,13 @@ async def test_regenerate_endpoint_schedules_job(client, container):
     regen.assert_awaited_once_with(container)
 
 
+FEED_TEXT = " ".join(["word"] * 40) + "."  # long enough for a brief
+
+
 async def test_regenerate_summaries_rewrites_and_keeps_old_on_empty(container, db_session):
     async with db_session() as db:
-        ok = await make_article(db, title="Ok", content="Text one.", summary="old 1")
-        empty = await make_article(db, title="Empty", content="Text two.", summary="old 2")
+        ok = await make_article(db, title="Ok", content=FEED_TEXT, summary="old 1")
+        empty = await make_article(db, title="Empty", content=FEED_TEXT, summary="old 2")
         await db.commit()
     container.llm.replies = {"<headline>Empty</headline>": ""}
     container.llm.default = "new summary"
@@ -62,6 +65,21 @@ async def test_regenerate_summaries_rewrites_and_keeps_old_on_empty(container, d
         rows = {a.id: a.summary for a in (await db.execute(select(Article))).scalars()}
     assert rows[ok.id] == "new summary"
     assert rows[empty.id] == "old 2"
+
+
+async def test_regenerate_summaries_clears_briefs_of_short_feed_text(container, db_session):
+    async with db_session() as db:
+        short = await make_article(
+            db, title="Short", content="The deal is a choice.", summary="…agreed on Friday is a…"
+        )
+        await db.commit()
+
+    updated, total = await jobs.regenerate_summaries(container)
+
+    assert (updated, total) == (1, 1)
+    assert container.llm.calls == []
+    async with db_session() as db:
+        assert (await db.get(Article, short.id)).summary is None
 
 
 POSNER = "He was the most-cited legal scholar. Richard Posner served on the Seventh Circuit."
@@ -183,7 +201,7 @@ async def test_enrich_articles_backfills_image_excerpt_and_rebuilds_mentions(
         gone = await make_article(db, source=src, title="Gone", content="Page is down.")
         await db.commit()
     _allow_page_reading(monkeypatch, src.feed_url)
-    long_text = "Shares of Nvidia rose sharply on Tuesday after earnings beat forecasts."
+    long_text = "Shares of Nvidia rose sharply on Tuesday after earnings beat forecasts. " * 4
     container.pages.pages = {
         teaser.url: PageContent(image_url="https://cdn.test/a.jpg", text=long_text, word_count=750),
         pic_only.url: PageContent(image_url="https://cdn.test/b.jpg", text="", word_count=0),

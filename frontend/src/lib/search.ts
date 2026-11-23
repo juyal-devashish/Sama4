@@ -24,6 +24,7 @@ function matchesQuery(a: ArticleCard, q: string): boolean {
   return (
     a.title.toLowerCase().includes(q) ||
     (a.summary ?? "").toLowerCase().includes(q) ||
+    (a.feed_text ?? "").toLowerCase().includes(q) ||
     a.source.name.toLowerCase().includes(q) ||
     (a.entity_names ?? []).some((n) => n.toLowerCase().includes(q))
   );

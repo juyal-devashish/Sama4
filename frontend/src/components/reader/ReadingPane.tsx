@@ -19,7 +19,7 @@ import { useArticle } from "@/hooks/useArticle";
 import { usePanelFocus } from "@/hooks/usePanelFocus";
 import { useOnboarding, useSavedStories, TOPIC_LABELS } from "@/lib/preferences";
 import { eligibleHint } from "@/lib/onboarding";
-import { cn, displaySummary } from "@/lib/utils";
+import { cn, displaySummary, possessive } from "@/lib/utils";
 import { PublishedTime } from "@/components/ui/published-time";
 import { ErrorState } from "@/components/ui/states";
 import { StoryImage } from "@/components/ui/story-image";
@@ -314,6 +314,7 @@ function Story({
       id: article.id,
       title: article.title,
       summary: article.summary,
+      feed_text: article.content,
       image_url: article.image_url,
       published_at: article.published_at,
       reading_time_minutes: article.reading_time_minutes,
@@ -327,7 +328,7 @@ function Story({
     try {
       await navigator.share({
         title: article.title,
-        text: article.summary ?? undefined,
+        text: article.summary || article.content || undefined,
         url: `${window.location.origin}${storyPath(article.id)}`,
       });
     } catch {
@@ -496,7 +497,8 @@ function Story({
               id="summary-note"
               className="mt-1 font-ui text-[11.5px] leading-snug text-text-tertiary"
             >
-              AI summary written by Samā4 from the article. Check the original for detail.
+              AI summary written by Samā4 from {possessive(article.source.name)} description. Check
+              the original for detail.
             </p>
             <p data-explainable className="mt-3 text-[17px] leading-[1.6] text-foreground">
               <MatchedText
@@ -516,13 +518,14 @@ function Story({
           className="mt-10 text-[19px] leading-[1.7] text-foreground"
         >
           <h2 id="body-label" className="section-label">
-            From {article.source.name}
+            {possessive(article.source.name)} description
           </h2>
           <p
             id="body-note"
             className="mb-5 mt-1 font-ui text-[11.5px] leading-snug text-text-tertiary"
           >
-            As published by {article.source.name}. Samā4 adds the highlights.
+            {possessive(article.source.name)} own description of this story, unaltered. Samā4 adds
+            the highlights.
           </p>
           {article.content ? (
             <ArticleBody
@@ -530,7 +533,6 @@ function Story({
               entities={article.entities}
               activeId={term?.id}
               onSelect={select}
-              dropCap
             />
           ) : (
             <p className="text-[16px] text-text-secondary">
@@ -544,7 +546,7 @@ function Story({
               rel="noopener noreferrer"
               className="btn-ink mt-6 px-4 py-2.5 text-[11px]"
             >
-              Continue reading at {article.source.name}
+              Read the full story at {article.source.name}
               <ArrowUpRight size={13} aria-hidden />
               <span className="sr-only">(opens in a new tab)</span>
             </a>

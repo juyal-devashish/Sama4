@@ -104,7 +104,7 @@ export const LANDING_MARKUP = `<section class="hero">
         <span class="step-num"></span>
         <div class="step-body">
           <h3>Open today&rsquo;s edition</h3>
-          <p>Each night Samā4 picks the most consequential stories and writes a short, neutral summary of each.</p>
+          <p>Each night Samā4 picks the most consequential stories and writes a short, neutral brief where the publisher&rsquo;s description gives enough to summarise.</p>
         </div>
       </div>
       <div class="step">

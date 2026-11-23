@@ -136,14 +136,20 @@ const ABBREVIATIONS = new Set(
 );
 const INITIALISM = /^(?:[A-Za-z]\.)+[A-Za-z]?\.?$/;
 
+/** "BBC’s", but "Reuters’" and "The New York Times’". */
+export function possessive(name: string): string {
+  return /s$/i.test(name) ? `${name}’` : `${name}’s`;
+}
+
 /**
- * A summary worth showing, or null. Summaries written before the backend learned about
- * abbreviations can be cut to a fragment ("Existing U.S.", "…and Louisiana Gov."): hide
- * those, and anything too short to say what the story is.
+ * A brief worth showing, or null. Briefs written before the backend kept to whole
+ * sentences can be cut mid-sentence ("…agreed on Friday is a…", "Existing U.S.",
+ * "…and Louisiana Gov."): hide those, and anything too short to say what the story is.
  */
 export function displaySummary(summary: string | null | undefined): string | null {
   const text = summary?.trim();
   if (!text || text.length < 40) return null;
+  if (text.endsWith("…") || text.endsWith("...")) return null;
   const last = text.split(/\s+/).pop() ?? "";
   if (
     last.endsWith(".") &&

@@ -70,7 +70,8 @@ export const StoryRow = forwardRef<
     priority?: boolean;
   }
 >(function StoryRow({ story, href, selected, onClick, dense, isNew, priority }, ref) {
-  const summary = displaySummary(story.summary);
+  // The brief, or else the publisher's own description (stories with short feed text have no brief).
+  const summary = displaySummary(story.summary) ?? (story.feed_text?.trim() || null);
   return (
     <a
       ref={ref}

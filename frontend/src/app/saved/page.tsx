@@ -130,9 +130,9 @@ export default function SavedPage() {
                   <h2 className="mt-1.5 font-editorial text-[24px] leading-[1.08] tracking-[-0.025em] group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">
                     {s.title}
                   </h2>
-                  {displaySummary(s.summary) && (
+                  {(displaySummary(s.summary) || s.feed_text) && (
                     <p className="mt-2 line-clamp-2 text-[15px] leading-[1.4] text-text-secondary">
-                      {displaySummary(s.summary)}
+                      {displaySummary(s.summary) || s.feed_text}
                     </p>
                   )}
                 </div>

@@ -16,7 +16,7 @@ from app.database import async_session
 from app.ingestion.blocklist import is_blocked, parse_domains
 from app.ingestion.ner import is_aligned, locate_mention
 from app.ingestion.pipeline import IngestionPipeline
-from app.ingestion.summarizer import SummarizerService
+from app.ingestion.summarizer import SummarizerService, wants_brief
 from app.models.article import Article
 from app.models.entity import ArticleEntity
 from app.models.prediction import RUNNING_STATUSES, STATUS_FAILED, STATUS_QUEUED, Prediction
@@ -55,8 +55,9 @@ async def run_ingestion(container: Container) -> int:
 async def regenerate_summaries(container: Container) -> tuple[int, int]:
     """Rewrite every Article.summary with the current prompt. Returns (updated, total).
 
-    Only the summary column changes. Articles with no text, or where Claude
-    returns nothing, keep their old summary.
+    Only the summary column changes. A story whose text is too short for a brief
+    (`wants_brief`) has its summary cleared. Articles with no text, or where Claude
+    returns nothing usable, keep their old summary.
     """
     summarizer = SummarizerService(container.llm)
     sem = asyncio.Semaphore(SUMMARY_CONCURRENCY)
@@ -68,6 +69,10 @@ async def regenerate_summaries(container: Container) -> tuple[int, int]:
                 text = article.cleaned_content or article.raw_content or ""
                 if not text:
                     return False
+                if not wants_brief(len(text.split())):
+                    changed = article.summary is not None
+                    article.summary = None
+                    return changed
                 async with sem:
                     new = await summarizer.summarize(text, title=article.title)
                 if not new:

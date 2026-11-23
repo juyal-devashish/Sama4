@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   displaySummary,
+  possessive,
   formatFullDate,
   formatLongDate,
   formatWeekday,
@@ -81,6 +82,14 @@ describe("metaDescription", () => {
   });
 });
 
+describe("possessive", () => {
+  it("adds ’s, or only ’ after a final s", () => {
+    expect(possessive("BBC")).toBe("BBC’s");
+    expect(possessive("Reuters")).toBe("Reuters’");
+    expect(possessive("The New York Times")).toBe("The New York Times’");
+  });
+});
+
 describe("displaySummary", () => {
   it("hides fragments cut at an abbreviation", () => {
     expect(displaySummary("Existing U.S.")).toBeNull();
@@ -95,12 +104,20 @@ describe("displaySummary", () => {
     expect(displaySummary("Markets fell.")).toBeNull();
   });
 
-  it("keeps whole sentences, including ones ending in an ellipsis", () => {
+  it("keeps whole sentences", () => {
     const s = "The Fed held rates steady on Wednesday and signalled two cuts next year.";
     expect(displaySummary(`  ${s} `)).toBe(s);
-    expect(displaySummary("The Senate passed the bill late on Tuesday with more than…")).toBe(
-      "The Senate passed the bill late on Tuesday with more than…",
-    );
+  });
+
+  it("hides briefs cut mid-sentence", () => {
+    expect(
+      displaySummary(
+        "Prime Minister Burnham will tell MPs that the EU deal agreed on Friday is a…",
+      ),
+    ).toBeNull();
+    expect(
+      displaySummary("The Senate passed the bill late on Tuesday with more than..."),
+    ).toBeNull();
   });
 });
 
