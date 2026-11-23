@@ -399,8 +399,8 @@ test("publisher text and Samā4-generated text are labelled", async ({ page }) =
     /^AI summary written by Samā4/,
     { timeout: 10_000 },
   );
-  await expect(page.getByRole("region", { name: /^From / })).toHaveAccessibleDescription(
-    /^As published by .+\. Samā4 adds the highlights\.$/,
+  await expect(page.getByRole("region", { name: /’s description$/ })).toHaveAccessibleDescription(
+    /^.+’s own description of this story, unaltered\. Samā4 adds the highlights\.$/,
   );
   await page.locator(".term").first().click();
   // Names its sources (none in these fixtures) and the date it was written.

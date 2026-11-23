@@ -496,7 +496,8 @@ function Story({
               id="summary-note"
               className="mt-1 font-ui text-[11.5px] leading-snug text-text-tertiary"
             >
-              AI summary written by Samā4 from the article. Check the original for detail.
+              AI summary written by Samā4 from {article.source.name}&rsquo;s description. Check the
+              original for detail.
             </p>
             <p data-explainable className="mt-3 text-[17px] leading-[1.6] text-foreground">
               <MatchedText
@@ -516,13 +517,14 @@ function Story({
           className="mt-10 text-[19px] leading-[1.7] text-foreground"
         >
           <h2 id="body-label" className="section-label">
-            From {article.source.name}
+            {article.source.name}&rsquo;s description
           </h2>
           <p
             id="body-note"
             className="mb-5 mt-1 font-ui text-[11.5px] leading-snug text-text-tertiary"
           >
-            As published by {article.source.name}. Samā4 adds the highlights.
+            {article.source.name}&rsquo;s own description of this story, unaltered. Samā4 adds the
+            highlights.
           </p>
           {article.content ? (
             <ArticleBody
@@ -530,7 +532,6 @@ function Story({
               entities={article.entities}
               activeId={term?.id}
               onSelect={select}
-              dropCap
             />
           ) : (
             <p className="text-[16px] text-text-secondary">
@@ -544,7 +545,7 @@ function Story({
               rel="noopener noreferrer"
               className="btn-ink mt-6 px-4 py-2.5 text-[11px]"
             >
-              Continue reading at {article.source.name}
+              Read the full story at {article.source.name}
               <ArrowUpRight size={13} aria-hidden />
               <span className="sr-only">(opens in a new tab)</span>
             </a>
