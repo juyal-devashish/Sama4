@@ -103,3 +103,20 @@ def test_cache_keys_match_the_context_service():
     assert ContextService.cache_key(E(), "a1") in keys  # type: ignore[arg-type]
     more = ContextService.cache_key(E(), "a1").replace("context:entity:", "context:entity-more:")  # type: ignore[arg-type]
     assert more in keys
+
+
+async def test_wikimedia_refusing_is_no_answer_and_keeps_the_link(client, container, db_session):
+    # Live, a burst of lookups got HTTP 429; that must never read as "no page fits".
+    for refused in ({"ICE"}, {"Q943091"}):
+        _article, ice = (
+            await _seed(db_session) if refused == {"ICE"} else (None, await _ice(db_session))
+        )
+        container.wikimedia = Wikidata(ICE_HITS)
+        container.wikimedia.refuse = refused
+        container.llm.default = json.dumps({str(ice.id): "Q943091"})
+
+        response = await client.post(URL, headers=ADMIN, params={"dry_run": "false"})
+
+        body = response.json()
+        assert (body["changed"], body["unanswered"]) == (0, 1)
+        assert (await _ice(db_session)).wikipedia_url == TRAIN

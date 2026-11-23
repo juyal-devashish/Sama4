@@ -9,7 +9,11 @@ story, so "Paris" keeps the page chosen for the first story that mentioned it; t
 
 import json
 
-from app.clients.wikimedia import WikidataCandidate, parse_search_response
+from app.clients.wikimedia import (
+    WikidataCandidate,
+    WikimediaUnavailableError,
+    parse_search_response,
+)
 from app.ingestion.linker import EntityLinker
 from app.ingestion.ner import ExtractedEntity
 from app.repositories import entities as entity_repo
@@ -28,15 +32,20 @@ class Wikidata:
         # text -> [(wikidata id, wikipedia url, description)]
         self.hits = hits
         self.searches: list[str] = []
+        self.refuse: set[str] = set()  # search texts or ids Wikimedia keeps refusing (429)
 
     async def search_candidates(self, text: str, limit: int = 7) -> list[WikidataCandidate]:
         self.searches.append(text)
+        if text in self.refuse:
+            raise WikimediaUnavailableError("429")
         return [
             WikidataCandidate(id=i, label=u.rsplit("/", 1)[-1], description=d or "")
             for i, u, d in self.hits.get(text, [])
         ][:limit]
 
     async def get_wikipedia_url(self, wikidata_id: str) -> str | None:
+        if wikidata_id in self.refuse:
+            raise WikimediaUnavailableError("429")
         return next((u for hs in self.hits.values() for i, u, _d in hs if i == wikidata_id), None)
 
     async def get_wikipedia_extract(self, url: str) -> str | None:
@@ -165,3 +174,23 @@ async def test_the_same_name_with_a_different_type_stays_separate(db_session):
         country = await entity_repo.get_or_create(db, name="Jordan", entity_type="LOCATION")
 
     assert person.id != country.id  # type is the only thing that tells same names apart today
+
+
+async def test_a_refused_lookup_keeps_the_term_highlighted_with_no_page():
+    wikidata = Wikidata(ICE_HITS)
+    wikidata.refuse = {"ICE"}
+    linker = EntityLinker(wikidata, claude_answering({"t0": "Q943091"}))  # type: ignore[arg-type]
+
+    linked = await linker.link_entity(entity("ICE", "ORG"))
+
+    assert linked.text == "ICE" and linked.wikipedia_url is None
+
+
+async def test_a_refused_page_fetch_leaves_the_term_with_no_page():
+    wikidata = Wikidata(ICE_HITS)
+    wikidata.refuse = {"Q943091"}
+    linker = EntityLinker(wikidata, claude_answering({"t0": "Q943091"}))  # type: ignore[arg-type]
+
+    linked = await linker.link_entity(entity("ICE", "ORG"))
+
+    assert (linked.wikidata_id, linked.wikipedia_url) == (None, None)

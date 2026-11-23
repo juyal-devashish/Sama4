@@ -1,5 +1,6 @@
 """Wikidata + Wikipedia lookups used to link and explain entities."""
 
+import asyncio
 import logging
 from dataclasses import dataclass
 from urllib.parse import unquote
@@ -13,6 +14,14 @@ _HEADERS = {"User-Agent": "sama4/0.1 (https://github.com/juyal-devashish/Sama4)"
 
 WIKIDATA_API = "https://www.wikidata.org/w/api.php"
 WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
+
+MAX_TRIES = 4  # one request plus three retries when Wikimedia says to slow down
+MAX_RETRY_WAIT = 10.0  # seconds; a longer Retry-After is capped
+RETRYABLE = {429, 500, 502, 503, 504}
+
+
+class WikimediaUnavailableError(Exception):
+    """Wikidata kept refusing or failing, so there is no answer (not "nothing found")."""
 
 
 @dataclass(frozen=True)
@@ -85,17 +94,32 @@ class WikimediaClient:
     Holds one pooled httpx client for the process; call aclose() on shutdown.
     """
 
-    def __init__(self, timeout: float = 15.0) -> None:
+    def __init__(self, timeout: float = 15.0, retry_delay: float = 1.0) -> None:
         self._http = httpx.AsyncClient(headers=_HEADERS, timeout=timeout)
+        self._retry_delay = retry_delay
 
     async def aclose(self) -> None:
         await self._http.aclose()
 
+    async def _get(self, url: str, params: dict) -> httpx.Response:
+        """GET, retrying with backoff on 429 ("too many requests") and 5xx. Wikimedia
+        rate-limits bursts, and a refused lookup must not look like "no such page"."""
+        for attempt in range(MAX_TRIES):
+            response = await self._http.get(url, params=params)
+            if response.status_code not in RETRYABLE or attempt == MAX_TRIES - 1:
+                return response
+            wait = self._retry_delay * 2**attempt
+            retry_after = response.headers.get("Retry-After", "")
+            if retry_after.isdigit():
+                wait = max(wait, float(retry_after))
+            await asyncio.sleep(min(wait, MAX_RETRY_WAIT))
+        raise AssertionError("unreachable")
+
     async def search_wikidata(self, text: str) -> str | None:
         """Return the best-matching Wikidata id (e.g. "Q189729") for text, or None."""
-        response = await self._http.get(
+        response = await self._get(
             WIKIDATA_API,
-            params={
+            {
                 "action": "wbsearchentities",
                 "search": text,
                 "language": "en",
@@ -112,9 +136,9 @@ class WikimediaClient:
     async def search_candidates(self, text: str, limit: int = 7) -> list[WikidataCandidate]:
         """What `text` might refer to, most popular first. The top hit is often not what a
         news story means ("ICE" is first a German train), so callers choose among these."""
-        response = await self._http.get(
+        response = await self._get(
             WIKIDATA_API,
-            params={
+            {
                 "action": "wbsearchentities",
                 "search": text,
                 "language": "en",
@@ -123,15 +147,14 @@ class WikimediaClient:
             },
         )
         if response.status_code != 200:
-            logger.warning("Wikidata search returned %s for %r", response.status_code, text)
-            return []
+            raise WikimediaUnavailableError(f"Wikidata search returned {response.status_code}")
         return parse_search_response(response.json())
 
     async def get_wikipedia_url(self, wikidata_id: str) -> str | None:
         """Return the English Wikipedia URL for a Wikidata id, or None."""
-        response = await self._http.get(
+        response = await self._get(
             WIKIDATA_API,
-            params={
+            {
                 "action": "wbgetentities",
                 "ids": wikidata_id,
                 "props": "sitelinks/urls",
@@ -140,8 +163,9 @@ class WikimediaClient:
             },
         )
         if response.status_code != 200:
-            logger.warning("Wikidata entity lookup returned %s", response.status_code)
-            return None
+            raise WikimediaUnavailableError(
+                f"Wikidata entity lookup returned {response.status_code}"
+            )
         entity = response.json().get("entities", {}).get(wikidata_id, {})
         return entity.get("sitelinks", {}).get("enwiki", {}).get("url")
 
@@ -150,9 +174,9 @@ class WikimediaClient:
         revision, or None."""
         if not url:
             return None
-        response = await self._http.get(
+        response = await self._get(
             WIKIPEDIA_API,
-            params={
+            {
                 "action": "query",
                 "titles": title_from_url(url),
                 "prop": "extracts|revisions",

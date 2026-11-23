@@ -9,7 +9,7 @@ from app.ingestion.page_choice import TermToLink, choose_pages, passage_around
 
 logger = logging.getLogger(__name__)
 
-LOOKUP_CONCURRENCY = 6  # parallel Wikidata/Wikipedia requests
+LOOKUP_CONCURRENCY = 2  # parallel Wikidata/Wikipedia requests; more gets HTTP 429
 
 
 @dataclass
@@ -86,6 +86,13 @@ class EntityLinker:
                 logger.error("Failed to look up entity: %s", entity.text, exc_info=True)
                 return None
 
+        async def page(key: str) -> tuple[str | None, str | None]:
+            try:
+                return await self.page_for(chosen.get(key))
+            except Exception:
+                logger.error("Failed to fetch the page for %s", key, exc_info=True)
+                return None, None
+
         found = await asyncio.gather(*(lookup(e) for e, _ in pairs))
         terms = [
             TermToLink(
@@ -100,15 +107,14 @@ class EntityLinker:
             if cands is not None
         ]
         chosen = await self.choose(terms)
-        pages = await asyncio.gather(*(self.page_for(chosen.get(t.key)) for t in terms))
+        pages = await asyncio.gather(*(page(t.key) for t in terms))
         by_key = dict(zip((t.key for t in terms), pages, strict=True))
 
         linked = []
         for i, (entity, _ctx) in enumerate(pairs):
             key = f"t{i}"
-            if key not in by_key:
-                continue  # the Wikidata lookup failed: skip the term, as before
-            url, description = by_key[key]
+            # A failed lookup leaves the term highlighted with no page, never a guessed one.
+            url, description = by_key.get(key, (None, None))
             linked.append(
                 LinkedEntity(
                     text=entity.text,
@@ -117,7 +123,7 @@ class EntityLinker:
                     end=entity.end,
                     in_title=entity.in_title,
                     priority=entity.priority,
-                    wikidata_id=chosen.get(key),
+                    wikidata_id=chosen.get(key) if url else None,
                     wikipedia_url=url,
                     description=description,
                 )

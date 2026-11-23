@@ -7,7 +7,7 @@ the terms in the newest stories, asks Claude which candidate the story means (th
 choice the linker makes for new terms), and rewrites the link, the extract and the cached
 explanations that cite the old page.
 
-Fails safe: a term Claude gives no answer for is left as it is.
+Fails safe: a term with no answer (Claude silent, Wikimedia refusing) is left as it is.
 """
 
 import asyncio
@@ -106,10 +106,23 @@ async def relink_entities(
     chosen = await linker.choose(terms)
     answered = [t for t in terms if t.key in chosen]
     report.unanswered += len(terms) - len(answered)
-    pages = await asyncio.gather(*(linker.page_for(chosen[t.key]) for t in answered))
 
-    for term, (url, extract) in zip(answered, pages, strict=True):
+    async def page(wikidata_id: str | None) -> tuple[str | None, str | None] | None:
+        try:
+            return await linker.page_for(wikidata_id)
+        except Exception:
+            logger.warning("Page lookup failed for %s", wikidata_id, exc_info=True)
+            return None
+
+    pages = await asyncio.gather(*(page(chosen[t.key]) for t in answered))
+
+    for term, fetched in zip(answered, pages, strict=True):
         entity = first[uuid.UUID(term.key)][0]
+        # A failed fetch, or a page whose opening couldn't be read, is no answer.
+        if fetched is None or (fetched[0] and not fetched[1]):
+            report.unanswered += 1
+            continue
+        url, extract = fetched
         if url == entity.wikipedia_url:
             report.unchanged += 1
             continue
