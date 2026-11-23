@@ -97,7 +97,7 @@ export function useOnboarding() {
 
 export type SavedStory = Pick<
   ArticleCard,
-  "id" | "title" | "summary" | "image_url" | "published_at" | "reading_time_minutes"
+  "id" | "title" | "summary" | "feed_text" | "image_url" | "published_at" | "reading_time_minutes"
 > & { source: string; saved_at: string };
 
 export function useSavedStories() {

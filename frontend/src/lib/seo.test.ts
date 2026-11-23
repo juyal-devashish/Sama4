@@ -41,6 +41,11 @@ describe("storyMetadata", () => {
     expect(m.openGraph).toMatchObject({ images: [DEFAULT_SHARE_IMAGE] });
     expect(m.twitter).toMatchObject({ card: "summary" });
   });
+
+  it("uses the publisher's description when the story has no brief", () => {
+    const m = storyMetadata({ ...story, summary: undefined, content: "The deal is a choice." });
+    expect(m.description).toBe("The deal is a choice.");
+  });
 });
 
 describe("storyStructuredData", () => {

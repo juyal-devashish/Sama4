@@ -44,7 +44,9 @@ export function pageMetadata({
  */
 export function storyMetadata(article: ArticleDetail): Metadata {
   const description = metaDescription(
-    article.summary || `${article.title}, from ${article.source.name}, explained on ${SITE_NAME}.`,
+    article.summary ||
+      article.content ||
+      `${article.title}, from ${article.source.name}, explained on ${SITE_NAME}.`,
   );
   const images = [article.image_url || DEFAULT_SHARE_IMAGE];
   return {
@@ -81,7 +83,10 @@ export function storyStructuredData(article: ArticleDetail): Record<string, unkn
     "@context": "https://schema.org",
     "@type": "NewsArticle",
     headline: article.title,
-    description: article.summary ? metaDescription(article.summary) : undefined,
+    description:
+      article.summary || article.content
+        ? metaDescription(article.summary || article.content || "")
+        : undefined,
     image: article.image_url ? [article.image_url] : undefined,
     datePublished: article.published_at,
     url,

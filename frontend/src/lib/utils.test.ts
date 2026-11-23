@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   displaySummary,
+  possessive,
   formatFullDate,
   formatLongDate,
   formatWeekday,
@@ -78,6 +79,14 @@ describe("metaDescription", () => {
 
   it("drops trailing punctuation before the ellipsis", () => {
     expect(metaDescription("alpha beta, gamma delta", 13)).toBe("alpha beta…");
+  });
+});
+
+describe("possessive", () => {
+  it("adds ’s, or only ’ after a final s", () => {
+    expect(possessive("BBC")).toBe("BBC’s");
+    expect(possessive("Reuters")).toBe("Reuters’");
+    expect(possessive("The New York Times")).toBe("The New York Times’");
   });
 });
 

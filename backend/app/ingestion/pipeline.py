@@ -309,7 +309,8 @@ class IngestionPipeline:
         await self.vectors.upsert_article(
             article_id=article.id,
             title=article.title,
-            summary=article.summary or "",
+            # No brief for short feed text: embed the feed text itself instead.
+            summary=article.summary or cleaned or "",
             source=source.name if source else "",
             categories=categories,
             published_at=article.published_at.isoformat() if article.published_at else None,

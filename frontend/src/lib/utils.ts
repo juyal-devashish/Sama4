@@ -136,6 +136,11 @@ const ABBREVIATIONS = new Set(
 );
 const INITIALISM = /^(?:[A-Za-z]\.)+[A-Za-z]?\.?$/;
 
+/** "BBC’s", but "Reuters’" and "The New York Times’". */
+export function possessive(name: string): string {
+  return /s$/i.test(name) ? `${name}’` : `${name}’s`;
+}
+
 /**
  * A brief worth showing, or null. Briefs written before the backend kept to whole
  * sentences can be cut mid-sentence ("…agreed on Friday is a…", "Existing U.S.",
