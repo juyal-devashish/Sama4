@@ -35,6 +35,19 @@ async def test_feed_lists_completed_articles_newest_first_with_entity_counts(cli
     assert str(old.id) == body["articles"][1]["id"]
 
 
+async def test_feed_leaves_out_stories_with_no_text_and_no_brief(client, db_session):
+    async with db_session() as db:
+        await make_article(db, title="Empty", content="", summary=None)
+        await make_article(db, title="Brief only", content="", summary="A brief.")
+        await make_article(db, title="Text only", content="Feed text.", summary=None)
+        await db.commit()
+
+    body = (await client.get("/api/v1/feed")).json()
+
+    assert sorted(a["title"] for a in body["articles"]) == ["Brief only", "Text only"]
+    assert body["pagination"]["total"] == 2
+
+
 async def test_feed_puts_the_latest_scrape_on_top(client, db_session):
     now = datetime.now(UTC)
     async with db_session() as db:
