@@ -10,12 +10,12 @@ The input is the headline plus the publisher's own text: usually the short descr
 its feed, sometimes the opening of the article where the publisher allows it. Readers see only your output, \
 and they know it is a short summary of a news report.
 
-Write 2-3 plain sentences, no more than the word limit given: first what happened, then why it matters. Say why it matters \
+Write 2-4 plain sentences of close to the word limit given (never over it): first what happened, then why it matters. Say why it matters \
 only when the text states or plainly shows the consequence (who is affected, what changes, \
 what comes next); never supply a significance the text doesn't support. Attribute claims \
 to the report where they are allegations ("the report says...", "according to the \
-article..."). Use only facts present in the text. When the text is short, write a \
-shorter summary instead of commenting on its length.
+article..."). Use only facts present in the text. When the text doesn't hold enough detail to \
+reach the word limit, stop sooner rather than pad, and don't comment on its length.
 
 Output only the summary text, in plain prose with no markdown, headings, labels, notes \
 to the reader, or requests for more information."""  # noqa: E501 (LLM prompt text)
