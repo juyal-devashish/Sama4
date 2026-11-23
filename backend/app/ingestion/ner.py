@@ -430,18 +430,15 @@ def canonical_mention(text: str, content: str) -> str:
     return base if plain.search(content) else text
 
 
-def _is_word_char(char: str) -> bool:
-    return char.isalnum() or char == "_"
-
-
 def is_aligned(content: str, text: str, start: int, end: int) -> bool:
     """True when content[start:end] is `text` (ignoring case), i.e. safe to highlight.
 
     The span may not begin in the middle of a word: "ICE" inside "officers" is not ICE.
+    After a digit is fine, so a unit like "Mbps" in "25Mbps" can still be highlighted.
     """
     if not (0 <= start < end <= len(content)) or content[start:end].lower() != text.lower():
         return False
-    return start == 0 or not (_is_word_char(text[0]) and _is_word_char(content[start - 1]))
+    return start == 0 or not (text[0].isalnum() and content[start - 1].isalpha())
 
 
 def locate_mention(content: str, text: str, hint: int | None = None) -> tuple[int, int] | None:
@@ -449,7 +446,8 @@ def locate_mention(content: str, text: str, hint: int | None = None) -> tuple[in
 
     Uses `hint` when the text really is at that offset; otherwise searches, preferring an
     exact-case whole-word match, then case-insensitive, then the start of a longer word
-    ("Democrat" in "Democrats"). A match never begins in the middle of a word.
+    ("Democrat" in "Democrats") or one after a number ("Mbps" in "25Mbps"). A match
+    never begins right after a letter.
     """
     if not text:
         return None
@@ -460,7 +458,7 @@ def locate_mention(content: str, text: str, hint: int | None = None) -> tuple[in
     for pattern, flags in (
         (whole_word, 0),
         (whole_word, re.IGNORECASE),
-        (rf"(?<!\w){escaped}", re.IGNORECASE),
+        (rf"(?<![^\W\d_]){escaped}", re.IGNORECASE),  # not right after a letter
     ):
         match = re.search(pattern, content, flags)
         if match and is_aligned(content, text, match.start(), match.end()):
