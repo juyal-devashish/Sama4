@@ -23,9 +23,10 @@ SOURCE = {
 
 
 TITLES = ["Lovelace notes resurface", "Rates rise again"]
+# Each body is 40+ words: shorter feed text gets no brief.
 BODIES = [
-    "Ada Lovelace published notes on the Analytical Engine describing an algorithm.",
-    "Ada Lovelace would note that central banks raised rates as inflation stayed high.",
+    " ".join(["Ada Lovelace published notes on the Analytical Engine, an algorithm."] * 4),
+    " ".join(["Ada Lovelace would note central banks raised rates as inflation stayed."] * 4),
 ]
 
 
@@ -255,7 +256,7 @@ async def test_pipeline_reads_the_article_page_for_image_excerpt_and_reading_tim
     from app.clients.pages import PageContent
 
     container.llm.default = "Claude summary."
-    page_text = "Ada Lovelace wrote the first published algorithm.\n\nIt ran on paper only."
+    page_text = "Ada Lovelace wrote the first published algorithm.\n\nIt ran on paper only. " * 8
     container.pages.pages["https://news.test/story-1"] = PageContent(
         image_url="https://cdn.test/lead.jpg", text=page_text, word_count=1000
     )

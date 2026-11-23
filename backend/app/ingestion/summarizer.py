@@ -1,7 +1,7 @@
 import logging
 
 from app.clients.llm import LLMClient
-from app.text import cap_words as _cap_words
+from app.text import sentence_ends
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,13 @@ SUMMARY_PROMPT = """<headline>{title}</headline>
 
 MAX_SUMMARY_WORDS = 60
 MIN_SUMMARY_WORDS = 15
+MIN_SOURCE_WORDS = 40  # shorter feed text is shown as it is; a brief would only paraphrase it
 SOURCE_RATIO = 0.5  # a summary is at most half as long as the text it summarizes
+
+
+def wants_brief(source_words: int) -> bool:
+    """Whether a story whose feed text has `source_words` words gets a brief."""
+    return source_words >= MIN_SOURCE_WORDS
 
 
 def summary_word_limit(source_words: int) -> int:
@@ -42,13 +48,25 @@ def summary_word_limit(source_words: int) -> int:
     return min(limit, source_words) if source_words > 0 else MIN_SUMMARY_WORDS
 
 
-def cap_words(text: str, limit: int = MAX_SUMMARY_WORDS) -> str:
-    """Trim to `limit` words, ending on a whole sentence when one fits.
+def whole_sentences(text: str, limit: int = MAX_SUMMARY_WORDS) -> str | None:
+    """Trim `text` to whole sentences of at most `limit` words. Never cuts mid-sentence.
 
-    "U.S." and "Gov." are not sentence ends (see `app.text`), so a summary is never cut
-    to "Existing U.S."
+    If even the first sentence is over `limit`, it is kept whole as long as it fits in
+    MAX_SUMMARY_WORDS; longer than that, there is no usable brief and this returns None.
+    "U.S." and "Gov." are not sentence ends (see `app.text`).
     """
-    return _cap_words(text, limit)
+    text = text.strip()
+    if not text:
+        return None
+    if len(text.split()) <= limit:
+        return text
+    ends = sentence_ends(text)
+    fitting = [e for e in ends if len(text[:e].split()) <= limit]
+    if fitting:
+        return text[: fitting[-1]]
+    if ends and len(text[: ends[0]].split()) <= MAX_SUMMARY_WORDS:
+        return text[: ends[0]]
+    return None
 
 
 class SummarizerService:
@@ -57,22 +75,25 @@ class SummarizerService:
     def __init__(self, llm: LLMClient) -> None:
         self.llm = llm
 
-    async def summarize(self, article_text: str, title: str = "") -> str:
-        """Generate a 2-3 sentence summary of an article.
+    async def summarize(self, article_text: str, title: str = "") -> str | None:
+        """Generate a 2-3 sentence brief of a story, or None when it gets none.
 
         Args:
             article_text: The cleaned article text.
             title: The article headline (helps when the feed gives only a teaser).
 
         Returns:
-            Summary string.
+            The brief, in whole sentences. None when the text is too short to need one
+            (see `wants_brief`) or Claude's reply can't be trimmed to whole sentences.
         """
         # Truncate to ~3000 words to stay within token limits
         words = article_text.split()
+        if not wants_brief(len(words)):
+            return None
         truncated = " ".join(words[:3000])
 
         limit = summary_word_limit(len(words))
         prompt = SUMMARY_PROMPT.format(title=title, article_text=truncated, word_limit=limit)
 
         summary = await self.llm.generate(prompt, effort="low", system=SUMMARY_SYSTEM)
-        return cap_words(summary, limit)
+        return whole_sentences(summary, limit)
