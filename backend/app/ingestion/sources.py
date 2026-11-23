@@ -8,15 +8,20 @@ dated items from the last 24 hours. A feed may also set `offbeat: True` to mark 
 that mainly supplies well-reported stories outside the usual order; none does now.
 Terms of use for each outlet: docs/feed-terms.md.
 
-`excerpt_words` is the most article text an outlet's terms let Samā4 show. 0 (the
-default) means its terms allow only what the feed itself carries: the article page is
-never fetched, and the reader shows the feed's own text and image. A positive number
-lets the pipeline read the page and keep at most that many words of its opening.
+`excerpt_words` is the most article text Samā4 keeps and shows per story. 0 (the
+default) means only what the feed itself carries: the article page is never fetched, and
+the reader shows the feed's own text and image. A positive number lets the pipeline read
+the page and keep at most that many words of its opening. Every feed is set to 200 by the
+makers' decision (2026-11-23), although the outlets' terms don't license it (see
+docs/feed-terms.md).
 
 `name` is the outlet's full name as readers see it on cards and the Sources page;
 `site` is the outlet's home page, linked from the Sources page; `label` says which of its
 feeds this is ("Markets", "Explained").
 """
+
+
+EXCERPT_WORDS = 200  # decided by the makers 2026-11-23; see docs/feed-terms.md
 
 
 def excerpt_limit(source: dict | None) -> int:
@@ -33,7 +38,7 @@ NEWS_SOURCES = [
         "label": "Headlines",
         "category": "general",
         "region": "us",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
     {
         "name": "The New York Times",
@@ -42,7 +47,7 @@ NEWS_SOURCES = [
         "label": "Home page",
         "category": "general",
         "region": "us",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
     {
         "name": "The New York Times",
@@ -51,7 +56,7 @@ NEWS_SOURCES = [
         "label": "U.S.",
         "category": "general",
         "region": "us",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
     # ---- India ----
     {
@@ -61,7 +66,7 @@ NEWS_SOURCES = [
         "label": "National",
         "category": "world",
         "region": "india",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
     {
         "name": "Indian Express",
@@ -70,7 +75,7 @@ NEWS_SOURCES = [
         "label": "India",
         "category": "world",
         "region": "india",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
     {
         "name": "Indian Express",
@@ -79,7 +84,7 @@ NEWS_SOURCES = [
         "label": "Explained",
         "category": "world",
         "region": "india",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
     # ---- World ----
     {
@@ -89,7 +94,7 @@ NEWS_SOURCES = [
         "label": "World",
         "category": "world",
         "region": "world",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
     {
         "name": "BBC",
@@ -98,7 +103,7 @@ NEWS_SOURCES = [
         "label": "Top stories",
         "category": "world",
         "region": "world",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
     {
         "name": "Al Jazeera",
@@ -107,7 +112,7 @@ NEWS_SOURCES = [
         "label": "All news",
         "category": "world",
         "region": "world",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
     {
         "name": "The Economist",
@@ -116,7 +121,7 @@ NEWS_SOURCES = [
         "label": "Latest",
         "category": "world",
         "region": "world",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
     # ---- Business and markets ----
     {
@@ -126,7 +131,7 @@ NEWS_SOURCES = [
         "label": "Markets",
         "category": "business",
         "region": "us",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
     {
         "name": "Financial Times",
@@ -135,7 +140,7 @@ NEWS_SOURCES = [
         "label": "Home page",
         "category": "business",
         "region": "world",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
     # ---- Tech ----
     {
@@ -145,7 +150,7 @@ NEWS_SOURCES = [
         "label": "Technology",
         "category": "tech",
         "region": "tech",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
     {
         "name": "MIT Technology Review",
@@ -154,6 +159,6 @@ NEWS_SOURCES = [
         "label": "All stories",
         "category": "tech",
         "region": "tech",
-        "excerpt_words": 0,
+        "excerpt_words": EXCERPT_WORDS,
     },
 ]

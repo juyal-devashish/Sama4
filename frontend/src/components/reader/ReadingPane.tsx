@@ -518,14 +518,14 @@ function Story({
           className="mt-10 text-[19px] leading-[1.7] text-foreground"
         >
           <h2 id="body-label" className="section-label">
-            {possessive(article.source.name)} description
+            From {article.source.name}
           </h2>
           <p
             id="body-note"
             className="mb-5 mt-1 font-ui text-[11.5px] leading-snug text-text-tertiary"
           >
-            {possessive(article.source.name)} own description of this story, unaltered. Samā4 adds
-            the highlights.
+            The opening of {possessive(article.source.name)} story, unaltered. Samā4 adds the
+            highlights.
           </p>
           {article.content ? (
             <ArticleBody

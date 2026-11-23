@@ -8,7 +8,14 @@ Checked 2026-11-13 against the 21 outlets the pipeline read then.
 > Economist were added the same day). Rows for outlets no longer read are kept for
 > reference.
 >
-> **What the app does now:** every outlet's terms allow only what its feed carries, so
+> **Decision, 2026-11-23:** the makers chose to read every outlet's article page and keep
+> the first 200 words (`EXCERPT_WORDS` in `sources.py`) so briefs can run to 60 words and
+> stories carry more than the feed's one-line description. This is item **b** below,
+> which this review found no outlet's terms permit. It is a risk the makers accepted
+> while the app is non-commercial and free. To undo it, set `EXCERPT_WORDS = 0`. The
+> paragraph that follows describes the earlier, feed-only behaviour.
+>
+> **What the app did before:** every outlet's terms allow only what its feed carries, so
 > each feed is set to `excerpt_words: 0` in `sources.py`. The pipeline never fetches
 > their article pages; the reader shows the feed's own text and image, unaltered, with
 > a link to the original. Item c (text to Claude for summaries and explanations) is
