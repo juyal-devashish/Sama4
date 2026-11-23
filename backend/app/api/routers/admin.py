@@ -45,7 +45,9 @@ async def seed_database() -> AdminResponse:
     "/summaries/regenerate", response_model=AdminResponse, status_code=status.HTTP_202_ACCEPTED
 )
 async def regenerate_summaries(background_tasks: BackgroundTasks, c: ContainerDep) -> AdminResponse:
-    """Rewrite every summary with the current prompt (run after changing the prompt)."""
+    """Rewrite every summary with the current prompt (run after changing the prompt).
+
+    Stories whose feed text is too short for a brief have their summary cleared."""
     background_tasks.add_task(jobs.regenerate_summaries, c)
     return AdminResponse(
         message="Summary regeneration started in the background.", status="accepted"

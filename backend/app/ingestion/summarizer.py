@@ -42,7 +42,8 @@ def summary_word_limit(source_words: int) -> int:
     """How long a summary of `source_words` words may be.
 
     Half the source, between MIN and MAX words, and never longer than the source itself:
-    a 300-word opening gets 60 words, an 80-word teaser 40, a 12-word teaser 12.
+    a 300-word opening gets 60 words, an 80-word teaser 40. (Text under MIN_SOURCE_WORDS
+    gets no brief at all; see `wants_brief`.)
     """
     limit = max(MIN_SUMMARY_WORDS, min(MAX_SUMMARY_WORDS, int(source_words * SOURCE_RATIO)))
     return min(limit, source_words) if source_words > 0 else MIN_SUMMARY_WORDS
