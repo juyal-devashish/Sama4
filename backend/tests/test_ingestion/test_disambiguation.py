@@ -1,21 +1,24 @@
-"""Same-name people and places: what the app does today, and what it should do.
+"""Which Wikipedia page a term links to, and same-name terms across stories.
 
-The linker looks a term up by its text alone and keeps the top Wikidata hit, and entities
-are shared by (name, type) across every story. So "Paris" is the same entity in a story
-about France and one about Texas. These tests pin that behaviour so a change to it is a
-deliberate one: the `xfail(strict=True)` cases are the behaviour we want and don't have;
-they start failing the build the day they begin to pass, so the markers get removed.
+The linker asks Wikidata for several candidates and Claude picks the one the term's
+passage means, or none ("ICE" in an immigration story is the agency, not the German
+train Wikidata ranks first). Entities are still shared by (name, type) across every
+story, so "Paris" keeps the page chosen for the first story that mentioned it; the
+`known_limit` test pins that so a change to it is a deliberate one.
 """
 
-import pytest
+import json
 
+from app.clients.wikimedia import WikidataCandidate, parse_search_response
 from app.ingestion.linker import EntityLinker
 from app.ingestion.ner import ExtractedEntity
 from app.repositories import entities as entity_repo
+from tests.fakes import FakeLLM
 
 PARIS_FR = "https://en.wikipedia.org/wiki/Paris"
 PARIS_TX = "https://en.wikipedia.org/wiki/Paris,_Texas"
-DAB = "https://en.wikipedia.org/wiki/Paris_(disambiguation)"
+TRAIN = "https://en.wikipedia.org/wiki/Intercity_Express"
+AGENCY = "https://en.wikipedia.org/wiki/U.S._Immigration_and_Customs_Enforcement"
 
 
 class Wikidata:
@@ -26,10 +29,12 @@ class Wikidata:
         self.hits = hits
         self.searches: list[str] = []
 
-    async def search_wikidata(self, text: str) -> str | None:
+    async def search_candidates(self, text: str, limit: int = 7) -> list[WikidataCandidate]:
         self.searches.append(text)
-        found = self.hits.get(text)
-        return found[0][0] if found else None
+        return [
+            WikidataCandidate(id=i, label=u.rsplit("/", 1)[-1], description=d or "")
+            for i, u, d in self.hits.get(text, [])
+        ][:limit]
 
     async def get_wikipedia_url(self, wikidata_id: str) -> str | None:
         return next((u for hs in self.hits.values() for i, u, _d in hs if i == wikidata_id), None)
@@ -51,11 +56,21 @@ PARIS_HITS = {
         ("Q830149", PARIS_TX, "Paris is a city in Texas."),
     ]
 }
+ICE_HITS = {
+    "ICE": [
+        ("Q129172", TRAIN, "Intercity Express is a German high-speed train."),
+        ("Q943091", AGENCY, "ICE is a US federal law enforcement agency."),
+    ]
+}
+
+
+def claude_answering(answer: object) -> FakeLLM:
+    return FakeLLM(default=answer if isinstance(answer, str) else json.dumps(answer))
 
 
 async def test_a_name_with_one_obvious_page_links_to_it():
     ada = {"Ada Lovelace": [("Q7259", "https://w/Ada", "Mathematician.")]}
-    linker = EntityLinker(Wikidata(ada))  # type: ignore[arg-type]
+    linker = EntityLinker(Wikidata(ada), claude_answering({"t0": "Q7259"}))  # type: ignore[arg-type]
 
     linked = await linker.link_entity(entity("Ada Lovelace", "PERSON"))
 
@@ -64,23 +79,75 @@ async def test_a_name_with_one_obvious_page_links_to_it():
 
 
 async def test_a_name_wikidata_does_not_know_stays_unlinked_but_is_kept():
-    linker = EntityLinker(Wikidata({}))  # type: ignore[arg-type]
+    llm = FakeLLM()
+    linker = EntityLinker(Wikidata({}), llm)  # type: ignore[arg-type]
 
     linked = await linker.link_entity(entity("Zxqv Plorb", "PERSON"))
 
     assert (linked.wikidata_id, linked.wikipedia_url, linked.description) == (None, None, None)
     assert linked.text == "Zxqv Plorb"  # still highlighted; just no sourced page
+    assert llm.calls == []  # nothing to choose from, so Claude isn't asked
 
 
-async def test_known_limit_every_story_gets_the_top_hit_for_a_same_name_term():
-    # A story about Paris, Texas and one about Paris, France: today both link to the top hit.
-    # Story context is not an input to linking at all (ExtractedEntity carries none).
+async def test_the_page_the_story_means_wins_over_the_most_popular_one():
+    llm = claude_answering({"t0": "Q943091"})
+    linker = EntityLinker(Wikidata(ICE_HITS), llm)  # type: ignore[arg-type]
+    content = "Passengers filmed ICE officers detaining a father at the airport."
+
+    [linked] = await linker.link_entities(
+        [ExtractedEntity("ICE", "ORG", 17, 20, False, 1, "high")],
+        content=content,
+        title="Father detained by ICE at Seattle airport",
+    )
+
+    assert linked.wikipedia_url == AGENCY
+    prompt = llm.calls[0]["prompt"]
+    assert "detaining a father" in prompt and "Q129172" in prompt and "Q943091" in prompt
+
+
+async def test_claude_choosing_none_leaves_the_term_unlinked():
+    linker = EntityLinker(Wikidata(ICE_HITS), claude_answering({"t0": None}))  # type: ignore[arg-type]
+
+    linked = await linker.link_entity(entity("ICE", "ORG"))
+
+    assert (linked.wikidata_id, linked.wikipedia_url) == (None, None)
+
+
+async def test_an_unreadable_answer_or_an_id_not_offered_never_falls_back_to_the_top_hit():
+    for llm in (claude_answering("I think it's the agency."), claude_answering({"t0": "Q1"})):
+        linker = EntityLinker(Wikidata(ICE_HITS), llm)  # type: ignore[arg-type]
+
+        linked = await linker.link_entity(entity("ICE", "ORG"))
+
+        assert linked.wikipedia_url is None
+
+
+async def test_over_todays_budget_the_term_is_left_unlinked():
+    llm = FakeLLM(exhausted=True)
+    linker = EntityLinker(Wikidata(ICE_HITS), llm)  # type: ignore[arg-type]
+
+    linked = await linker.link_entity(entity("ICE", "ORG"))
+
+    assert linked.wikipedia_url is None
+
+
+async def test_without_claude_every_story_gets_the_top_hit():
     linker = EntityLinker(Wikidata(PARIS_HITS))  # type: ignore[arg-type]
 
-    in_texas_story = await linker.link_entity(entity("Paris"))
-    in_france_story = await linker.link_entity(entity("Paris"))
+    linked = await linker.link_entity(entity("Paris"))
 
-    assert in_texas_story.wikipedia_url == in_france_story.wikipedia_url == PARIS_FR
+    assert linked.wikipedia_url == PARIS_FR
+
+
+def test_a_disambiguation_page_is_never_a_candidate():
+    data = {
+        "search": [
+            {"id": "Q1", "label": "Paris", "description": "Wikimedia disambiguation page"},
+            {"id": "Q90", "label": "Paris", "description": "capital of France"},
+        ]
+    }
+
+    assert [c.id for c in parse_search_response(data)] == ["Q90"]
 
 
 async def test_known_limit_same_name_people_share_one_entity_and_one_explanation(db_session):
@@ -98,27 +165,3 @@ async def test_the_same_name_with_a_different_type_stays_separate(db_session):
         country = await entity_repo.get_or_create(db, name="Jordan", entity_type="LOCATION")
 
     assert person.id != country.id  # type is the only thing that tells same names apart today
-
-
-@pytest.mark.xfail(strict=True, reason="no story context reaches the linker yet")
-async def test_wanted_the_page_the_story_means_wins_over_the_most_popular_one():
-    linker = EntityLinker(Wikidata(PARIS_HITS))  # type: ignore[arg-type]
-    texas = ExtractedEntity(
-        text="Paris", type="LOCATION", start=0, end=5, in_title=False, mention_count=1,
-        priority="high",
-    )  # fmt: skip
-    texas.context = "The Lamar County courthouse in Paris, Texas, was evacuated."  # type: ignore[attr-defined]
-
-    linked = await linker.link_entity(texas)
-
-    assert linked.wikipedia_url == PARIS_TX
-
-
-@pytest.mark.xfail(strict=True, reason="disambiguation pages are not filtered out of the hits")
-async def test_wanted_a_disambiguation_page_is_never_the_link():
-    hits = {"Paris": [("Q1", DAB, "Wikimedia disambiguation page"), *PARIS_HITS["Paris"]]}
-    linker = EntityLinker(Wikidata(hits))  # type: ignore[arg-type]
-
-    linked = await linker.link_entity(entity("Paris"))
-
-    assert linked.wikipedia_url != DAB
