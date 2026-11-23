@@ -12,6 +12,7 @@ from app.ingestion.ner import (
     ExtractedEntity,
     NERService,
     canonical_mention,
+    is_aligned,
     locate_mention,
     normalize_llm_type,
     strip_possessive,
@@ -407,6 +408,17 @@ class TestLocateMention:
     def test_missing_or_empty_text_returns_none(self):
         assert locate_mention("abc", "xyz") is None
         assert locate_mention("abc", "") is None
+
+    def test_never_matches_from_the_middle_of_a_word(self):
+        # "ICE" must not be highlighted inside "officers".
+        content = "Passengers filmed the officers at the gate."
+        start = content.index("ice")
+        assert locate_mention(content, "ICE") is None
+        assert not is_aligned(content, "ICE", start, start + 3)
+
+    def test_still_matches_the_start_of_a_longer_word(self):
+        content = "The Democrats won the House."
+        assert locate_mention(content, "Democrat") == (4, 12)
 
 
 class TestHybridTypes:
