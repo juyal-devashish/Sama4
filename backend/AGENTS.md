@@ -67,3 +67,5 @@ app/
 - **SQLite and Postgres differences** are handled in `dbtypes.py` (GUID, StringArray) and in `repositories/articles.list_feed` (the category filter).
 - **`search` endpoint** is a stub that returns nothing. Implementing it is a good first task: `VectorStore.search` → article ids → `repositories.articles`.
 - **Production config is in Railway variables**, not in code. See `.env.example` for the full list.
+- **Wikipedia links are chosen, not looked up.** Wikidata's top hit is often wrong for news ("ICE" is a German train), so `ingestion/linker.py` asks for several candidates and `ingestion/page_choice.py` has Claude pick the one the passage means, or none. No answer means no link, never the top hit. An entity keeps the page chosen when it was first stored; `POST /api/v1/admin/entities/relink?stories=30` re-chooses pages for the newest stories (dry run by default; `&dry_run=false` writes and clears the cached explanations that cited the old page).
+- **Highlights never start mid-word.** `ner.is_aligned` rejects a span that begins inside a word ("ICE" in "officers"); `POST /api/v1/admin/mentions/repair` reports stored ones as unlocatable.
