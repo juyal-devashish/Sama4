@@ -22,6 +22,8 @@ USER_AGENT = "Mozilla/5.0 (compatible; sama4-news/1.0; +https://www.sama4.online
 EXCERPT_WORDS = 300
 # Shorter paragraphs are usually captions, bylines, share prompts or "Read more" links.
 MIN_PARAGRAPH_WORDS = 8
+CHROME_MAX_WORDS = 150  # nav/header/footer/aside text above this is the article, not chrome
+SHORT_PARAGRAPH_WORDS = 12  # below this, a paragraph with no full stop is a byline or caption
 _BOILERPLATE = re.compile(
     r"^(advertisement|sign up|subscribe|read more|related:|follow us|click here|"
     r"this article|image:|photo:|copyright|©|all rights reserved)",
@@ -72,7 +74,10 @@ def _paragraph_words(el: Tag) -> int:
 
 def _paragraphs(soup: BeautifulSoup) -> list[str]:
     for el in soup(["script", "style", "nav", "footer", "header", "aside", "figure", "form"]):
-        el.decompose()
+        # A page with an unclosed <nav> (PBS) parses with the whole article inside it, so a
+        # "chrome" tag holding a lot of paragraph text is really the page: keep it.
+        if el.name in ("script", "style") or _paragraph_words(el) < CHROME_MAX_WORDS:
+            el.decompose()
     # Prefer the article element; otherwise the container holding the most paragraph text.
     candidates = soup.find_all("article") or []
     if not candidates:
@@ -99,7 +104,13 @@ def _paragraphs(soup: BeautifulSoup) -> list[str]:
     seen: set[str] = set()
     for p in scope.find_all("p"):
         text = re.sub(r"\s+", " ", p.get_text(" ", strip=True)).strip()
-        if len(text.split()) < MIN_PARAGRAPH_WORDS or _BOILERPLATE.match(text) or text in seen:
+        words = len(text.split())
+        if (
+            words < MIN_PARAGRAPH_WORDS
+            or (words < SHORT_PARAGRAPH_WORDS and not _SENTENCE_END.search(text))
+            or _BOILERPLATE.match(text)
+            or text in seen
+        ):
             continue
         seen.add(text)
         out.append(text)

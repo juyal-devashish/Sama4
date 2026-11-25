@@ -93,3 +93,30 @@ def test_includes_a_lead_paragraph_kept_outside_the_main_text_block():
     page = parse_page(_html("", body), "https://news.test")
     assert page.text.startswith("For some children")
     assert "science desk" not in page.text
+
+
+BODY = " ".join(["The council voted on Tuesday to close the bridge for repairs."] * 20)
+
+
+def test_an_unclosed_nav_does_not_swallow_the_article():
+    # PBS leaves its menu <nav> open, so the parser nests the whole page inside it.
+    html = (
+        "<html><body><nav class='menu'><a href='/'>Home</a>"
+        f"<main><article><p>{BODY}</p></article></main></body></html>"
+    )
+
+    page = parse_page(html, "https://news.test/a", 200)
+
+    assert page.text.startswith("The council voted on Tuesday")
+
+
+def test_a_real_nav_and_a_byline_are_still_left_out():
+    html = (
+        "<html><body><nav><p>Home news world sport weather about contact us today</p></nav>"
+        f"<article><p>Jane Doe, Associated Press</p><p>{BODY}</p></article></body></html>"
+    )
+
+    page = parse_page(html, "https://news.test/a", 200)
+
+    assert "Home news" not in page.text and "Jane Doe" not in page.text
+    assert page.text.startswith("The council voted")
