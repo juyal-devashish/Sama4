@@ -41,7 +41,7 @@ News assumes you already know the backstory. A single headline can lean on a per
 ```mermaid
 flowchart LR
     subgraph Sources
-        RSS[11 news RSS feeds]
+        RSS[14 RSS feeds<br/>from 10 outlets]
     end
 
     subgraph Backend["Backend: FastAPI on Railway"]
@@ -91,7 +91,7 @@ flowchart LR
 | AI / NLP | Claude (Anthropic API) for summaries, term detection and explanations; spaCy for named entities; Pinecone Inference for embeddings |
 | Data | PostgreSQL, Redis, Pinecone (vector search) |
 | Infra | Railway (API + Postgres + Redis), Vercel (web), Docker, GitHub Actions CI |
-| Quality | pytest, Vitest, Ruff, ESLint, Prettier, 80+ automated tests |
+| Quality | pytest, Vitest, Ruff, ESLint, Prettier; about 390 automated tests (268 backend, 124 frontend) |
 
 ## Engineering highlights
 
